@@ -1,0 +1,36 @@
+# Configuración mínima para `supabase start` en local.
+# La fuente de las tablas y las políticas es supabase/migrations.
+
+project_id = "piquemos"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:8421"
+additional_redirect_urls = [
+  "http://127.0.0.1:8421/auth/callback",
+  "http://localhost:8421/auth/callback",
+]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[realtime]
+enabled = true
