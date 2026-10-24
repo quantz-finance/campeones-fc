@@ -1,14 +1,14 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { track } from '../../lib/analytics';
-import { useApp } from '../../state/app-provider';
-import { useQuery } from '../../state/use-query';
-import { Avatar } from '../../ui/avatar';
-import { Banner, Button, Gate } from '../../ui/controls';
-import { Panel, Screen, Top } from '../../ui/screen';
-import { colors, radius, space } from '../../ui/theme';
-import { T } from '../../ui/text';
+import { track } from '../../../lib/analytics';
+import { useApp } from '../../../state/app-provider';
+import { useQuery } from '../../../state/use-query';
+import { Avatar } from '../../../ui/avatar';
+import { Banner, Button, Gate } from '../../../ui/controls';
+import { Panel, Screen, Top } from '../../../ui/screen';
+import { colors, radius, space } from '../../../ui/theme';
+import { T } from '../../../ui/text';
 
 export default function Play() {
   const { repo, userId, version } = useApp();

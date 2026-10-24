@@ -3,10 +3,13 @@ self.addEventListener('install', function (event) {
 });
 
 self.addEventListener('activate', function (event) {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    self.clients.claim().then(function () {
+      return self.clients.matchAll({ type: 'window' });
+    }),
+  );
 });
 
-self.addEventListener('fetch', function (event) {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(fetch(event.request));
+self.addEventListener('fetch', function () {
+  // Sin caché y sin respondWith: el navegador sigue cada petición.
 });

@@ -1,11 +1,11 @@
-import { router } from 'expo-router';
+import { Link, router, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useApp } from '../../state/app-provider';
-import { useQuery } from '../../state/use-query';
-import { Button, Empty, Gate } from '../../ui/controls';
-import { Panel, Screen, Top } from '../../ui/screen';
-import { colors, space } from '../../ui/theme';
-import { T } from '../../ui/text';
+import { useApp } from '../../../state/app-provider';
+import { useQuery } from '../../../state/use-query';
+import { Button, Empty, Gate } from '../../../ui/controls';
+import { Panel, Screen, Top } from '../../../ui/screen';
+import { colors, space } from '../../../ui/theme';
+import { T } from '../../../ui/text';
 
 export default function Groups() {
   const { repo, userId, version } = useApp();
@@ -28,7 +28,8 @@ export default function Groups() {
             />
           ) : (
             groups.map((item) => (
-              <Pressable key={item.group.id} onPress={() => router.push(`/grupo/${item.group.id}`)}>
+              <Link key={item.group.id} href={`/grupo/${item.group.id}` as Href} asChild>
+              <Pressable>
                 <Panel>
                   <T variant="title">{item.group.name}</T>
                   <View style={styles.meta}>
@@ -40,6 +41,7 @@ export default function Groups() {
                   </T>
                 </Panel>
               </Pressable>
+              </Link>
             ))
           )
         }

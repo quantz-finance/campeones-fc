@@ -1,15 +1,15 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { branding } from '../../../config/branding';
-import { useApp } from '../../state/app-provider';
-import { useQuery } from '../../state/use-query';
-import { Avatar } from '../../ui/avatar';
-import { EloBadge, MatchRow, RecordStrip, StreakLine } from '../../ui/bits';
-import { Chip, Gate } from '../../ui/controls';
-import { firstName } from '../../ui/format';
-import { Panel, Screen } from '../../ui/screen';
-import { colors, space } from '../../ui/theme';
-import { T } from '../../ui/text';
+import { branding } from '../../../../config/branding';
+import { useApp } from '../../../state/app-provider';
+import { useQuery } from '../../../state/use-query';
+import { Avatar } from '../../../ui/avatar';
+import { EloBadge, MatchRow, RecordStrip, StreakLine } from '../../../ui/bits';
+import { Chip, Gate } from '../../../ui/controls';
+import { firstName } from '../../../ui/format';
+import { Panel, Screen } from '../../../ui/screen';
+import { colors, space } from '../../../ui/theme';
+import { T } from '../../../ui/text';
 
 export default function Home() {
   const { repo, userId, version, mode, profile } = useApp();

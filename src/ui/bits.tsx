@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { Link, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { branding } from '../../config/branding';
@@ -113,7 +113,8 @@ export function MatchRow({
     else result = match.winnerId === me ? 'Ganaste' : 'Perdiste';
   }
   return (
-    <Pressable style={styles.match} onPress={() => router.push(`/partido/${match.id}`)}>
+    <Link href={`/partido/${match.id}` as Href} asChild>
+    <Pressable style={styles.match}>
       <Avatar avatarKey={opponent?.avatarKey ?? 'rayo'} size={42} />
       <View style={styles.flex}>
         <T variant="strong">{opponent?.displayName ?? 'Rival'}</T>
@@ -126,6 +127,7 @@ export function MatchRow({
         <Ionicons name="chevron-forward" size={16} color={colors.faint} />
       </View>
     </Pressable>
+    </Link>
   );
 }
 

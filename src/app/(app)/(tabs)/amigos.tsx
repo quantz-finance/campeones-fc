@@ -1,16 +1,16 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { track } from '../../lib/analytics';
-import { useApp } from '../../state/app-provider';
-import { useQuery } from '../../state/use-query';
-import { PlayerLine } from '../../ui/bits';
-import { Banner, Button, Field, Gate } from '../../ui/controls';
-import { recordLine } from '../../ui/format';
-import { copyText, inviteUrl, openWhatsApp, shareInvite } from '../../ui/share';
-import { Panel, Screen, Top } from '../../ui/screen';
-import { colors } from '../../ui/theme';
-import { T } from '../../ui/text';
+import { track } from '../../../lib/analytics';
+import { useApp } from '../../../state/app-provider';
+import { useQuery } from '../../../state/use-query';
+import { PlayerLine } from '../../../ui/bits';
+import { Banner, Button, Field, Gate } from '../../../ui/controls';
+import { recordLine } from '../../../ui/format';
+import { copyText, inviteUrl, openWhatsApp, shareInvite } from '../../../ui/share';
+import { Panel, Screen, Top } from '../../../ui/screen';
+import { colors } from '../../../ui/theme';
+import { T } from '../../../ui/text';
 
 export default function Friends() {
   const { repo, userId, version } = useApp();

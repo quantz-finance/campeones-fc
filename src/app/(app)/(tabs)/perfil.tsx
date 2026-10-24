@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { avatars } from '../../../config/branding';
-import { useApp } from '../../state/app-provider';
-import { Avatar } from '../../ui/avatar';
-import { Banner, Button, Chip, Field } from '../../ui/controls';
-import { Panel, Screen, Top } from '../../ui/screen';
-import { colors, space } from '../../ui/theme';
-import { T } from '../../ui/text';
+import { avatars } from '../../../../config/branding';
+import { useApp } from '../../../state/app-provider';
+import { Avatar } from '../../../ui/avatar';
+import { Banner, Button, Chip, Field } from '../../../ui/controls';
+import { Panel, Screen, Top } from '../../../ui/screen';
+import { colors, space } from '../../../ui/theme';
+import { T } from '../../../ui/text';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Profile() {
