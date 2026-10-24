@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
+import { BracketIcon } from '../../../ui/broadcast';
 import { Button, Empty, Gate } from '../../../ui/controls';
 import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
@@ -39,7 +39,7 @@ export default function TournamentsTab() {
             list.map((item) => (
               <Pressable key={item.id} style={styles.card} onPress={() => router.push(`/torneo/${item.id}`)}>
                 <View style={[styles.flag, { backgroundColor: item.status === 'completed' ? colors.yellow : colors.red }]}>
-                  <Ionicons name="trophy" size={18} color={colors.ink} />
+                  <BracketIcon size={18} color={colors.ink} />
                 </View>
                 <View style={styles.flex}>
                   <T variant="title" style={{ fontStyle: 'italic' }} numberOfLines={1}>

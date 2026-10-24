@@ -6,7 +6,7 @@ import { standings } from '../../../domain/stats';
 import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { Crest, SectionHead } from '../../../ui/broadcast';
+import { SectionHead, Toro } from '../../../ui/broadcast';
 import { Button, Gate } from '../../../ui/controls';
 import { firstName, scoreText } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
@@ -57,7 +57,7 @@ export default function TournamentScreen() {
               {data.tournament.status === 'completed' ? (
                 <View style={styles.champ}>
                   <View style={styles.cupBox}>
-                    <Crest size={72} />
+                    <Toro size={84} />
                     <T variant="tiny" color={colors.ink}>
                       {data.group.name}
                     </T>

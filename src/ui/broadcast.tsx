@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-svg';
 import { avatarByKey, branding } from '../../config/branding';
 import { colors, font } from './theme';
 import { T } from './text';
+import { toroPaths, toroTransform, toroViewBox } from './toro-data';
 
 export function tabBarSpace(bottomInset: number): number {
   return 64 + Math.max(bottomInset, 10);
@@ -73,17 +74,33 @@ export function SkewBlock({
   );
 }
 
-/** Paralelogramo propio con banda de capitán. Sin copa, sin corona y sin estrellas. */
-export function Crest({ size = 36 }: { size?: number }) {
-  const height = Math.round(size * 1.18);
+/** Mascota: el toro que embiste. Sin copa, sin corona y sin estrellas. */
+export function Toro({ size = 36 }: { size?: number }) {
   return (
-    <Svg width={size} height={height} viewBox="0 0 56 66">
-      <Path d="M16 3 H50 L42 63 H8 Z" fill={colors.blue} stroke={colors.yellow} strokeWidth={3} />
-      <Path d="M13 26 H47 L45 38 H11 Z" fill={colors.red} />
-      <Path d="M13.4 26 H46.6" stroke={colors.yellow} strokeWidth={1.6} />
-      <Path d="M11.4 38 H44.6" stroke={colors.yellow} strokeWidth={1.6} />
+    <Svg width={size} height={size} viewBox={toroViewBox}>
+      <G transform={toroTransform}>
+        {toroPaths.map((path, index) => (
+          <Path key={index} d={path.d} fill={path.fill} fillOpacity={path.opacity ?? 1} />
+        ))}
+      </G>
     </Svg>
   );
+}
+
+/** Ícono de cuadro de torneo (llaves), en lugar de una copa. */
+export function BracketIcon({ size = 22, color = colors.text }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M3 4h5v6H3M3 14h5v6H3M8 7h4v10H8M12 12h9" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export type BrandIconName = keyof typeof Ionicons.glyphMap | 'bracket';
+
+export function BrandIcon({ name, size = 22, color = colors.text }: { name: BrandIconName; size?: number; color?: string }) {
+  if (name === 'bracket') return <BracketIcon size={size} color={color} />;
+  return <Ionicons name={name} size={size} color={color} />;
 }
 
 export function Wordmark({ size = 22 }: { size?: number }) {
@@ -92,7 +109,7 @@ export function Wordmark({ size = 22 }: { size?: number }) {
   const fc = Math.max(10, Math.round(size * 0.36));
   return (
     <View style={styles.wordmark}>
-      <Crest size={Math.round(size * 1.2)} />
+      <Toro size={Math.round(size * 2)} />
       <View style={styles.lockup}>
         <T variant="display" numberOfLines={1} style={{ fontSize: size, color: '#fff', fontStyle: 'italic', lineHeight: size }}>
           {lead}
@@ -301,7 +318,7 @@ export function QuickTile({
   kicker: string;
   title: string;
   color: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: BrandIconName;
   ink?: string;
   onPress: () => void;
 }) {
@@ -311,7 +328,7 @@ export function QuickTile({
         <T variant="label" color={ink} style={{ fontSize: 12, opacity: 0.85 }}>
           {kicker}
         </T>
-        <Ionicons name={icon} size={22} color={ink} />
+        <BrandIcon name={icon} size={22} color={ink} />
       </View>
       <T variant="display" style={{ fontSize: 26, color: ink, fontStyle: 'italic' }}>
         {title}
@@ -490,7 +507,7 @@ const styles = StyleSheet.create({
       : null),
   },
   stripes: { backgroundImage: stripe } as object,
-  wordmark: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  wordmark: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   lockup: { flexDirection: 'row', alignItems: 'flex-end', flexShrink: 1 },
   affiliation: { textTransform: 'none', letterSpacing: 0, textAlign: 'center' },
   skewWrap: { position: 'relative', alignSelf: 'flex-start' },

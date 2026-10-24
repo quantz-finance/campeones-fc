@@ -5,7 +5,7 @@ import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { MatchRow } from '../../../ui/bits';
-import { InitialsMark, SectionHead, Shield, SkewBlock } from '../../../ui/broadcast';
+import { BracketIcon, InitialsMark, SectionHead, Shield, SkewBlock } from '../../../ui/broadcast';
 import { Button, Gate } from '../../../ui/controls';
 import { elo, firstName, monogram, tagOf } from '../../../ui/format';
 import { copyText, inviteUrl, openWhatsApp } from '../../../ui/share';
@@ -167,7 +167,7 @@ export default function GroupDetail() {
               ) : (
                 data.tournaments.map((tournament) => (
                   <Pressable key={tournament.id} style={styles.tour} onPress={() => router.push(`/torneo/${tournament.id}`)}>
-                    <Ionicons name="trophy" size={18} color={colors.yellow} />
+                    <BracketIcon size={18} color={colors.yellow} />
                     <View style={styles.flex}>
                       <T variant="strong">{tournament.name}</T>
                       <T variant="tiny" color={colors.muted}>

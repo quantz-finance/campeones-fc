@@ -189,7 +189,7 @@ export default function Home() {
                   icon="stats-chart"
                   onPress={() => (group ? router.push(`/grupo/${group.group.id}`) : router.push('/grupos'))}
                 />
-                <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="trophy" onPress={() => router.push('/torneos')} />
+                <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="bracket" onPress={() => router.push('/torneos')} />
               </View>
             </>
           );

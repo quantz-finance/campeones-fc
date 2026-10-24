@@ -3,7 +3,7 @@ import { Link, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { branding } from '../../config/branding';
-import { Crest } from './broadcast';
+import { Toro } from './broadcast';
 import type { Match } from '../domain/types';
 import type { Profile } from '../data/types';
 import { colors, font, space } from './theme';
@@ -36,7 +36,7 @@ export function Mark({ size = 42 }: { size?: number }) {
 export function Wordmark() {
   return (
     <View style={styles.word}>
-      <Crest size={36} />
+      <Toro size={40} />
       <View>
         <View style={styles.lockup}>
           <T variant="title" style={{ fontStyle: 'italic' }}>

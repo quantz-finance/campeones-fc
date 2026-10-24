@@ -15,7 +15,7 @@ import { T } from '../../../ui/text';
 const stickerMeta = {
   first_win: { title: 'Primera', icon: 'flash' as const, color: colors.yellow, tilt: '-6deg' },
   streak_5: { title: 'En fuego', icon: 'flame' as const, color: colors.red, tilt: '4deg' },
-  tournament_champion: { title: 'Campeón', icon: 'trophy' as const, color: colors.blue, tilt: '-3deg' },
+  tournament_champion: { title: 'Campeón', icon: 'ribbon' as const, color: colors.blue, tilt: '-3deg' },
 };
 
 export default function Profile() {
