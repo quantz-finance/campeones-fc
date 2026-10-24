@@ -6,6 +6,7 @@ import type { ReportDraft } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { SkewBlock } from '../../../ui/broadcast';
+import { ChainCard } from '../../../ui/chain-card';
 import { Banner, Button, Gate } from '../../../ui/controls';
 import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
@@ -16,7 +17,7 @@ type Choice = 'me' | 'them' | 'draw';
 
 export default function MatchScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { repo, userId, version } = useApp();
+  const { repo, userId, version, mode } = useApp();
   const query = useQuery(() => repo.matchSnapshot(String(id), userId!), [repo, userId, version, id]);
   const [choice, setChoice] = useState<Choice>('me');
   const [withGoals, setWithGoals] = useState(true);
@@ -299,6 +300,9 @@ export default function MatchScreen() {
                     })
                   }
                 />
+              ) : null}
+              {mode === 'supabase' && snap.match.status === 'confirmed' && snap.youAre !== 'other' ? (
+                <ChainCard match={snap.match} userId={userId!} />
               ) : null}
               {snap.match.status === 'confirmed' && snap.youAre !== 'other' ? (
                 <Button

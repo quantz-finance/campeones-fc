@@ -8,6 +8,8 @@ import type { Profile } from '../data/types';
 import { initAnalytics, track } from '../lib/analytics';
 import { backendMode, type BackendMode } from '../lib/env';
 import { getSupabase } from '../lib/supabase';
+import { CavosLoader } from '../lib/cavos/loader';
+import { cavosLogout } from '../lib/cavos/session';
 
 type AppValue = {
   ready: boolean;
@@ -17,8 +19,6 @@ type AppValue = {
   repo: Repository;
   version: number;
   signInDemo: (userId: string) => void;
-  sendMagicLink: (email: string) => Promise<'demo' | 'sent'>;
-  signInGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => void;
 };
@@ -109,34 +109,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUserId(nextId);
         track('sign_in', { method: 'demo' });
       },
-      async sendMagicLink(email: string) {
-        if (mode === 'demo') {
-          const next = await repo.registerDemo(email);
-          writeDemoSession(next.id);
-          setUserId(next.id);
-          track('sign_in', { method: 'magic_demo' });
-          return 'demo';
-        }
-        const redirect = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
-        const { error } = await getSupabase().auth.signInWithOtp({
-          email: email.trim(),
-          options: { emailRedirectTo: redirect },
-        });
-        if (error) throw new Error(error.message);
-        track('magic_link_sent');
-        return 'sent';
-      },
-      async signInGoogle() {
-        if (mode !== 'supabase') return;
-        const redirect = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
-        const { error } = await getSupabase().auth.signInWithOAuth({
-          provider: 'google',
-          options: { redirectTo: redirect },
-        });
-        if (error) throw new Error(error.message);
-      },
       async signOut() {
-        if (mode === 'supabase') await getSupabase().auth.signOut();
+        if (mode === 'supabase') {
+          await cavosLogout();
+          await getSupabase().auth.signOut();
+        }
         writeDemoSession(null);
         setUserId(null);
         setProfile(null);
@@ -150,7 +127,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   if (mode === 'invalid' || !value) {
     return <InvalidEnv />;
   }
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+      {mode === 'supabase' ? <CavosLoader /> : null}
+      {children}
+    </AppContext.Provider>
+  );
 }
 
 function InvalidEnv() {

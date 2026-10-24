@@ -1,37 +1,87 @@
 import { Redirect } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
+import { track } from '../lib/analytics';
+import { authErrorText } from '../lib/cavos/auth-ux';
+import { cavosConfigured, cavosSupported } from '../lib/cavos/config';
+import { exchangeCavosSession, type WalletLink } from '../lib/cavos/session';
+import { cavosStore, useCavosState } from '../lib/cavos/store';
 import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
 import { Affiliation, Wordmark } from '../ui/broadcast';
-import { Banner, Button, Field } from '../ui/controls';
+import { Banner, Button } from '../ui/controls';
 import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
 
+type Phase = 'idle' | 'opening' | 'session';
+
 export default function Login() {
   const app = useApp();
-  const [email, setEmail] = useState('');
-  const [googleOpen, setGoogleOpen] = useState(false);
-  const [sent, setSent] = useState(false);
+  const { bridged } = useCavosState();
+  const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [wallet, setWallet] = useState<WalletLink | null>(null);
+  const exchanging = useRef(false);
+  const configured = app.mode === 'supabase' && cavosConfigured();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
 
-  if (app.ready && app.userId) return <Redirect href="/inicio" />;
+  // Cargar el SDK de Cavos al abrir la pantalla (también procesa la vuelta del login con Google/Apple).
+  useEffect(() => {
+    if (configured) cavosStore.want();
+  }, [configured]);
 
-  async function run(task: () => Promise<void>) {
-    setBusy(true);
-    setError(null);
-    try {
-      await task();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se pudo entrar.');
-    } finally {
-      setBusy(false);
+  // Cavos ya entró (modal o vuelta de OAuth) y todavía no hay sesión: cambiarla por una de Supabase.
+  useEffect(() => {
+    if (!configured || app.userId || !bridged || bridged.isLoading) return;
+    if (!bridged.isAuthenticated || !bridged.address || exchanging.current || error) return;
+    exchanging.current = true;
+    setPhase('session');
+    exchangeCavosSession(bridged)
+      .then((w) => {
+        setWallet(w);
+        track('sign_in', { method: 'cavos', wallet: w.status });
+      })
+      .catch((cause) => {
+        setError(cause instanceof Error ? authErrorText(cause.message) : 'No se pudo entrar.');
+        setPhase('idle');
+      })
+      .finally(() => {
+        exchanging.current = false;
+      });
+  }, [configured, app.userId, bridged, error]);
+
+  useEffect(() => {
+    if (bridged?.error) {
+      setError(bridged.error);
+      setPhase('idle');
     }
+  }, [bridged?.error]);
+
+  if (app.ready && app.userId && wallet?.status !== 'other_wallet') return <Redirect href="/inicio" />;
+
+  function openCavos() {
+    setError(null);
+    if (!bridged || bridged.isLoading) {
+      setPhase('opening');
+      cavosStore.want();
+      return;
+    }
+    if (bridged.isAuthenticated && bridged.address) return; // el efecto de arriba acuña la sesión
+    bridged.openModal();
   }
+
+  // Si tocaste el botón mientras el SDK cargaba, abrir el modal apenas esté listo.
+  useEffect(() => {
+    if (phase !== 'opening' || !bridged || bridged.isLoading) return;
+    setPhase('idle');
+    if (!bridged.isAuthenticated) bridged.openModal();
+  }, [phase, bridged]);
+
+  const busy = phase !== 'idle';
+  const label =
+    phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar con Cavos';
 
   return (
     <Screen
@@ -53,85 +103,59 @@ export default function Login() {
         <View style={[styles.bit, { backgroundColor: colors.yellow }]} />
         <View style={[styles.bit, { backgroundColor: colors.blue }]} />
       </View>
+
       {app.mode === 'demo' ? (
+        <>
+          <Banner
+            tone="accent"
+            title="Modo demostración"
+            body="Los datos viven en este navegador. Abre otra ventana e inicia sesión con otra cuenta para confirmar un partido entre los dos."
+          />
+          <View style={styles.list}>
+            <T variant="label" color={colors.yellow}>
+              Cuentas de ejemplo
+            </T>
+            {accounts.map((account) => (
+              <Pressable key={account.id} style={styles.account} onPress={() => app.signInDemo(account.id)}>
+                <Avatar avatarKey={account.avatarKey} name={account.displayName} size={40} />
+                <View style={styles.flex}>
+                  <T variant="strong">{account.displayName}</T>
+                  <T variant="tiny" color={colors.muted} style={styles.plain}>
+                    @{account.username}
+                  </T>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </>
+      ) : configured ? (
+        <>
+          <Button label={label} disabled={busy} onPress={openCavos} />
+          <T color={colors.muted}>
+            Entra con Google, Apple o tu correo. Al entrar recibes tu billetera en Stellar y cada resultado que confirmen los dos queda registrado ahí.
+          </T>
+        </>
+      ) : (
         <Banner
-          tone="accent"
-          title="Modo demostración"
-          body="Los datos viven en este navegador. Abre otra ventana e inicia sesión con otra cuenta para confirmar un partido entre los dos."
-        />
-      ) : null}
-      <Button
-        label={googleOpen ? 'Ocultar cuentas' : 'Continuar con Google'}
-        tone="ghost"
-        disabled={busy}
-        onPress={() => {
-          if (app.mode === 'supabase') {
-            void run(() => app.signInGoogle());
-            return;
+          tone="warn"
+          title="Cavos no configurado"
+          body={
+            cavosSupported
+              ? 'La entrada con Cavos (Google, Apple o correo) se activa cuando el equipo agregue el appId de Cavos. Vuelve pronto.'
+              : 'Por ahora la entrada con Cavos funciona en la versión web. Ábrela desde el navegador.'
           }
-          setGoogleOpen((open) => !open);
-        }}
-      />
-      {googleOpen ? (
-        <View style={styles.list}>
-          <T variant="label" color={colors.muted}>
-            Elige una cuenta de ejemplo. Con Supabase, este botón abre Google.
-          </T>
-          {accounts.map((account) => (
-            <Pressable key={account.id} style={styles.account} onPress={() => app.signInDemo(account.id)}>
-              <Avatar avatarKey={account.avatarKey} name={account.displayName} />
-              <View style={styles.flex}>
-                <T variant="strong">{account.displayName}</T>
-                <T variant="tiny" color={colors.muted} style={styles.plain}>
-                  @{account.username}
-                </T>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-      <Field label="Correo" value={email} onChangeText={setEmail} placeholder="tu@correo.com" keyboardType="email-address" />
-      <Button
-        label={busy ? 'Enviando…' : 'Enviarme un enlace mágico'}
-        disabled={busy || email.trim().length < 5}
-        onPress={() =>
-          void run(async () => {
-            const result = await app.sendMagicLink(email);
-            if (result === 'sent') setSent(true);
-          })
-        }
-      />
-      {sent ? (
+        />
+      )}
+
+      {wallet?.status === 'other_wallet' ? (
         <Banner
-          tone="accent"
-          title="Revisa tu correo"
-          body={`El enlace te devuelve a ${branding.name}. Si no llega, mira la carpeta de spam.`}
+          tone="warn"
+          title="Tu cuenta ya tiene otra billetera"
+          body="Entraste con un método distinto al de la primera vez. Tu marcador está a salvo, pero para firmar resultados entra con el mismo método que usaste antes."
         />
       ) : null}
-      {app.mode === 'demo' ? (
-        <T variant="tiny" color={colors.faint} style={styles.plain}>
-          En demostración el enlace se abre aquí mismo. Prueba andre@{branding.demoEmailDomain} o cualquier correo nuevo.
-        </T>
-      ) : null}
+      {wallet?.status === 'other_wallet' ? <Button label="Seguir al inicio" tone="ghost" onPress={() => setWallet(null)} /> : null}
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
-      {app.mode === 'demo' && !googleOpen ? (
-        <View style={styles.list}>
-          <T variant="label" color={colors.yellow}>
-            Cuentas de ejemplo
-          </T>
-          {accounts.map((account) => (
-            <Pressable key={account.id} style={styles.account} onPress={() => app.signInDemo(account.id)}>
-              <Avatar avatarKey={account.avatarKey} name={account.displayName} size={40} />
-              <View style={styles.flex}>
-                <T variant="strong">{account.displayName}</T>
-                <T variant="tiny" color={colors.muted} style={styles.plain}>
-                  @{account.username}
-                </T>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
     </Screen>
   );
 }
