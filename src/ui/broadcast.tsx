@@ -101,7 +101,7 @@ export function SectionHead({
       </SkewBlock>
       <View style={styles.headLine} />
       {action ? (
-        <Pressable onPress={onAction} hitSlop={8} accessibilityRole="button">
+        <Pressable onPress={onAction} hitSlop={8}>
           <T variant="label" color={colors.yellow} style={{ fontSize: 12 }}>
             {action}
           </T>
@@ -183,7 +183,7 @@ export function ScoreBar({
 }) {
   return (
     <View style={styles.scoreWrap}>
-      <Pressable onPress={onPress} disabled={!onPress} style={styles.scoreRow} accessibilityRole={onPress ? 'button' : undefined}>
+      <Pressable onPress={onPress} disabled={!onPress} style={styles.scoreRow}>
         <View style={[styles.scoreSide, { backgroundColor: colors.red }]}>
           <T variant="display" style={styles.scoreTag}>
             {leftTag}
@@ -200,7 +200,7 @@ export function ScoreBar({
           </T>
         </View>
         {action ? (
-          <Pressable onPress={onAction ?? onPress} accessibilityRole="button" style={styles.scoreActionHit}>
+          <Pressable onPress={onAction ?? onPress} style={styles.scoreActionHit}>
             {actionTone === 'yellow' ? (
               <SkewBlock color={colors.yellow} shadow={colors.red} padH={10} padV={8} angle="-8deg">
                 <T variant="title" style={{ fontSize: 14, color: colors.ink }}>
@@ -229,7 +229,6 @@ export function ScoreBar({
 }
 
 export function Ticker({ text }: { text: string }) {
-  const loop = `${text}     ·     ${text}     ·     `;
   return (
     <View style={styles.ticker}>
       <SkewBlock color={colors.yellow} padH={8} padV={3} angle="-10deg">
@@ -238,23 +237,8 @@ export function Ticker({ text }: { text: string }) {
         </T>
       </SkewBlock>
       <View style={styles.tickerTrack}>
-        <T
-          variant="label"
-          numberOfLines={1}
-          style={[
-            styles.tickerText,
-            Platform.OS === 'web'
-              ? ({
-                  animationName: 'piquemos-ticker',
-                  animationDuration: '16s',
-                  animationIterationCount: 'infinite',
-                  animationTimingFunction: 'linear',
-                  whiteSpace: 'nowrap',
-                } as object)
-              : null,
-          ]}
-        >
-          {loop}
+        <T variant="label" numberOfLines={1} style={styles.tickerText}>
+          {text}
         </T>
       </View>
     </View>
@@ -277,7 +261,7 @@ export function QuickTile({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={[styles.tile, { backgroundColor: color }]} accessibilityRole="button">
+    <Pressable onPress={onPress} style={[styles.tile, { backgroundColor: color }]}>
       <View style={styles.tileTop}>
         <T variant="label" color={ink} style={{ fontSize: 12, opacity: 0.85 }}>
           {kicker}
@@ -503,10 +487,10 @@ const styles = StyleSheet.create({
   },
   note: { backgroundColor: '#07080f', paddingHorizontal: 10, paddingVertical: 6, marginTop: 0 },
   ticker: {
-    height: 36,
+    height: 40,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     backgroundColor: '#05060f',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',

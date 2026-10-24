@@ -116,7 +116,7 @@ export function MatchRow({
   }
   return (
     <Link href={`/partido/${match.id}` as Href} asChild>
-      <Pressable style={styles.match} accessibilityRole="button">
+      <Pressable style={styles.match}>
         <View style={[styles.side, { backgroundColor: colors.red }]}>
           <T variant="display" style={styles.sideText}>
             {tagOf(meName)}
@@ -167,7 +167,7 @@ export function StreakLine({ record }: { record: SideRecord }) {
 
 export function PlayerLine({ profile, detail, onPress }: { profile: Profile; detail: string; onPress?: () => void }) {
   return (
-    <Pressable style={styles.match} onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined}>
+    <Pressable style={styles.match} onPress={onPress} disabled={!onPress}>
       <Avatar avatarKey={profile.avatarKey} name={profile.displayName} />
       <View style={styles.flex}>
         <T variant="strong">{profile.displayName}</T>

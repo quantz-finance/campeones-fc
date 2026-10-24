@@ -26,7 +26,7 @@ export default function Groups() {
             />
           ) : (
             groups.map((item) => (
-              <Pressable key={item.group.id} style={styles.card} onPress={() => router.push(`/grupo/${item.group.id}`)} accessibilityRole="button">
+              <Pressable key={item.group.id} style={styles.card} onPress={() => router.push(`/grupo/${item.group.id}`)}>
                 <Shield letters={monogram(item.group.name)} />
                 <View style={styles.flex}>
                   <T variant="title" style={{ fontStyle: 'italic' }} numberOfLines={1}>

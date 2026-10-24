@@ -36,7 +36,7 @@ export function Screen({
         ) : (
           <View style={[styles.flex, { paddingBottom: bottom }]}>{body}</View>
         )}
-        {footer ? <View style={[styles.footer, docked ? { bottom: tabBarSpace(insets.bottom) } : { bottom: 0 }]}>{footer}</View> : null}
+        {footer ? <View style={[styles.footer, docked ? { bottom: tabBarSpace(insets.bottom) + 2 } : { bottom: 0 }]}>{footer}</View> : null}
         {dock ? <TabReplica active={dock} /> : null}
       </View>
     </View>
@@ -58,7 +58,7 @@ export function Top({
     <View style={styles.top}>
       <View style={styles.topText}>
         {back ? (
-          <Pressable onPress={() => router.back()} hitSlop={8} style={styles.back} accessibilityRole="button" accessibilityLabel="Volver">
+          <Pressable onPress={() => router.back()} hitSlop={8} style={styles.back} accessibilityLabel="Volver">
             <View style={styles.unskew}>
               <Ionicons name="chevron-back" size={22} color={colors.text} />
             </View>

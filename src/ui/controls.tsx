@@ -24,7 +24,6 @@ export function Button({
   const border = tone === 'ghost' ? 'rgba(255,255,255,0.45)' : tone === 'danger' ? colors.red : undefined;
   return (
     <Pressable
-      accessibilityRole="button"
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [styles.hit, (pressed || disabled) && styles.dim]}
@@ -95,7 +94,7 @@ export function Chip({
   onPress?: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button">
+    <Pressable onPress={onPress}>
       <SkewBlock color={active ? colors.red : 'rgba(255,255,255,0.06)'} shadow={active ? colors.yellow : undefined} border={active ? undefined : 'rgba(255,255,255,0.2)'} padH={12} padV={8}>
         <T variant="label" color={active ? '#fff' : colors.text}>
           {label}

@@ -229,7 +229,7 @@ export default function MatchScreen() {
                     {snap.allowDraw ? <ChoiceButton label="Empate" active={choice === 'draw'} onPress={() => pick('draw')} /> : null}
                     <ChoiceButton label={firstName(them.displayName)} active={choice === 'them'} onPress={() => pick('them')} />
                   </View>
-                  <Pressable onPress={() => setWithGoals((value) => !value)} accessibilityRole="button">
+                  <Pressable onPress={() => setWithGoals((value) => !value)}>
                     <T variant="label" color={colors.yellow}>
                       {withGoals ? 'Quitar el marcador' : 'Anotar goles'}
                     </T>
@@ -266,7 +266,7 @@ export default function MatchScreen() {
                   <T color={colors.muted}>Si coinciden, el marcador queda cerrado y el Elo se mueve.</T>
                   <Pressable
                     onPress={() => pick(choice === 'them' ? 'me' : 'them')}
-                    accessibilityRole="button"
+                   
                   >
                     <T variant="label" color={colors.cyan}>
                       ¿No coincide? Reportar diferencia
@@ -319,7 +319,7 @@ export default function MatchScreen() {
 function MiniStep({ value, onDec, onInc }: { value: number; onDec: () => void; onInc: () => void }) {
   return (
     <View style={styles.mini}>
-      <Pressable onPress={onDec} hitSlop={6} accessibilityRole="button" accessibilityLabel="Bajar">
+      <Pressable onPress={onDec} hitSlop={6} accessibilityLabel="Bajar">
         <T variant="title" color={colors.ink}>
           −
         </T>
@@ -327,7 +327,7 @@ function MiniStep({ value, onDec, onInc }: { value: number; onDec: () => void; o
       <T variant="tiny" color={colors.muted} style={styles.plain}>
         {value}
       </T>
-      <Pressable onPress={onInc} hitSlop={6} accessibilityRole="button" accessibilityLabel="Subir">
+      <Pressable onPress={onInc} hitSlop={6} accessibilityLabel="Subir">
         <T variant="title" color={colors.ink}>
           +
         </T>
@@ -338,7 +338,7 @@ function MiniStep({ value, onDec, onInc }: { value: number; onDec: () => void; o
 
 function ChoiceButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={styles.choiceHit} accessibilityRole="button">
+    <Pressable onPress={onPress} style={styles.choiceHit}>
       <SkewBlock color={active ? colors.red : 'rgba(255,255,255,0.06)'} shadow={active ? colors.yellow : undefined} border={active ? undefined : 'rgba(255,255,255,0.16)'} padH={8} padV={10} fill>
         <T variant="label" color="#fff" style={{ textAlign: 'center' }}>
           {label}

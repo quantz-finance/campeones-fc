@@ -37,7 +37,7 @@ export default function TournamentsTab() {
             />
           ) : (
             list.map((item) => (
-              <Pressable key={item.id} style={styles.card} onPress={() => router.push(`/torneo/${item.id}`)} accessibilityRole="button">
+              <Pressable key={item.id} style={styles.card} onPress={() => router.push(`/torneo/${item.id}`)}>
                 <View style={[styles.flag, { backgroundColor: item.status === 'completed' ? colors.yellow : colors.red }]}>
                   <Ionicons name="trophy" size={18} color={item.status === 'completed' ? colors.ink : '#fff'} />
                 </View>

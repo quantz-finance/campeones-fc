@@ -32,7 +32,7 @@ export default function GroupDetail() {
                 back
                 right={
                   <Pressable
-                    accessibilityRole="button"
+                   
                     onPress={() => {
                       void repo.createInvite(userId!).then((invite) => {
                         void copyText(inviteUrl(invite.code));
@@ -76,7 +76,12 @@ export default function GroupDetail() {
               <View style={styles.table}>
                 <View style={styles.headRow}>
                   {['#', 'Jugador', 'PJ', 'G', 'P', 'ELO', 'Forma'].map((label) => (
-                    <T key={label} variant="tiny" color={colors.faint} style={label === 'Jugador' ? styles.name : styles.cell}>
+                    <T
+                      key={label}
+                      variant="tiny"
+                      color={colors.faint}
+                      style={label === 'Jugador' ? styles.name : label === 'ELO' ? styles.elo : label === 'Forma' ? styles.formHead : styles.cell}
+                    >
                       {label}
                     </T>
                   ))}
@@ -97,7 +102,7 @@ export default function GroupDetail() {
                       <T style={styles.cell}>{row.played}</T>
                       <T style={styles.cell}>{row.wins}</T>
                       <T style={styles.cell}>{row.losses}</T>
-                      <T variant="strong" style={styles.cell}>
+                      <T variant="strong" numberOfLines={1} style={styles.elo}>
                         {elo(row.rating)}
                       </T>
                       <View style={[styles.cell, styles.form]}>
@@ -200,9 +205,11 @@ const styles = StyleSheet.create({
   bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(8,12,36,0.72)', paddingVertical: 6 },
   leaderRow: { borderLeftWidth: 3, borderLeftColor: colors.yellow },
   name: { flex: 1.4 },
-  cell: { width: 32, textAlign: 'center' },
+  cell: { width: 28, textAlign: 'center', fontSize: 13 },
+  elo: { width: 48, textAlign: 'right', fontSize: 13, lineHeight: 16 },
   player: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  form: { width: 48, flexDirection: 'row', gap: 2, justifyContent: 'flex-end' },
+  form: { width: 44, flexDirection: 'row', gap: 2, justifyContent: 'flex-end' },
+  formHead: { width: 44, textAlign: 'right' },
   matrix: { backgroundColor: 'rgba(8,12,36,0.72)', padding: 8, gap: 4 },
   matrixRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   matrixName: { width: 36 },

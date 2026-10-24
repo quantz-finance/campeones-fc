@@ -37,7 +37,7 @@ export default function Home() {
               <View style={styles.brandRow}>
                 <Wordmark />
                 <Pressable
-                  accessibilityRole="button"
+                 
                   accessibilityLabel="Pendientes"
                   onPress={() => {
                     const next = home.actionMatches[0];
@@ -60,7 +60,7 @@ export default function Home() {
                   Modo demostración · los datos viven en este navegador
                 </T>
               ) : null}
-              <Pressable style={styles.hero} onPress={() => router.push('/perfil')} accessibilityRole="button">
+              <Pressable style={styles.hero} onPress={() => router.push('/perfil')}>
                 <View style={styles.heroLeft}>
                   <View
                     style={[
@@ -81,7 +81,7 @@ export default function Home() {
                     Partidos
                   </T>
                   <View style={styles.heroMark}>
-                    <InitialsMark name={home.profile.displayName} avatarKey={home.profile.avatarKey} size={108} fontSize={36} />
+                    <InitialsMark name={home.profile.displayName} avatarKey={home.profile.avatarKey} size={78} fontSize={28} />
                   </View>
                 </View>
                 <View style={styles.heroRight}>
@@ -238,8 +238,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  hero: { flexDirection: 'row', minHeight: 210, overflow: 'hidden', backgroundColor: colors.navy },
-  heroLeft: { width: '38%', backgroundColor: colors.red, padding: 12, justifyContent: 'flex-end', overflow: 'hidden' },
+  hero: { flexDirection: 'row', minHeight: 220, overflow: 'hidden', backgroundColor: colors.navy },
+  heroLeft: { width: '38%', backgroundColor: colors.red, paddingTop: 14, paddingLeft: 12, paddingBottom: 12, justifyContent: 'flex-start', overflow: 'hidden' },
   stripes: {
     position: 'absolute',
     top: 0,
@@ -248,8 +248,8 @@ const styles = StyleSheet.create({
     left: 0,
     opacity: 0.45,
   },
-  bigNum: { fontSize: 64, fontStyle: 'italic', color: '#fff', lineHeight: 66 },
-  heroMark: { position: 'absolute', right: -18, bottom: 18, opacity: 0.95 },
+  bigNum: { fontSize: 68, fontStyle: 'italic', color: '#fff', lineHeight: 70 },
+  heroMark: { position: 'absolute', right: -16, bottom: 8, opacity: 0.9 },
   heroRight: { flex: 1, padding: 12, gap: 6, justifyContent: 'center' },
   heroName: { fontSize: 36, fontStyle: 'italic', lineHeight: 36 },
   eloRow: { flexDirection: 'row', alignItems: 'stretch' },

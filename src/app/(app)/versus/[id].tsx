@@ -3,7 +3,7 @@ import { Pressable, Share, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { CompareRow, EloChart, InitialsMark, SectionHead } from '../../../ui/broadcast';
+import { CompareRow, EloChart, SectionHead } from '../../../ui/broadcast';
 import { Gate } from '../../../ui/controls';
 import { elo, firstName, formatDay, goalsPerMatch, tagOf } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
@@ -36,7 +36,7 @@ export default function Versus() {
                 back
                 right={
                   <Pressable
-                    accessibilityRole="button"
+                   
                     accessibilityLabel="Compartir"
                     style={styles.share}
                     onPress={() => {
@@ -49,11 +49,11 @@ export default function Versus() {
                 }
               />
               <View style={styles.banner}>
-                <View style={[styles.half, { backgroundColor: colors.red }]}>
+                <View style={[styles.half, { backgroundColor: colors.red, paddingLeft: 12 }]}>
                   <T variant="display" style={styles.tag}>
                     {tagOf(data.you.displayName)}
                   </T>
-                  <T variant="title" style={{ fontSize: 20, fontStyle: 'italic' }} numberOfLines={1}>
+                  <T variant="title" style={styles.bannerName} numberOfLines={1}>
                     {firstName(data.you.displayName)}
                   </T>
                   <T variant="tiny" color="#fff">
@@ -65,9 +65,6 @@ export default function Versus() {
                   <T variant="label" color="#fff">
                     Victorias
                   </T>
-                  <View style={styles.mark}>
-                    <InitialsMark name={data.you.displayName} avatarKey={data.you.avatarKey} size={72} />
-                  </View>
                 </View>
                 <View style={styles.center}>
                   <T variant="display" style={styles.played}>
@@ -80,11 +77,11 @@ export default function Versus() {
                     {data.youRecord.draws} emp.
                   </T>
                 </View>
-                <View style={[styles.half, { backgroundColor: colors.blue, alignItems: 'flex-end' }]}>
+                <View style={[styles.half, { backgroundColor: colors.blue, alignItems: 'flex-end', paddingRight: 12 }]}>
                   <T variant="display" style={styles.tag}>
                     {tagOf(data.opponent.displayName)}
                   </T>
-                  <T variant="title" style={{ fontSize: 20, fontStyle: 'italic' }} numberOfLines={1}>
+                  <T variant="title" style={[styles.bannerName, { textAlign: 'right' }]} numberOfLines={1}>
                     {firstName(data.opponent.displayName)}
                   </T>
                   <T variant="tiny" color="#fff">
@@ -96,9 +93,6 @@ export default function Versus() {
                   <T variant="label" color="#fff">
                     Victorias
                   </T>
-                  <View style={[styles.mark, { left: undefined, right: 8 }]}>
-                    <InitialsMark name={data.opponent.displayName} avatarKey={data.opponent.avatarKey} size={72} />
-                  </View>
                 </View>
               </View>
               <View style={styles.legendBar}>
@@ -223,6 +217,7 @@ const styles = StyleSheet.create({
   banner: { flexDirection: 'row', minHeight: 168, overflow: 'hidden' },
   half: { flex: 1, padding: 10, gap: 2, overflow: 'hidden' },
   tag: { fontSize: 13, color: 'rgba(255,255,255,0.8)' },
+  bannerName: { fontSize: 18, fontStyle: 'italic', maxWidth: 120 },
   wins: { fontSize: 52, fontStyle: 'italic', lineHeight: 52, marginTop: 6 },
   mark: { position: 'absolute', top: 36, left: 8, opacity: 0.9 },
   center: {

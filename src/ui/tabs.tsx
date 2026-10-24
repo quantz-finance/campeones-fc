@@ -38,7 +38,7 @@ function Bar({
           return (
             <Pressable
               key={item.name}
-              accessibilityRole="button"
+             
               accessibilityLabel={item.label}
               accessibilityState={{ selected: on }}
               onPress={() => onPress(item.name)}
@@ -57,7 +57,7 @@ function Bar({
         return (
           <Pressable
             key={item.name}
-            accessibilityRole="button"
+           
             accessibilityLabel={item.label}
             accessibilityState={{ selected: on }}
             onPress={() => onPress(item.name)}

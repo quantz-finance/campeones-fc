@@ -57,10 +57,10 @@ export default function Profile() {
             Ficha del jugador
           </T>
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Compartir ficha" style={styles.iconBtn} onPress={() => router.push('/estadisticas')}>
+        <Pressable accessibilityLabel="Compartir ficha" style={styles.iconBtn} onPress={() => router.push('/estadisticas')}>
           <Ionicons name="share-outline" size={18} color="#fff" />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Editar ficha" style={styles.iconBtn} onPress={() => setEditing((value) => !value)}>
+        <Pressable accessibilityLabel="Editar ficha" style={styles.iconBtn} onPress={() => setEditing((value) => !value)}>
           <Ionicons name={editing ? 'close' : 'sunny-outline'} size={18} color="#fff" />
         </Pressable>
       </View>
