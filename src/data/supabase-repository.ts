@@ -190,7 +190,7 @@ export function createSupabaseRepository(): Repository {
     for (const listener of listeners) listener();
   };
   const channel = supabase
-    .channel('piquemos')
+    .channel('campeones-fc')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, notify)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'match_reports' }, notify)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'friendships' }, notify)

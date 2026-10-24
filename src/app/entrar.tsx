@@ -36,7 +36,7 @@ export default function Login() {
   return (
     <Screen>
       <View style={styles.hero}>
-        <Wordmark size={34} />
+        <Wordmark size={32} stacked />
         <T variant="label" color={colors.yellow}>
           {branding.company} · {branding.country}
         </T>
@@ -95,10 +95,16 @@ export default function Login() {
           })
         }
       />
-      {sent ? <Banner tone="accent" title="Revisa tu correo" body="El enlace te devuelve a Piquemos. Si no llega, mira la carpeta de spam." /> : null}
+      {sent ? (
+        <Banner
+          tone="accent"
+          title="Revisa tu correo"
+          body={`El enlace te devuelve a ${branding.name}. Si no llega, mira la carpeta de spam.`}
+        />
+      ) : null}
       {app.mode === 'demo' ? (
         <T variant="tiny" color={colors.faint} style={styles.plain}>
-          En demostración el enlace se abre aquí mismo. Prueba andre@demo.piquemos o cualquier correo nuevo.
+          En demostración el enlace se abre aquí mismo. Prueba andre@{branding.demoEmailDomain} o cualquier correo nuevo.
         </T>
       ) : null}
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}

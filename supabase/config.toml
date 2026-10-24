@@ -1,7 +1,7 @@
 # Configuración mínima para `supabase start` en local.
 # La fuente de las tablas y las políticas es supabase/migrations.
 
-project_id = "piquemos"
+project_id = "campeones-fc"
 
 [api]
 enabled = true

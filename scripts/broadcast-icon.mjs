@@ -53,14 +53,37 @@ function insideRound(nx, ny, radius) {
   return dx * dx + dy * dy <= radius * radius;
 }
 
+function shieldHalf(t) {
+  if (t < 0.46) return 0.3;
+  return 0.3 * (1 - (t - 0.46) / 0.54);
+}
+
+function inShield(nx, ny, pad = 0) {
+  const t = (ny - 0.2) / 0.7;
+  if (t < -0.02 || t > 1.02) return false;
+  const half = shieldHalf(Math.min(1, Math.max(0, t))) + pad;
+  return Math.abs(nx - 0.5) <= half;
+}
+
+function inCrown(nx, ny) {
+  if (ny < 0.08 || ny > 0.2) return false;
+  const span = (ny - 0.08) / 0.12;
+  return [0.34, 0.5, 0.66].some((cx) => Math.abs(nx - cx) <= 0.07 * span);
+}
+
 function paint(x, y, size, transparent) {
   const nx = (x + 0.5) / size;
   const ny = (y + 0.5) / size;
-  if (!insideRound(nx, ny, 0.18)) return transparent ? [0, 0, 0, 0] : [5, 7, 26, 255];
-  const skew = nx + (ny - 0.5) * 0.28;
-  if (ny > 0.34 && ny < 0.66 && skew > 0.28 && skew < 0.86) return [255, 212, 0, 255];
-  if (nx < 0.46 && ny > 0.18 && ny < 0.82) return [255, 43, 74, 255];
-  if (nx > 0.58 && ny > 0.22 && ny < 0.78) return [47, 107, 255, 255];
+  const outside = !insideRound(nx, ny, 0.18);
+  if (outside && !transparent) return [5, 7, 26, 255];
+  const crown = inCrown(nx, ny);
+  const body = inShield(nx, ny);
+  const rim = inShield(nx, ny, 0.028) && !body;
+  if (crown) return [255, 212, 0, 255];
+  if (rim) return [255, 212, 0, 255];
+  if (body && ny > 0.46 && ny < 0.56) return [255, 43, 74, 255];
+  if (body) return [47, 107, 255, 255];
+  if (transparent || outside) return [0, 0, 0, 0];
   return [5, 7, 26, 255];
 }
 

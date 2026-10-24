@@ -1,11 +1,11 @@
 import { buildSeed } from './seed';
 import type { World } from './types';
 
-export const DEMO_STORAGE_KEY = 'piquemos.demo.v1';
-export const DEMO_SESSION_KEY = 'piquemos.session';
-export const DEMO_INVITE_KEY = 'piquemos.invite';
+export const DEMO_STORAGE_KEY = 'campeonesfc.demo.v1';
+export const DEMO_SESSION_KEY = 'campeonesfc.session';
+export const DEMO_INVITE_KEY = 'campeonesfc.invite';
 
-const channelName = 'piquemos-demo';
+const channelName = 'campeones-fc-demo';
 
 export function loadDemoWorld(): World {
   if (typeof localStorage === 'undefined') return buildSeed();
@@ -32,7 +32,7 @@ export function saveDemoWorld(world: World) {
 
 function demoChannel(): BroadcastChannel | null {
   if (typeof BroadcastChannel === 'undefined') return null;
-  const globalKey = '__piquemosChannel';
+  const globalKey = '__campeonesChannel';
   const holder = globalThis as typeof globalThis & { [globalKey]?: BroadcastChannel };
   if (!holder[globalKey]) holder[globalKey] = new BroadcastChannel(channelName);
   return holder[globalKey];

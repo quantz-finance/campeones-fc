@@ -1,13 +1,14 @@
 /**
- * Identidad de Piquemos. Cambia el nombre, la frase y los colores aquí:
+ * Identidad de Campeones FC. Cambia el nombre, la frase y los colores aquí:
  * el resto de la app, el manifest y los metadatos salen de este archivo.
  *
  * Paleta "Broadcast": gráficos de transmisión sobre azul marino.
  */
 export const branding = {
-  name: 'Piquemos',
-  slug: 'piquemos',
-  scheme: 'piquemos',
+  name: 'Campeones FC',
+  slug: 'campeones-fc',
+  scheme: 'campeones-fc',
+  demoEmailDomain: 'demo.campeonesfc',
   company: 'Quantz',
   country: 'Costa Rica',
   tagline:

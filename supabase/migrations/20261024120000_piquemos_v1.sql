@@ -1,4 +1,4 @@
--- Piquemos V1. Auth, amistades, partidos con doble confirmación, grupos, torneos y trofeos.
+-- Campeones FC V1. Auth, amistades, partidos con doble confirmación, grupos, torneos y trofeos.
 -- Las constantes de tiempo coinciden con src/domain/rules.ts:
 --   partido amistoso sin aceptar: 12 horas
 --   partido de torneo sin aceptar: 72 horas

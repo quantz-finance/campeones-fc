@@ -8,6 +8,7 @@ import {
   mutateSubmit,
   syncAchievements,
 } from './mutate';
+import { branding } from '../../config/branding';
 import { emptyWorld, type UserAccount, type World } from './types';
 
 export const IDS = {
@@ -34,7 +35,7 @@ function account(
     username,
     displayName,
     avatarKey,
-    email: `${username}@demo.piquemos`,
+    email: `${username}@${branding.demoEmailDomain}`,
   };
 }
 

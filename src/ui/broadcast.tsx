@@ -73,13 +73,46 @@ export function SkewBlock({
   );
 }
 
-export function Wordmark({ size = 26 }: { size?: number }) {
+/** Escudo propio: corona de tres puntas y banda de capitán. Sin copa ni estrellas. */
+export function Crest({ size = 36 }: { size?: number }) {
+  const height = Math.round(size * 1.16);
   return (
-    <SkewBlock color={colors.red} shadow={colors.yellow} padH={10} padV={3} angle="-12deg">
-      <T variant="display" style={{ fontSize: size, color: '#fff', fontStyle: 'italic' }}>
-        {branding.name}
-      </T>
-    </SkewBlock>
+    <Svg width={size} height={height} viewBox="0 0 64 74">
+      <Path d="M16 10 L22 2 L27 10 L32 1 L37 10 L42 2 L48 10 Z" fill={colors.yellow} />
+      <Path
+        d="M32 12 C32 12 12 16 10 22 L10 42 C10 56 20 66 32 72 C44 66 54 56 54 42 L54 22 C52 16 32 12 32 12 Z"
+        fill={colors.blue}
+        stroke={colors.yellow}
+        strokeWidth={3}
+      />
+      <Path d="M13 36 H51 V45 H13 Z" fill={colors.red} />
+      <Path d="M14 36 H50" stroke={colors.yellow} strokeWidth={1.4} />
+      <Path d="M15 45 H49" stroke={colors.yellow} strokeWidth={1.4} />
+    </Svg>
+  );
+}
+
+export function Wordmark({ size = 17, stacked = false }: { size?: number; stacked?: boolean }) {
+  const [lead, ...rest] = branding.name.split(' ');
+  const tail = rest.join(' ');
+  return (
+    <View style={styles.wordmark}>
+      <Crest size={stacked ? Math.round(size * 1.35) : Math.round(size * 1.7)} />
+      {stacked && tail ? (
+        <View>
+          <T variant="display" style={{ fontSize: size, color: '#fff', fontStyle: 'italic', lineHeight: size }}>
+            {lead}
+          </T>
+          <T variant="display" style={{ fontSize: size * 0.62, color: colors.yellow, fontStyle: 'italic', lineHeight: size * 0.7 }}>
+            {tail}
+          </T>
+        </View>
+      ) : (
+        <T variant="display" numberOfLines={1} style={{ fontSize: size, color: '#fff', fontStyle: 'italic', lineHeight: size }}>
+          {branding.name}
+        </T>
+      )}
+    </View>
   );
 }
 
@@ -430,7 +463,7 @@ export function Cup({ size = 86 }: { size?: number }) {
       />
       <Path d="M22 22 h-10 c0 14 6 20 12 22" stroke={colors.yellow} strokeWidth="4" fill="none" />
       <Path d="M64 22 h10 c0 14 -6 20 -12 22" stroke={colors.yellow} strokeWidth="4" fill="none" />
-      <Polygon points="43,28 46,36 54,36 48,41 50,49 43,44 36,49 38,41 32,36 40,36" fill={colors.red} />
+      <Path d="M28 36 h30 v7 h-30 z" fill={colors.red} />
     </Svg>
   );
 }
@@ -459,6 +492,7 @@ const styles = StyleSheet.create({
       : null),
   },
   stripes: { backgroundImage: stripe } as object,
+  wordmark: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   skewWrap: { position: 'relative', alignSelf: 'flex-start' },
   skewFill: { alignSelf: 'stretch' },
   skewFace: { zIndex: 1, position: 'relative' },

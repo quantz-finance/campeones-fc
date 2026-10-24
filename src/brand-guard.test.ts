@@ -47,7 +47,9 @@ describe('marca', () => {
   });
 
   it('mantiene el nombre en la configuración única', () => {
-    expect(branding.name).toBe('Piquemos');
+    expect(branding.name).toBe('Campeones FC');
+    expect(branding.slug).toBe('campeones-fc');
+    expect(branding.demoEmailDomain).toBe('demo.campeonesfc');
     expect(branding.company).toBe('Quantz');
     expect(branding.tagline).toContain('cada partido');
   });

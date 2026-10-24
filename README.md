@@ -1,4 +1,4 @@
-# Piquemos
+# Campeones FC
 
 El marcador oficial del pique con tus amigos: cada partido, cada serie y cada trofeo, en un solo lugar.
 
@@ -39,7 +39,7 @@ npm run web
 
 Abre [http://127.0.0.1:8421](http://127.0.0.1:8421). En el iPhone, agrégala a la pantalla de inicio desde Safari: el manifest, `viewport-fit=cover` y las metas de Apple dejan la barra de estado sobre el azul marino.
 
-Cuentas de ejemplo (también sirven como correo `usuario@demo.piquemos`):
+Cuentas de ejemplo (también sirven como correo `usuario@demo.campeonesfc`):
 
 | Usuario | Para qué sirve |
 | --- | --- |
@@ -93,7 +93,7 @@ npm run brand
 npx expo export -p web
 ```
 
-Eso deja una PWA estática en `dist/`. El servidor tiene que responder `index.html` en cualquier ruta (el enlace `/i/tu-codigo` y `/auth/callback` son del cliente).
+Eso deja una PWA estática en `dist/`. `vercel.json` usa ese comando, publica `dist` y reescribe cualquier ruta a `index.html` (el enlace `/i/tu-codigo` y `/auth/callback` son del cliente). Vercel sirve primero los archivos que sí existen.
 
 `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_POSTHOG_KEY` y `EXPO_PUBLIC_POSTHOG_HOST` se incrustan en el bundle. Defínelas en el entorno de build, no después. Sin la clave de PostHog, la analítica no hace nada y no se envían correos.
 

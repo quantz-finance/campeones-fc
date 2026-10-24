@@ -12,7 +12,7 @@ function world(): World {
       username: id,
       displayName: id.toUpperCase(),
       avatarKey: 'rayo',
-      email: `${id}@demo.piquemos`,
+      email: `${id}@demo.campeonesfc`,
     });
   }
   let n = 0;

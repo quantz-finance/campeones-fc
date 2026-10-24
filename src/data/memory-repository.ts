@@ -1,3 +1,4 @@
+import { branding } from '../../config/branding';
 import { trophyCatalog } from '../content/trophies';
 import type { ReportDraft } from '../domain/types';
 import {
@@ -56,7 +57,7 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
       return result;
     };
     const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined;
-    const result = locks?.request ? await locks.request('piquemos-demo', async () => run()) : run();
+    const result = locks?.request ? await locks.request('campeones-fc-demo', async () => run()) : run();
     if (!silent) notify();
     return result;
   }
@@ -79,7 +80,7 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
     },
     demoAccounts() {
       return view()
-        .users.filter((user) => user.email.endsWith('@demo.piquemos'))
+        .users.filter((user) => user.email.endsWith(`@${branding.demoEmailDomain}`))
         .map(toProfile);
     },
     registerDemo(email) {

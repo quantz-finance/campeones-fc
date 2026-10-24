@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Piquemos",
-    "slug": "piquemos",
-    "scheme": "piquemos",
+    "name": "Campeones FC",
+    "slug": "campeones-fc",
+    "scheme": "campeones-fc",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,10 +10,10 @@
     "description": "Lleva el marcador de tus partidos con amigos: series, grupos, torneos y trofeos.",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "cr.quantz.piquemos"
+      "bundleIdentifier": "cr.quantz.campeonesfc"
     },
     "android": {
-      "package": "cr.quantz.piquemos",
+      "package": "cr.quantz.campeonesfc",
       "adaptiveIcon": {
         "backgroundColor": "#05071a",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -27,8 +27,8 @@
       "bundler": "metro",
       "output": "single",
       "lang": "es",
-      "name": "Piquemos",
-      "shortName": "Piquemos",
+      "name": "Campeones FC",
+      "shortName": "Campeones FC",
       "description": "Lleva el marcador de tus partidos con amigos: series, grupos, torneos y trofeos.",
       "themeColor": "#05071a",
       "backgroundColor": "#05071a",
