@@ -3,6 +3,14 @@
   "compilerOptions": {
     "strict": true
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
-  "exclude": ["node_modules", "scripts", "**/*.test.ts", "vitest.config.ts"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "scripts",
+    "**/*.test.ts",
+    "vitest.config.ts"
+  ]
 }
