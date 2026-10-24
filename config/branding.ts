@@ -14,6 +14,7 @@ export const branding = {
   tagline:
     'El marcador oficial del pique con tus amigos: cada partido, cada serie y cada trofeo, en un solo lugar.',
   shortPitch: 'Cada partido, cada serie y cada trofeo, en un solo lugar.',
+  disclaimer: 'No afiliado a EA, Warner Bros., FIFA ni UEFA.',
   description:
     'Lleva el marcador de tus partidos con amigos: series, grupos, torneos y trofeos.',
   locale: 'es-CR',
@@ -52,7 +53,7 @@ export const avatars = [
   { key: 'ola', label: 'Ola', icon: 'water', background: '#5b8cff', wash: '#1031b5', foreground: '#ffffff' },
   { key: 'volcan', label: 'Volcán', icon: 'triangle', background: '#ffb04a', wash: '#b84d00', foreground: '#1a0d00' },
   { key: 'quetzal', label: 'Quetzal', icon: 'diamond', background: '#3ff0e0', wash: '#0a7f8a', foreground: '#042226' },
-  { key: 'estrella', label: 'Estrella', icon: 'star', background: '#ffe14a', wash: '#c9a000', foreground: '#1a1400' },
+  { key: 'estrella', label: 'Estrella', icon: 'ellipse', background: '#ffe14a', wash: '#c9a000', foreground: '#1a1400' },
   { key: 'luna', label: 'Luna', icon: 'moon', background: '#b98cff', wash: '#5320b8', foreground: '#ffffff' },
   { key: 'fuego', label: 'Fuego', icon: 'flame', background: '#ff79c6', wash: '#9a0f63', foreground: '#ffffff' },
   { key: 'montana', label: 'Montaña', icon: 'home', background: '#7aa2ff', wash: '#1a3fbf', foreground: '#ffffff' },

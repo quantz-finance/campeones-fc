@@ -36,14 +36,23 @@ describe('marca', () => {
       /\bhacé\b/i,
       /\bmirá\b/i,
     ];
+    const extra = [/Champions League/i, /Liga de Campeones/i, /Copa de Campeones/i, /Mortal Kombat/i, /Warner Bros/i];
     const hits: string[] = [];
     for (const path of files(root)) {
-      const text = readFileSync(path, 'utf8');
-      for (const pattern of forbidden) {
+      const text = readFileSync(path, 'utf8').split(branding.disclaimer).join('');
+      for (const pattern of [...forbidden, ...extra]) {
         if (pattern.test(text)) hits.push(`${path} coincide con ${pattern}`);
       }
     }
     expect(hits).toEqual([]);
+  });
+
+  it('deja el aviso de no afiliación en el login y en el perfil', () => {
+    expect(branding.disclaimer).toBe('No afiliado a EA, Warner Bros., FIFA ni UEFA.');
+    const login = readFileSync(join(root, 'src/app/entrar.tsx'), 'utf8');
+    const perfil = readFileSync(join(root, 'src/app/(app)/(tabs)/perfil.tsx'), 'utf8');
+    expect(login).toContain('Affiliation');
+    expect(perfil).toContain('Affiliation');
   });
 
   it('mantiene el nombre en la configuración única', () => {

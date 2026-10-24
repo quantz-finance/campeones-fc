@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
 import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
-import { Wordmark } from '../ui/broadcast';
+import { Affiliation, Wordmark } from '../ui/broadcast';
 import { Banner, Button, Field } from '../ui/controls';
 import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
@@ -34,9 +34,15 @@ export default function Login() {
   }
 
   return (
-    <Screen>
+    <Screen
+      footer={
+        <View style={styles.legal}>
+          <Affiliation />
+        </View>
+      }
+    >
       <View style={styles.hero}>
-        <Wordmark size={32} stacked />
+        <Wordmark size={30} />
         <T variant="label" color={colors.yellow}>
           {branding.company} · {branding.country}
         </T>
@@ -147,4 +153,10 @@ const styles = StyleSheet.create({
   },
   flex: { flex: 1 },
   plain: { textTransform: 'none', letterSpacing: 0 },
+  legal: {
+    paddingHorizontal: 16,
+    backgroundColor: colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
 });

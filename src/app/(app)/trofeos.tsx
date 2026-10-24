@@ -20,7 +20,7 @@ export default function Trophies() {
               <Panel key={trophy.code}>
                 <View style={styles.row}>
                   <View style={[styles.medal, !trophy.earned && styles.locked]}>
-                    <T variant="title">{trophy.earned ? '★' : '·'}</T>
+                    <T variant="title">{trophy.earned ? 'Sí' : '·'}</T>
                   </View>
                   <View style={styles.flex}>
                     <T variant="title">{trophy.title}</T>

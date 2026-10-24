@@ -23,6 +23,7 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const docked = tab || Boolean(dock);
+  const footerReserve = !docked && footer ? 36 + Math.max(insets.bottom, 8) : 0;
   const bottom = docked ? tabBarSpace(insets.bottom) + (footer ? 40 : 18) : Math.max(insets.bottom, 12) + 16;
   const body = <View style={styles.inner}>{children}</View>;
   return (
@@ -30,13 +31,26 @@ export function Screen({
       <Backdrop />
       <View style={[styles.safe, { paddingTop: insets.top }]}>
         {scroll ? (
-          <ScrollView style={styles.flex} contentContainerStyle={{ flexGrow: 1, paddingBottom: bottom }} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            style={[styles.flex, footerReserve ? { marginBottom: footerReserve } : null]}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: bottom }}
+            keyboardShouldPersistTaps="handled"
+          >
             {body}
           </ScrollView>
         ) : (
-          <View style={[styles.flex, { paddingBottom: bottom }]}>{body}</View>
+          <View style={[styles.flex, { paddingBottom: bottom }, footerReserve ? { marginBottom: footerReserve } : null]}>{body}</View>
         )}
-        {footer ? <View style={[styles.footer, docked ? { bottom: tabBarSpace(insets.bottom) + 2 } : { bottom: 0 }]}>{footer}</View> : null}
+        {footer ? (
+          <View
+            style={[
+              styles.footer,
+              docked ? { bottom: tabBarSpace(insets.bottom) + 2 } : { bottom: 0, height: footerReserve, justifyContent: 'center' },
+            ]}
+          >
+            {footer}
+          </View>
+        ) : null}
         {dock ? <TabReplica active={dock} /> : null}
       </View>
     </View>

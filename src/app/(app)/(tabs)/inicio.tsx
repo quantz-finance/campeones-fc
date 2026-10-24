@@ -35,7 +35,7 @@ export default function Home() {
           return (
             <>
               <View style={styles.brandRow}>
-                <Wordmark />
+                <Wordmark size={20} />
                 <Pressable
                  
                   accessibilityLabel="Pendientes"

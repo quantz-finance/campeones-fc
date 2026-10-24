@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { avatars, branding } from '../../../../config/branding';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { InitialsMark, SectionHead, StatCell, Sticker } from '../../../ui/broadcast';
+import { Affiliation, InitialsMark, SectionHead, StatCell, Sticker } from '../../../ui/broadcast';
 import { Banner, Button, Field, Gate } from '../../../ui/controls';
 import { elo, firstName, goalsPerMatch, pct, recordLine } from '../../../ui/format';
 import { Screen } from '../../../ui/screen';
@@ -213,6 +213,7 @@ export default function Profile() {
       </View>
       {app.mode === 'demo' ? <Button label="Restablecer datos de demostración" tone="ghost" onPress={() => void app.repo.resetDemo()} /> : null}
       <Button label="Cerrar sesión" tone="danger" onPress={() => void app.signOut()} />
+      <Affiliation />
     </Screen>
   );
 }

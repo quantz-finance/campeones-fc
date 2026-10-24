@@ -6,7 +6,7 @@ import { branding } from '../../config/branding';
 import { Crest } from './broadcast';
 import type { Match } from '../domain/types';
 import type { Profile } from '../data/types';
-import { colors, space } from './theme';
+import { colors, font, space } from './theme';
 import { elo, firstName, formatWhen, scoreText, statusLabel, statusTone, streakLabel, tagOf } from './format';
 import type { SideRecord } from '../domain/stats';
 import { Avatar } from './avatar';
@@ -38,9 +38,14 @@ export function Wordmark() {
     <View style={styles.word}>
       <Crest size={36} />
       <View>
-        <T variant="title" style={{ fontStyle: 'italic' }}>
-          {branding.name}
-        </T>
+        <View style={styles.lockup}>
+          <T variant="title" style={{ fontStyle: 'italic' }}>
+            {branding.name.split(' ')[0]}
+          </T>
+          <T style={{ fontFamily: font.body, fontSize: 11, color: colors.yellow, marginLeft: 4, marginBottom: 3, letterSpacing: 0.4 }}>
+            {branding.name.split(' ').slice(1).join(' ')}
+          </T>
+        </View>
         <T variant="tiny" color={colors.faint}>
           {branding.company} · {branding.country}
         </T>
@@ -200,6 +205,7 @@ export function names(people: Record<string, Profile>, id: string) {
 
 const styles = StyleSheet.create({
   word: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  lockup: { flexDirection: 'row', alignItems: 'flex-end' },
   pill: { paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   stat: { flex: 1, gap: 2 },
   spark: { height: 80, flexDirection: 'row', alignItems: 'flex-end', gap: 5 },

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Svg, { Circle, Defs, LinearGradient, Path, Polygon, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { avatarByKey, branding } from '../../config/branding';
 import { colors, font } from './theme';
 import { T } from './text';
@@ -73,46 +73,58 @@ export function SkewBlock({
   );
 }
 
-/** Escudo propio: corona de tres puntas y banda de capitán. Sin copa ni estrellas. */
+/** Paralelogramo propio con banda de capitán. Sin copa, sin corona y sin estrellas. */
 export function Crest({ size = 36 }: { size?: number }) {
-  const height = Math.round(size * 1.16);
+  const height = Math.round(size * 1.18);
   return (
-    <Svg width={size} height={height} viewBox="0 0 64 74">
-      <Path d="M16 10 L22 2 L27 10 L32 1 L37 10 L42 2 L48 10 Z" fill={colors.yellow} />
-      <Path
-        d="M32 12 C32 12 12 16 10 22 L10 42 C10 56 20 66 32 72 C44 66 54 56 54 42 L54 22 C52 16 32 12 32 12 Z"
-        fill={colors.blue}
-        stroke={colors.yellow}
-        strokeWidth={3}
-      />
-      <Path d="M13 36 H51 V45 H13 Z" fill={colors.red} />
-      <Path d="M14 36 H50" stroke={colors.yellow} strokeWidth={1.4} />
-      <Path d="M15 45 H49" stroke={colors.yellow} strokeWidth={1.4} />
+    <Svg width={size} height={height} viewBox="0 0 56 66">
+      <Path d="M16 3 H50 L42 63 H8 Z" fill={colors.blue} stroke={colors.yellow} strokeWidth={3} />
+      <Path d="M13 26 H47 L45 38 H11 Z" fill={colors.red} />
+      <Path d="M13.4 26 H46.6" stroke={colors.yellow} strokeWidth={1.6} />
+      <Path d="M11.4 38 H44.6" stroke={colors.yellow} strokeWidth={1.6} />
     </Svg>
   );
 }
 
-export function Wordmark({ size = 17, stacked = false }: { size?: number; stacked?: boolean }) {
+export function Wordmark({ size = 22 }: { size?: number }) {
   const [lead, ...rest] = branding.name.split(' ');
   const tail = rest.join(' ');
+  const fc = Math.max(10, Math.round(size * 0.36));
   return (
     <View style={styles.wordmark}>
-      <Crest size={stacked ? Math.round(size * 1.35) : Math.round(size * 1.7)} />
-      {stacked && tail ? (
-        <View>
-          <T variant="display" style={{ fontSize: size, color: '#fff', fontStyle: 'italic', lineHeight: size }}>
-            {lead}
-          </T>
-          <T variant="display" style={{ fontSize: size * 0.62, color: colors.yellow, fontStyle: 'italic', lineHeight: size * 0.7 }}>
+      <Crest size={Math.round(size * 1.2)} />
+      <View style={styles.lockup}>
+        <T variant="display" numberOfLines={1} style={{ fontSize: size, color: '#fff', fontStyle: 'italic', lineHeight: size }}>
+          {lead}
+        </T>
+        {tail ? (
+          <T
+            numberOfLines={1}
+            style={{
+              fontFamily: font.body,
+              fontSize: fc,
+              lineHeight: fc + 2,
+              color: colors.yellow,
+              fontStyle: 'normal',
+              letterSpacing: 0.6,
+              marginLeft: 5,
+              marginBottom: 2,
+              textTransform: 'uppercase',
+            }}
+          >
             {tail}
           </T>
-        </View>
-      ) : (
-        <T variant="display" numberOfLines={1} style={{ fontSize: size, color: '#fff', fontStyle: 'italic', lineHeight: size }}>
-          {branding.name}
-        </T>
-      )}
+        ) : null}
+      </View>
     </View>
+  );
+}
+
+export function Affiliation() {
+  return (
+    <T variant="tiny" color={colors.faint} style={styles.affiliation}>
+      {branding.disclaimer}
+    </T>
   );
 }
 
@@ -453,21 +465,6 @@ export function Sticker({
   );
 }
 
-export function Cup({ size = 86 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 86 86">
-      <Polygon points="8,70 78,70 70,82 16,82" fill={colors.yellow} />
-      <Path
-        d="M22 16 h42 v22 c0 16 -8 26 -21 28 c-13 -2 -21 -12 -21 -28 z"
-        fill={colors.yellow}
-      />
-      <Path d="M22 22 h-10 c0 14 6 20 12 22" stroke={colors.yellow} strokeWidth="4" fill="none" />
-      <Path d="M64 22 h10 c0 14 -6 20 -12 22" stroke={colors.yellow} strokeWidth="4" fill="none" />
-      <Path d="M28 36 h30 v7 h-30 z" fill={colors.red} />
-    </Svg>
-  );
-}
-
 export function Shield({ letters }: { letters: string }) {
   return (
     <View style={styles.shield}>
@@ -493,6 +490,8 @@ const styles = StyleSheet.create({
   },
   stripes: { backgroundImage: stripe } as object,
   wordmark: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  lockup: { flexDirection: 'row', alignItems: 'flex-end', flexShrink: 1 },
+  affiliation: { textTransform: 'none', letterSpacing: 0, textAlign: 'center' },
   skewWrap: { position: 'relative', alignSelf: 'flex-start' },
   skewFill: { alignSelf: 'stretch' },
   skewFace: { zIndex: 1, position: 'relative' },
