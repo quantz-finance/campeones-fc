@@ -1,15 +1,10 @@
 import { Anton_400Regular } from '@expo-google-fonts/anton';
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
-import {
-  SairaSemiCondensed_600SemiBold,
-  SairaSemiCondensed_700Bold,
-  SairaSemiCondensed_800ExtraBold,
-} from '@expo-google-fonts/saira-semi-condensed';
+  Archivo_400Regular,
+  Archivo_500Medium,
+  Archivo_600SemiBold,
+  Archivo_700Bold,
+} from '@expo-google-fonts/archivo';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -24,13 +19,13 @@ void SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     Anton_400Regular,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    SairaSemiCondensed_600SemiBold,
-    SairaSemiCondensed_700Bold,
-    SairaSemiCondensed_800ExtraBold,
+    Archivo_400Regular,
+    Archivo_500Medium,
+    Archivo_600SemiBold,
+    Archivo_700Bold,
+    ArchivoEtiqueta_600SemiBold: require('../../assets/fonts/ArchivoEtiqueta-SemiBold.ttf'),
+    ArchivoEtiqueta_700Bold: require('../../assets/fonts/ArchivoEtiqueta-Bold.ttf'),
+    ArchivoEtiqueta_800ExtraBold: require('../../assets/fonts/ArchivoEtiqueta-ExtraBold.ttf'),
   });
 
   useEffect(() => {

@@ -77,7 +77,7 @@ export default function Home() {
                   <T variant="display" style={styles.bigNum}>
                     {played}
                   </T>
-                  <T variant="label" color="#fff" style={{ fontSize: 12 }}>
+                  <T variant="label" color={colors.redInk} style={{ fontSize: 12 }}>
                     Partidos
                   </T>
                   <View style={styles.heroMark}>
@@ -113,8 +113,8 @@ export default function Home() {
                     ) : null}
                     {streak.type === 'win' && streak.count > 0 ? (
                       <View style={styles.tagRed}>
-                        <Ionicons name="flame" size={12} color="#fff" />
-                        <T variant="tiny" color="#fff">
+                        <Ionicons name="flame" size={12} color={colors.redInk} />
+                        <T variant="tiny" color={colors.redInk}>
                           Racha de {streakLabel(streak)}
                         </T>
                       </View>
@@ -178,6 +178,7 @@ export default function Home() {
                   kicker="Cara a cara"
                   title="Versus"
                   color={colors.red}
+                  ink={colors.redInk}
                   icon="git-compare"
                   onPress={() => (rivalId ? router.push(`/versus/${rivalId}`) : router.push('/amigos'))}
                 />
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
     left: 0,
     opacity: 0.45,
   },
-  bigNum: { fontSize: 68, fontStyle: 'italic', color: '#fff', lineHeight: 70 },
+  bigNum: { fontSize: 68, fontStyle: 'italic', color: colors.redInk, lineHeight: 70 },
   heroMark: { position: 'absolute', right: -16, bottom: 8, opacity: 0.9 },
   heroRight: { flex: 1, padding: 12, gap: 6, justifyContent: 'center' },
   heroName: { fontSize: 36, fontStyle: 'italic', lineHeight: 36 },
@@ -256,7 +257,7 @@ const styles = StyleSheet.create({
   eloTag: { backgroundColor: colors.yellow, paddingHorizontal: 6, justifyContent: 'center' },
   eloNum: { backgroundColor: '#fff', paddingHorizontal: 8, justifyContent: 'center' },
   tags: { gap: 4 },
-  tagDark: { alignSelf: 'flex-start', backgroundColor: '#0a0c18', paddingHorizontal: 6, paddingVertical: 3 },
+  tagDark: { alignSelf: 'flex-start', backgroundColor: '#04060a', paddingHorizontal: 6, paddingVertical: 3 },
   tagRed: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.red, paddingHorizontal: 6, paddingVertical: 3 },
   barRow: { gap: 4, marginTop: 4 },
   bar: { flexDirection: 'row', height: 8, backgroundColor: 'rgba(255,255,255,0.08)' },

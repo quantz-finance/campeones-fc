@@ -101,12 +101,12 @@ export function Wordmark({ size = 22 }: { size?: number }) {
           <T
             numberOfLines={1}
             style={{
-              fontFamily: font.body,
+              fontFamily: font.bold,
               fontSize: fc,
               lineHeight: fc + 2,
               color: colors.yellow,
               fontStyle: 'normal',
-              letterSpacing: 0.6,
+              letterSpacing: 0.9,
               marginLeft: 5,
               marginBottom: 2,
               textTransform: 'uppercase',
@@ -139,7 +139,7 @@ export function SectionHead({
 }) {
   return (
     <View style={styles.head}>
-      <SkewBlock color="#fff" padH={10} padV={4} angle="-10deg">
+      <SkewBlock color={colors.text} padH={10} padV={4} angle="-10deg">
         <T variant="title" style={{ fontSize: 16, color: colors.ink, fontStyle: 'normal' }}>
           {title}
         </T>
@@ -197,7 +197,7 @@ export function InitialsMark({
         variant="display"
         style={{
           fontSize: fontSize ?? Math.round(size * 0.38),
-          color: '#fff',
+          color: avatar.foreground,
           transform: Platform.OS === 'web' ? undefined : [{ skewX: '10deg' }],
         }}
       >
@@ -230,7 +230,7 @@ export function ScoreBar({
     <View style={styles.scoreWrap}>
       <Pressable onPress={onPress} disabled={!onPress} style={styles.scoreRow}>
         <View style={[styles.scoreSide, { backgroundColor: colors.red }]}>
-          <T variant="display" style={styles.scoreTag}>
+          <T variant="display" style={[styles.scoreTag, { color: colors.redInk }]}>
             {leftTag}
           </T>
         </View>
@@ -452,13 +452,14 @@ export function Sticker({
   earned: boolean;
   tilt?: string;
 }) {
+  const ink = color === colors.blue ? colors.blueInk : colors.ink;
   return (
     <View style={[styles.sticker, { backgroundColor: earned ? color : 'transparent', transform: [{ rotate: tilt }] }, !earned && styles.stickerLocked]}>
-      <Ionicons name={earned ? icon : 'lock-closed'} size={22} color={earned ? colors.ink : colors.faint} />
-      <T variant="title" style={{ fontSize: 13, color: earned ? colors.ink : colors.muted, textAlign: 'center' }}>
+      <Ionicons name={earned ? icon : 'lock-closed'} size={22} color={earned ? ink : colors.faint} />
+      <T variant="title" style={{ fontSize: 13, color: earned ? ink : colors.muted, textAlign: 'center' }}>
         {title}
       </T>
-      <T variant="tiny" color={earned ? colors.ink : colors.faint} style={{ textAlign: 'center', fontSize: 10 }}>
+      <T variant="tiny" color={earned ? ink : colors.faint} style={{ textAlign: 'center', fontSize: 10 }}>
         {detail}
       </T>
     </View>
@@ -476,7 +477,7 @@ export function Shield({ letters }: { letters: string }) {
 }
 
 const stripe =
-  'repeating-linear-gradient(-62deg, transparent 0 46px, rgba(255,255,255,0.025) 46px 48px, transparent 48px 90px, rgba(255,255,255,0.04) 90px 130px)';
+  'repeating-linear-gradient(-62deg, transparent 0 46px, rgba(255,255,255,0.022) 46px 48px, transparent 48px 90px, rgba(255,255,255,0.035) 90px 130px)';
 
 const styles = StyleSheet.create({
   wash: {
@@ -484,7 +485,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web'
       ? ({
           backgroundImage:
-            'radial-gradient(60% 40% at 0% 0%, rgba(255,43,74,.35), transparent 70%), radial-gradient(60% 40% at 100% 20%, rgba(47,107,255,.35), transparent 70%), radial-gradient(80% 50% at 50% 100%, rgba(47,107,255,.18), transparent 70%), linear-gradient(180deg, #0a0e2c, #05071a 60%, #070b26)',
+            'radial-gradient(60% 38% at 0% 0%, rgba(255,90,31,.32), transparent 70%), radial-gradient(60% 38% at 100% 18%, rgba(46,75,240,.32), transparent 70%), radial-gradient(80% 50% at 50% 100%, rgba(46,75,240,.14), transparent 70%), linear-gradient(180deg, #12151c, #080B13 60%)',
         } as object)
       : null),
   },
@@ -509,7 +510,7 @@ const styles = StyleSheet.create({
     transform: [{ skewX: '-8deg' }],
   },
   scoreTag: { fontSize: 18, color: '#fff', transform: [{ skewX: '8deg' }] },
-  scoreMid: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  scoreMid: { flex: 1, backgroundColor: colors.text, alignItems: 'center', justifyContent: 'center' },
   scoreActionHit: { justifyContent: 'center', marginLeft: 6 },
   ghostAction: {
     borderWidth: 1.5,
@@ -518,26 +519,26 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     transform: [{ skewX: '-8deg' }],
   },
-  note: { backgroundColor: '#07080f', paddingHorizontal: 10, paddingVertical: 6, marginTop: 0 },
+  note: { backgroundColor: '#04060a', paddingHorizontal: 10, paddingVertical: 6, marginTop: 0 },
   ticker: {
     height: 40,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#05060f',
+    backgroundColor: '#04060a',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
     paddingRight: 8,
   },
   tickerTrack: { flex: 1, overflow: 'hidden' },
-  tickerText: { color: colors.yellow, fontSize: 13, fontFamily: font.label },
+  tickerText: { color: colors.text, fontSize: 13, fontFamily: font.strong },
   tile: { width: '48%', flexGrow: 1, minHeight: 92, padding: 12, justifyContent: 'space-between' },
   tileTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   stat: {
     width: '31%',
     flexGrow: 1,
-    backgroundColor: 'rgba(8,12,36,0.72)',
+    backgroundColor: 'rgba(19,26,42,0.72)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     paddingVertical: 10,

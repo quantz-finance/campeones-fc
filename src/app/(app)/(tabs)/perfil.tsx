@@ -88,7 +88,7 @@ export default function Profile() {
             ) : null}
             {personal.data && personal.data.record.currentStreak.type === 'win' && personal.data.record.currentStreak.count > 0 ? (
               <View style={styles.tagR}>
-                <T variant="tiny" color="#fff">
+                <T variant="tiny" color={colors.redInk}>
                   Racha {personal.data.record.currentStreak.count}
                 </T>
               </View>
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   album: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   rivals: { flexDirection: 'row', gap: 8 },
-  rival: { flex: 1, backgroundColor: 'rgba(8,12,36,0.8)', borderLeftWidth: 4, padding: 10, gap: 4 },
+  rival: { flex: 1, backgroundColor: 'rgba(19,26,42,0.8)', borderLeftWidth: 4, padding: 10, gap: 4 },
   edit: { gap: 12 },
   avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   avatar: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     gap: 4,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(8,12,36,0.8)',
+    backgroundColor: 'rgba(19,26,42,0.8)',
   },
   avatarOn: { borderColor: colors.yellow },
   links: { gap: 8 },

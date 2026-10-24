@@ -20,9 +20,11 @@ export const radius = {
 
 export const font = {
   display: 'Anton_400Regular',
-  label: 'SairaSemiCondensed_800ExtraBold',
-  labelSoft: 'SairaSemiCondensed_600SemiBold',
-  body: 'Inter_400Regular',
-  medium: 'Inter_500Medium',
-  strong: 'Inter_600SemiBold',
+  /** Archivo al 78 % de ancho (instancias estáticas en assets/fonts). */
+  label: 'ArchivoEtiqueta_800ExtraBold',
+  labelSoft: 'ArchivoEtiqueta_600SemiBold',
+  body: 'Archivo_400Regular',
+  medium: 'Archivo_500Medium',
+  strong: 'Archivo_600SemiBold',
+  bold: 'Archivo_700Bold',
 };

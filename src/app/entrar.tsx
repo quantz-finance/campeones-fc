@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     gap: space.md,
     paddingVertical: space.sm,
     paddingHorizontal: space.sm,
-    backgroundColor: 'rgba(8,12,36,0.72)',
+    backgroundColor: 'rgba(19,26,42,0.72)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },

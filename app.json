@@ -15,7 +15,7 @@
     "android": {
       "package": "cr.quantz.campeonesfc",
       "adaptiveIcon": {
-        "backgroundColor": "#05071a",
+        "backgroundColor": "#080B13",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -30,8 +30,8 @@
       "name": "Campeones FC",
       "shortName": "Campeones FC",
       "description": "Lleva el marcador de tus partidos con amigos: series, grupos, torneos y trofeos.",
-      "themeColor": "#05071a",
-      "backgroundColor": "#05071a",
+      "themeColor": "#080B13",
+      "backgroundColor": "#080B13",
       "display": "standalone",
       "startUrl": "/"
     },

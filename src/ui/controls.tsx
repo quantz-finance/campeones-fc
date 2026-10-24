@@ -20,8 +20,8 @@ export function Button({
   icon?: ReactNode;
 }) {
   const fill = tone === 'danger' ? 'transparent' : tone === 'ghost' ? 'rgba(255,255,255,0.04)' : colors.yellow;
-  const ink = tone === 'accent' || tone === 'gold' ? colors.ink : tone === 'danger' ? colors.red : colors.text;
-  const border = tone === 'ghost' ? 'rgba(255,255,255,0.45)' : tone === 'danger' ? colors.red : undefined;
+  const ink = tone === 'accent' || tone === 'gold' ? colors.ink : tone === 'danger' ? colors.danger : colors.text;
+  const border = tone === 'ghost' ? 'rgba(255,255,255,0.45)' : tone === 'danger' ? colors.danger : undefined;
   return (
     <Pressable
       disabled={disabled}
@@ -96,7 +96,7 @@ export function Chip({
   return (
     <Pressable onPress={onPress}>
       <SkewBlock color={active ? colors.red : 'rgba(255,255,255,0.06)'} shadow={active ? colors.yellow : undefined} border={active ? undefined : 'rgba(255,255,255,0.2)'} padH={12} padV={8}>
-        <T variant="label" color={active ? '#fff' : colors.text}>
+        <T variant="label" color={active ? colors.redInk : colors.text}>
           {label}
         </T>
       </SkewBlock>
@@ -113,7 +113,7 @@ export function Banner({
   body?: string;
   tone?: 'warn' | 'danger' | 'accent';
 }) {
-  const color = tone === 'danger' ? colors.red : tone === 'accent' ? colors.yellow : colors.yellow;
+  const color = tone === 'danger' ? colors.danger : tone === 'accent' ? colors.yellow : colors.yellow;
   return (
     <View style={[styles.banner, { borderLeftColor: color }]}>
       <T variant="strong">{title}</T>
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.16)',
-    backgroundColor: 'rgba(5,7,26,0.65)',
+    backgroundColor: 'rgba(8,11,19,0.65)',
     color: colors.text,
     paddingHorizontal: space.md,
     fontFamily: font.body,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(10,14,44,0.9)',
+    backgroundColor: 'rgba(14,19,32,0.9)',
     padding: space.md,
     gap: 4,
   },

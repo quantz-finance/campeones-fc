@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   column: { width: 168, gap: 10, justifyContent: 'space-around' },
   roundTag: { alignSelf: 'flex-start', backgroundColor: colors.navy, paddingHorizontal: 8, paddingVertical: 3 },
   block: { gap: 8 },
-  fixture: { backgroundColor: 'rgba(8,12,36,0.8)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  fixture: { backgroundColor: 'rgba(19,26,42,0.8)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   finalFix: { borderColor: colors.yellow, borderWidth: 2 },
   slot: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 7, gap: 6 },
   slotWin: { backgroundColor: '#fff' },
