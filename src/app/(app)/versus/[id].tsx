@@ -50,19 +50,19 @@ export default function Versus() {
               />
               <View style={styles.banner}>
                 <View style={[styles.half, { backgroundColor: colors.red, paddingLeft: 12 }]}>
-                  <T variant="display" style={styles.tag}>
+                  <T variant="display" style={[styles.tag, { color: colors.redInk }]}>
                     {tagOf(data.you.displayName)}
                   </T>
-                  <T variant="title" style={styles.bannerName} numberOfLines={1}>
+                  <T variant="title" style={[styles.bannerName, { color: colors.redInk }]} numberOfLines={1}>
                     {firstName(data.you.displayName)}
                   </T>
-                  <T variant="tiny" color="#fff">
+                  <T variant="tiny" color={colors.redInk}>
                     ELO {elo(data.evolution.at(-1)?.ratingYou ?? 1200)}
                   </T>
-                  <T variant="display" style={styles.wins}>
+                  <T variant="display" style={[styles.wins, { color: colors.redInk }]}>
                     {data.youRecord.wins}
                   </T>
-                  <T variant="label" color="#fff">
+                  <T variant="label" color={colors.redInk}>
                     Victorias
                   </T>
                 </View>
@@ -186,8 +186,8 @@ function ResultChip({
   const score = mine != null && theirs != null ? `${mine}-${theirs}` : '–';
   const draw = match.isDraw;
   const win = !draw && match.winnerId === me;
-  const bg = draw ? colors.yellow : win ? colors.red : colors.blue;
-  const ink = draw ? colors.ink : '#fff';
+  const bg = draw ? colors.draw : win ? colors.red : colors.blue;
+  const ink = draw ? colors.ink : win ? colors.redInk : colors.blueInk;
   const label = draw ? 'Empate' : win ? `Gana ${tagOf(you)}` : `Gana ${tagOf(them)}`;
   return (
     <View style={[styles.chip, { backgroundColor: bg }]}>

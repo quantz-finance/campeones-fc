@@ -4,13 +4,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, font } from './theme';
 import { T } from './text';
-import { tabBarSpace } from './broadcast';
+import { BrandIcon, tabBarSpace, type BrandIconName } from './broadcast';
 
-const items: { name: string; label: string; icon: keyof typeof Ionicons.glyphMap; plus?: boolean }[] = [
+const items: { name: string; label: string; icon: BrandIconName; plus?: boolean }[] = [
   { name: 'inicio', label: 'Inicio', icon: 'home' },
   { name: 'grupos', label: 'Grupos', icon: 'shield' },
   { name: 'jugar', label: 'Registrar', icon: 'add', plus: true },
-  { name: 'torneos', label: 'Torneos', icon: 'trophy' },
+  { name: 'torneos', label: 'Torneos', icon: 'bracket' },
   { name: 'perfil', label: 'Perfil', icon: 'person' },
 ];
 
@@ -64,8 +64,8 @@ function Bar({
             style={styles.tab}
           >
             {on ? <View style={styles.mark} /> : <View style={styles.markOff} />}
-            <Ionicons name={item.icon} size={22} color={on ? colors.yellow : '#6b72a3'} />
-            <T variant="label" color={on ? '#fff' : '#6b72a3'} style={styles.caption}>
+            <BrandIcon name={item.icon} size={22} color={on ? colors.yellow : colors.faint} />
+            <T variant="label" color={on ? '#fff' : colors.faint} style={styles.caption}>
               {item.label}
             </T>
           </Pressable>
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#03040f',
+    backgroundColor: '#04060a',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',
     flexDirection: 'row',

@@ -5,7 +5,7 @@ import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { MatchRow } from '../../../ui/bits';
-import { InitialsMark, SectionHead, Shield, SkewBlock } from '../../../ui/broadcast';
+import { BracketIcon, InitialsMark, SectionHead, Shield, SkewBlock } from '../../../ui/broadcast';
 import { Button, Gate } from '../../../ui/controls';
 import { elo, firstName, monogram, tagOf } from '../../../ui/format';
 import { copyText, inviteUrl, openWhatsApp } from '../../../ui/share';
@@ -112,7 +112,7 @@ export default function GroupDetail() {
                             style={{
                               width: 7,
                               height: 14,
-                              backgroundColor: item === 'w' ? colors.up : item === 'd' ? colors.yellow : colors.red,
+                              backgroundColor: item === 'w' ? colors.win : item === 'd' ? colors.draw : colors.loss,
                             }}
                           />
                         ))}
@@ -145,7 +145,7 @@ export default function GroupDetail() {
                         const tone = wins > losses ? colors.red : losses > wins ? colors.blue : 'rgba(255,255,255,0.08)';
                         return (
                           <View key={col.id} style={[styles.matrixCell, { backgroundColor: tone }]}>
-                            <T variant="tiny" color="#fff">
+                            <T variant="tiny" color={wins > losses ? colors.redInk : colors.text}>
                               {wins}-{losses}
                             </T>
                           </View>
@@ -167,7 +167,7 @@ export default function GroupDetail() {
               ) : (
                 data.tournaments.map((tournament) => (
                   <Pressable key={tournament.id} style={styles.tour} onPress={() => router.push(`/torneo/${tournament.id}`)}>
-                    <Ionicons name="trophy" size={18} color={colors.yellow} />
+                    <BracketIcon size={18} color={colors.yellow} />
                     <View style={styles.flex}>
                       <T variant="strong">{tournament.name}</T>
                       <T variant="tiny" color={colors.muted}>
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   plain: { textTransform: 'none', letterSpacing: 0 },
   table: { gap: 2 },
   headRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
-  bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(8,12,36,0.72)', paddingVertical: 6 },
+  bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(19,26,42,0.72)', paddingVertical: 6 },
   leaderRow: { borderLeftWidth: 3, borderLeftColor: colors.yellow },
   name: { flex: 1.4 },
   cell: { width: 28, textAlign: 'center', fontSize: 13 },
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   player: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   form: { width: 44, flexDirection: 'row', gap: 2, justifyContent: 'flex-end' },
   formHead: { width: 44, textAlign: 'right' },
-  matrix: { backgroundColor: 'rgba(8,12,36,0.72)', padding: 8, gap: 4 },
+  matrix: { backgroundColor: 'rgba(19,26,42,0.72)', padding: 8, gap: 4 },
   matrixRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   matrixName: { width: 36 },
   matrixCell: { width: 46, height: 32, alignItems: 'center', justifyContent: 'center' },
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     padding: 10,
-    backgroundColor: 'rgba(8,12,36,0.72)',
+    backgroundColor: 'rgba(19,26,42,0.72)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },

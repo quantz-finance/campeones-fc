@@ -6,7 +6,7 @@ import { standings } from '../../../domain/stats';
 import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { Crest, SectionHead } from '../../../ui/broadcast';
+import { SectionHead, Toro } from '../../../ui/broadcast';
 import { Button, Gate } from '../../../ui/controls';
 import { firstName, scoreText } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
@@ -57,7 +57,7 @@ export default function TournamentScreen() {
               {data.tournament.status === 'completed' ? (
                 <View style={styles.champ}>
                   <View style={styles.cupBox}>
-                    <Crest size={72} />
+                    <Toro size={84} />
                     <T variant="tiny" color={colors.ink}>
                       {data.group.name}
                     </T>
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   column: { width: 168, gap: 10, justifyContent: 'space-around' },
   roundTag: { alignSelf: 'flex-start', backgroundColor: colors.navy, paddingHorizontal: 8, paddingVertical: 3 },
   block: { gap: 8 },
-  fixture: { backgroundColor: 'rgba(8,12,36,0.8)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  fixture: { backgroundColor: 'rgba(19,26,42,0.8)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   finalFix: { borderColor: colors.yellow, borderWidth: 2 },
   slot: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 7, gap: 6 },
   slotWin: { backgroundColor: '#fff' },

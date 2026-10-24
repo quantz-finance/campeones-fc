@@ -3,7 +3,7 @@ import { Link, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { branding } from '../../config/branding';
-import { Crest } from './broadcast';
+import { Toro } from './broadcast';
 import type { Match } from '../domain/types';
 import type { Profile } from '../data/types';
 import { colors, font, space } from './theme';
@@ -15,8 +15,8 @@ import { T } from './text';
 const toneColor = {
   accent: colors.yellow,
   warn: colors.yellow,
-  danger: colors.red,
-  draw: colors.blue,
+  danger: colors.danger,
+  draw: colors.draw,
   muted: colors.faint,
   gold: colors.yellow,
   up: colors.up,
@@ -36,7 +36,7 @@ export function Mark({ size = 42 }: { size?: number }) {
 export function Wordmark() {
   return (
     <View style={styles.word}>
-      <Crest size={36} />
+      <Toro size={40} />
       <View>
         <View style={styles.lockup}>
           <T variant="title" style={{ fontStyle: 'italic' }}>
@@ -214,12 +214,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.sm,
     minHeight: 58,
-    backgroundColor: 'rgba(8,12,36,0.55)',
+    backgroundColor: 'rgba(19,26,42,0.55)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
   side: { width: 54, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
-  sideText: { fontSize: 14, color: '#fff' },
+  sideText: { fontSize: 14, color: colors.redInk },
   mid: { flex: 1, gap: 2, paddingVertical: 8 },
   flex: { flex: 1 },
   end: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 8 },

@@ -137,10 +137,10 @@ export default function MatchScreen() {
               </View>
               <View style={styles.board}>
                 <View style={[styles.boardSide, { backgroundColor: colors.red }]}>
-                  <T variant="display" style={{ fontSize: 18, color: '#fff' }}>
+                  <T variant="display" style={{ fontSize: 18, color: colors.redInk }}>
                     {tagOf(a?.displayName ?? 'LOC')}
                   </T>
-                  <T variant="tiny" color="#fff">
+                  <T variant="tiny" color={colors.redInk}>
                     Local
                   </T>
                 </View>
@@ -344,7 +344,7 @@ function ChoiceButton({ label, active, onPress }: { label: string; active: boole
   return (
     <Pressable onPress={onPress} style={styles.choiceHit}>
       <SkewBlock color={active ? colors.red : 'rgba(255,255,255,0.06)'} shadow={active ? colors.yellow : undefined} border={active ? undefined : 'rgba(255,255,255,0.16)'} padH={8} padV={10} fill>
-        <T variant="label" color="#fff" style={{ textAlign: 'center' }}>
+        <T variant="label" color={active ? colors.redInk : colors.text} style={{ textAlign: 'center' }}>
           {label}
         </T>
       </SkewBlock>
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
   choices: { flexDirection: 'row', gap: 8 },
   choiceHit: { flex: 1 },
   review: {
-    backgroundColor: 'rgba(8,12,36,0.9)',
+    backgroundColor: 'rgba(19,26,42,0.9)',
     borderLeftWidth: 4,
     borderLeftColor: colors.yellow,
     borderWidth: 1,
