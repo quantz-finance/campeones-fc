@@ -1,29 +1,45 @@
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, space } from './theme';
+import { Backdrop, tabBarSpace } from './broadcast';
+import { TabReplica } from './tabs';
+import { colors, space } from './theme';
 import { T } from './text';
 
 export function Screen({
   children,
   scroll = true,
+  tab = false,
+  dock,
+  footer,
 }: {
   children: ReactNode;
   scroll?: boolean;
+  tab?: boolean;
+  dock?: 'inicio' | 'grupos' | 'jugar' | 'torneos' | 'perfil';
+  footer?: ReactNode;
 }) {
+  const insets = useSafeAreaInsets();
+  const docked = tab || Boolean(dock);
+  const bottom = docked ? tabBarSpace(insets.bottom) + (footer ? 40 : 18) : Math.max(insets.bottom, 12) + 16;
   const body = <View style={styles.inner}>{children}</View>;
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      {scroll ? (
-        <ScrollView style={styles.flex} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          {body}
-        </ScrollView>
-      ) : (
-        <View style={styles.flex}>{body}</View>
-      )}
-    </SafeAreaView>
+    <View style={styles.root}>
+      <Backdrop />
+      <View style={[styles.safe, { paddingTop: insets.top }]}>
+        {scroll ? (
+          <ScrollView style={styles.flex} contentContainerStyle={{ flexGrow: 1, paddingBottom: bottom }} keyboardShouldPersistTaps="handled">
+            {body}
+          </ScrollView>
+        ) : (
+          <View style={[styles.flex, { paddingBottom: bottom }]}>{body}</View>
+        )}
+        {footer ? <View style={[styles.footer, docked ? { bottom: tabBarSpace(insets.bottom) } : { bottom: 0 }]}>{footer}</View> : null}
+        {dock ? <TabReplica active={dock} /> : null}
+      </View>
+    </View>
   );
 }
 
@@ -42,17 +58,21 @@ export function Top({
     <View style={styles.top}>
       <View style={styles.topText}>
         {back ? (
-          <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back} accessibilityRole="button">
-            <Ionicons name="chevron-back" size={20} color={colors.text} />
+          <Pressable onPress={() => router.back()} hitSlop={8} style={styles.back} accessibilityRole="button" accessibilityLabel="Volver">
+            <View style={styles.unskew}>
+              <Ionicons name="chevron-back" size={22} color={colors.text} />
+            </View>
           </Pressable>
         ) : null}
         <View style={styles.flex}>
           {kicker ? (
-            <T variant="label" color={colors.accent} style={styles.kicker}>
+            <T variant="label" color={colors.muted} style={styles.kicker}>
               {kicker}
             </T>
           ) : null}
-          <T variant="title">{title}</T>
+          <T variant="display" style={styles.title} numberOfLines={2}>
+            {title}
+          </T>
         </View>
       </View>
       {right}
@@ -65,36 +85,38 @@ export function Panel({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  root: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1 },
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, paddingBottom: 28 },
   inner: {
     width: '100%',
-    maxWidth: 880,
+    maxWidth: 480,
     alignSelf: 'center',
     paddingHorizontal: space.lg,
-    paddingTop: space.md,
-    gap: space.lg,
+    paddingTop: 8,
+    gap: 14,
   },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
-  topText: { flexDirection: 'row', alignItems: 'center', gap: space.sm, flex: 1 },
+  footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, minHeight: 44 },
+  topText: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   back: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.pill,
+    width: 44,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: 'rgba(255,255,255,0.14)',
+    transform: [{ skewX: '-14deg' }],
   },
-  kicker: { letterSpacing: 1.1, textTransform: 'uppercase' },
+  unskew: { transform: [{ skewX: '14deg' }] },
+  kicker: { fontSize: 11 },
+  title: { fontSize: 28, fontStyle: 'italic' },
   panel: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    backgroundColor: 'rgba(16, 22, 64, 0.88)',
     borderWidth: 1,
-    borderColor: colors.line,
-    padding: space.lg,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: space.md,
     gap: space.md,
   },
 });

@@ -47,4 +47,13 @@ app.expo.web = {
 };
 
 writeFileSync('app.json', `${JSON.stringify(app, null, 2)}\n`);
+
+const htmlPath = 'public/index.html';
+const html = readFileSync(htmlPath, 'utf8')
+  .replace(
+    /<meta name="apple-mobile-web-app-title" content="[^"]*" \/>/,
+    `<meta name="apple-mobile-web-app-title" content="${branding.name}" />`,
+  )
+  .replace(/<meta name="theme-color" content="[^"]*" \/>/, `<meta name="theme-color" content="${branding.colors.bg}" />`);
+writeFileSync(htmlPath, html);
 console.log(`Marca sincronizada: ${branding.name}`);

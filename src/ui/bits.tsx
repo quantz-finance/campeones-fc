@@ -5,34 +5,29 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { branding } from '../../config/branding';
 import type { Match } from '../domain/types';
 import type { Profile } from '../data/types';
-import { colors, radius, space } from './theme';
-import { elo, firstName, formatWhen, scoreText, statusLabel, statusTone, streakLabel } from './format';
+import { colors, space } from './theme';
+import { elo, firstName, formatWhen, scoreText, statusLabel, statusTone, streakLabel, tagOf } from './format';
 import type { SideRecord } from '../domain/stats';
 import { Avatar } from './avatar';
 import { T } from './text';
 
 const toneColor = {
-  accent: colors.accent,
-  warn: colors.warn,
-  danger: colors.danger,
-  draw: colors.draw,
+  accent: colors.yellow,
+  warn: colors.yellow,
+  danger: colors.red,
+  draw: colors.blue,
   muted: colors.faint,
-  gold: colors.gold,
+  gold: colors.yellow,
+  up: colors.up,
 };
 
 export function Mark({ size = 42 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 64 64">
-      <Rect x="2" y="2" width="60" height="60" rx="16" fill={colors.bgElevated} stroke={colors.accent} strokeWidth="2.5" />
-      <Path
-        d="M18 46 V18 H33.5 C42 18 47 22.5 47 29.2 C47 35.8 42 40.2 33.5 40.2 H26"
-        stroke={colors.accent}
-        strokeWidth="5"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Circle cx="46" cy="47" r="4" fill={colors.gold} />
+      <Rect x="2" y="2" width="60" height="60" fill={colors.ink} />
+      <Path d="M6 10 H34 L28 54 H0 Z" fill={colors.red} />
+      <Path d="M30 16 H58 L52 48 H24 Z" fill={colors.yellow} />
+      <Circle cx="46" cy="30" r="5" fill={colors.ink} />
     </Svg>
   );
 }
@@ -42,7 +37,9 @@ export function Wordmark() {
     <View style={styles.word}>
       <Mark size={36} />
       <View>
-        <T variant="title">{branding.name}</T>
+        <T variant="title" style={{ fontStyle: 'italic' }}>
+          {branding.name}
+        </T>
         <T variant="tiny" color={colors.faint}>
           {branding.company} · {branding.country}
         </T>
@@ -54,8 +51,8 @@ export function Wordmark() {
 export function Pill({ label, tone = 'muted' }: { label: string; tone?: keyof typeof toneColor }) {
   const color = toneColor[tone];
   return (
-    <View style={[styles.pill, { borderColor: color }]}>
-      <T variant="tiny" color={color}>
+    <View style={[styles.pill, { backgroundColor: color }]}>
+      <T variant="tiny" color={tone === 'warn' || tone === 'gold' || tone === 'accent' ? colors.ink : '#fff'}>
         {label}
       </T>
     </View>
@@ -65,16 +62,20 @@ export function Pill({ label, tone = 'muted' }: { label: string; tone?: keyof ty
 export function Stat({ value, label }: { value: string; label: string }) {
   return (
     <View style={styles.stat}>
-      <T variant="title">{value}</T>
-      <T variant="tiny" color={colors.muted}>
+      <T variant="title" style={{ fontStyle: 'italic' }}>
+        {value}
+      </T>
+      <T variant="tiny" color={colors.yellow}>
         {label}
       </T>
     </View>
   );
 }
 
-export function Spark({ values, color = colors.accent }: { values: number[]; color?: string }) {
+export function Spark({ values, color = colors.red }: { values: number[]; color?: string }) {
   const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const span = max - min || 1;
   return (
     <View style={styles.spark}>
       {values.map((value, index) => (
@@ -82,10 +83,10 @@ export function Spark({ values, color = colors.accent }: { values: number[]; col
           key={`${index}-${value}`}
           style={{
             flex: 1,
-            height: Math.max(6, (value / max) * 72),
+            height: Math.max(8, ((value - min) / span) * 72 + 8),
             backgroundColor: color,
-            borderRadius: 4,
-            opacity: 0.35 + (index / Math.max(values.length - 1, 1)) * 0.65,
+            opacity: 0.45 + (index / Math.max(values.length - 1, 1)) * 0.55,
+            transform: [{ skewX: '-8deg' }],
           }}
         />
       ))}
@@ -104,6 +105,7 @@ export function MatchRow({
 }) {
   const opponentId = match.playerAId === me ? match.playerBId : match.playerAId;
   const opponent = people[opponentId];
+  const meName = people[me]?.displayName ?? 'Tú';
   const mine = match.playerAId === me ? match.goalsA : match.goalsB;
   const theirs = match.playerAId === me ? match.goalsB : match.goalsA;
   const score = match.status === 'confirmed' ? scoreText(mine, theirs) : null;
@@ -114,19 +116,31 @@ export function MatchRow({
   }
   return (
     <Link href={`/partido/${match.id}` as Href} asChild>
-    <Pressable style={styles.match}>
-      <Avatar avatarKey={opponent?.avatarKey ?? 'rayo'} size={42} />
-      <View style={styles.flex}>
-        <T variant="strong">{opponent?.displayName ?? 'Rival'}</T>
-        <T variant="tiny" color={colors.muted}>
-          {result} · {formatWhen(match.confirmedAt ?? match.createdAt)}
-        </T>
-      </View>
-      <View style={styles.end}>
-        {score ? <T variant="title">{score}</T> : <Pill label={statusLabel[match.status]} tone={statusTone(match.status)} />}
-        <Ionicons name="chevron-forward" size={16} color={colors.faint} />
-      </View>
-    </Pressable>
+      <Pressable style={styles.match} accessibilityRole="button">
+        <View style={[styles.side, { backgroundColor: colors.red }]}>
+          <T variant="display" style={styles.sideText}>
+            {tagOf(meName)}
+          </T>
+        </View>
+        <View style={styles.mid}>
+          <T variant="strong" numberOfLines={1}>
+            {firstName(opponent?.displayName ?? 'Rival')}
+          </T>
+          <T variant="tiny" color={colors.muted}>
+            {result} · {formatWhen(match.confirmedAt ?? match.createdAt)}
+          </T>
+        </View>
+        <View style={styles.end}>
+          {score ? (
+            <T variant="title" style={{ fontStyle: 'italic' }}>
+              {score}
+            </T>
+          ) : (
+            <Pill label={statusLabel[match.status]} tone={statusTone(match.status)} />
+          )}
+          <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+        </View>
+      </Pressable>
     </Link>
   );
 }
@@ -153,11 +167,11 @@ export function StreakLine({ record }: { record: SideRecord }) {
 
 export function PlayerLine({ profile, detail, onPress }: { profile: Profile; detail: string; onPress?: () => void }) {
   return (
-    <Pressable style={styles.match} onPress={onPress} disabled={!onPress}>
-      <Avatar avatarKey={profile.avatarKey} />
+    <Pressable style={styles.match} onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined}>
+      <Avatar avatarKey={profile.avatarKey} name={profile.displayName} />
       <View style={styles.flex}>
         <T variant="strong">{profile.displayName}</T>
-        <T variant="tiny" color={colors.muted}>
+        <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>
           @{profile.username} · {detail}
         </T>
       </View>
@@ -169,10 +183,10 @@ export function PlayerLine({ profile, detail, onPress }: { profile: Profile; det
 export function EloBadge({ value }: { value: number }) {
   return (
     <View style={styles.elo}>
-      <T variant="tiny" color={colors.accentInk}>
+      <T variant="tiny" color={colors.ink}>
         ELO
       </T>
-      <T variant="strong" color={colors.accentInk}>
+      <T variant="title" color={colors.ink} style={{ fontStyle: 'italic' }}>
         {elo(value)}
       </T>
     </View>
@@ -185,29 +199,23 @@ export function names(people: Record<string, Profile>, id: string) {
 
 const styles = StyleSheet.create({
   word: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  pill: {
-    borderWidth: 1,
-    borderRadius: radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    alignSelf: 'flex-start',
-  },
+  pill: { paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   stat: { flex: 1, gap: 2 },
-  spark: { height: 72, flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
+  spark: { height: 80, flexDirection: 'row', alignItems: 'flex-end', gap: 5 },
   match: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.md,
-    paddingVertical: space.sm,
+    gap: space.sm,
+    minHeight: 58,
+    backgroundColor: 'rgba(8,12,36,0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
-  flex: { flex: 1, gap: 2 },
-  end: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  side: { width: 54, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
+  sideText: { fontSize: 14, color: '#fff' },
+  mid: { flex: 1, gap: 2, paddingVertical: 8 },
+  flex: { flex: 1 },
+  end: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 8 },
   record: { flexDirection: 'row', gap: space.sm },
-  elo: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    alignItems: 'flex-end',
-  },
+  elo: { backgroundColor: colors.yellow, paddingHorizontal: 10, paddingVertical: 6, alignItems: 'flex-end' },
 });

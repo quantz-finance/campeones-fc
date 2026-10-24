@@ -1,5 +1,15 @@
-import { SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
-import { Sora_400Regular, Sora_500Medium, Sora_600SemiBold } from '@expo-google-fonts/sora';
+import { Anton_400Regular } from '@expo-google-fonts/anton';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
+import {
+  SairaSemiCondensed_600SemiBold,
+  SairaSemiCondensed_700Bold,
+  SairaSemiCondensed_800ExtraBold,
+} from '@expo-google-fonts/saira-semi-condensed';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -13,11 +23,14 @@ void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceGrotesk_600SemiBold,
-    SpaceGrotesk_700Bold,
-    Sora_400Regular,
-    Sora_500Medium,
-    Sora_600SemiBold,
+    Anton_400Regular,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    SairaSemiCondensed_600SemiBold,
+    SairaSemiCondensed_700Bold,
+    SairaSemiCondensed_800ExtraBold,
   });
 
   useEffect(() => {

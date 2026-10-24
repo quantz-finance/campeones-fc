@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
     <title>%WEB_TITLE%</title>
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.png" />
@@ -11,6 +11,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Piquemos" />
+    <meta name="theme-color" content="#05071a" />
     <style id="expo-reset">
       html,
       body {
@@ -23,6 +25,10 @@
         display: flex;
         height: 100%;
         flex: 1;
+      }
+      @keyframes piquemos-ticker {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
       }
     </style>
   </head>

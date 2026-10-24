@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
 import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
-import { Wordmark } from '../ui/bits';
+import { Wordmark } from '../ui/broadcast';
 import { Banner, Button, Field } from '../ui/controls';
 import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
@@ -36,8 +36,16 @@ export default function Login() {
   return (
     <Screen>
       <View style={styles.hero}>
-        <Wordmark />
+        <Wordmark size={34} />
+        <T variant="label" color={colors.yellow}>
+          {branding.company} · {branding.country}
+        </T>
         <T color={colors.muted}>{branding.tagline}</T>
+      </View>
+      <View style={styles.stripe} pointerEvents="none">
+        <View style={[styles.bit, { backgroundColor: colors.red }]} />
+        <View style={[styles.bit, { backgroundColor: colors.yellow }]} />
+        <View style={[styles.bit, { backgroundColor: colors.blue }]} />
       </View>
       {app.mode === 'demo' ? (
         <Banner
@@ -65,10 +73,10 @@ export default function Login() {
           </T>
           {accounts.map((account) => (
             <Pressable key={account.id} style={styles.account} onPress={() => app.signInDemo(account.id)}>
-              <Avatar avatarKey={account.avatarKey} />
+              <Avatar avatarKey={account.avatarKey} name={account.displayName} />
               <View style={styles.flex}>
                 <T variant="strong">{account.displayName}</T>
-                <T variant="tiny" color={colors.muted}>
+                <T variant="tiny" color={colors.muted} style={styles.plain}>
                   @{account.username}
                 </T>
               </View>
@@ -76,13 +84,7 @@ export default function Login() {
           ))}
         </View>
       ) : null}
-      <Field
-        label="Correo"
-        value={email}
-        onChangeText={setEmail}
-        placeholder="tu@correo.com"
-        keyboardType="email-address"
-      />
+      <Field label="Correo" value={email} onChangeText={setEmail} placeholder="tu@correo.com" keyboardType="email-address" />
       <Button
         label={busy ? 'Enviando…' : 'Enviarme un enlace mágico'}
         disabled={busy || email.trim().length < 5}
@@ -93,24 +95,27 @@ export default function Login() {
           })
         }
       />
-      {sent ? (
-        <Banner tone="accent" title="Revisa tu correo" body="El enlace te devuelve a Piquemos. Si no llega, mira la carpeta de spam." />
-      ) : null}
+      {sent ? <Banner tone="accent" title="Revisa tu correo" body="El enlace te devuelve a Piquemos. Si no llega, mira la carpeta de spam." /> : null}
       {app.mode === 'demo' ? (
-        <T variant="tiny" color={colors.faint}>
+        <T variant="tiny" color={colors.faint} style={styles.plain}>
           En demostración el enlace se abre aquí mismo. Prueba andre@demo.piquemos o cualquier correo nuevo.
         </T>
       ) : null}
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
       {app.mode === 'demo' && !googleOpen ? (
         <View style={styles.list}>
-          <T variant="label" color={colors.muted}>
+          <T variant="label" color={colors.yellow}>
             Cuentas de ejemplo
           </T>
           {accounts.map((account) => (
             <Pressable key={account.id} style={styles.account} onPress={() => app.signInDemo(account.id)}>
-              <Avatar avatarKey={account.avatarKey} size={36} />
-              <T variant="medium">{account.displayName}</T>
+              <Avatar avatarKey={account.avatarKey} name={account.displayName} size={40} />
+              <View style={styles.flex}>
+                <T variant="strong">{account.displayName}</T>
+                <T variant="tiny" color={colors.muted} style={styles.plain}>
+                  @{account.username}
+                </T>
+              </View>
             </Pressable>
           ))}
         </View>
@@ -120,13 +125,20 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  hero: { gap: space.md, paddingTop: space.xl },
+  hero: { gap: space.md, paddingTop: space.lg },
+  stripe: { flexDirection: 'row', height: 4 },
+  bit: { flex: 1 },
   list: { gap: space.sm },
   account: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.md,
     paddingVertical: space.sm,
+    paddingHorizontal: space.sm,
+    backgroundColor: 'rgba(8,12,36,0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   flex: { flex: 1 },
+  plain: { textTransform: 'none', letterSpacing: 0 },
 });

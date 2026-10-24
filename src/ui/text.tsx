@@ -1,16 +1,16 @@
 import { Text as RNText, type StyleProp, type TextProps, type TextStyle } from 'react-native';
-import { colors } from './theme';
+import { colors, font } from './theme';
 
 type Variant = 'display' | 'title' | 'body' | 'medium' | 'strong' | 'label' | 'tiny';
 
 const family: Record<Variant, string> = {
-  display: 'SpaceGrotesk_700Bold',
-  title: 'SpaceGrotesk_600SemiBold',
-  body: 'Sora_400Regular',
-  medium: 'Sora_500Medium',
-  strong: 'Sora_600SemiBold',
-  label: 'Sora_500Medium',
-  tiny: 'Sora_500Medium',
+  display: font.display,
+  title: font.display,
+  body: font.body,
+  medium: font.medium,
+  strong: font.strong,
+  label: font.label,
+  tiny: font.labelSoft,
 };
 
 const size: Record<Variant, number> = {
@@ -29,10 +29,22 @@ export function T({
   style,
   ...props
 }: TextProps & { variant?: Variant; color?: string; style?: StyleProp<TextStyle> }) {
+  const anton = variant === 'display' || variant === 'title';
+  const upper = variant === 'display' || variant === 'title' || variant === 'label' || variant === 'tiny';
   return (
     <RNText
       {...props}
-      style={[{ fontFamily: family[variant], fontSize: size[variant], color, lineHeight: size[variant] * 1.35 }, style]}
+      style={[
+        {
+          fontFamily: family[variant],
+          fontSize: size[variant],
+          color,
+          lineHeight: anton ? size[variant] * 1.02 : size[variant] * 1.35,
+          letterSpacing: variant === 'label' ? 1.1 : variant === 'tiny' ? 0.6 : anton ? 0.3 : 0,
+          textTransform: upper ? 'uppercase' : 'none',
+        },
+        style,
+      ]}
     />
   );
 }

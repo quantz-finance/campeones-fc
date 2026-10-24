@@ -27,6 +27,8 @@ describe('marca', () => {
       /\bEASPORTS\b/i,
       /\bEAFC\b/i,
       /\bEA\s+FC\b/i,
+      /\bUEFA\b/i,
+      /\bChampions\b/,
       /\btenés\b/i,
       /\bpodés\b/i,
       /\bquerés\b/i,

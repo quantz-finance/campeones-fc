@@ -1,10 +1,12 @@
-import { Link, router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
+import { Shield } from '../../../ui/broadcast';
 import { Button, Empty, Gate } from '../../../ui/controls';
-import { Panel, Screen, Top } from '../../../ui/screen';
-import { colors, space } from '../../../ui/theme';
+import { monogram } from '../../../ui/format';
+import { Screen, Top } from '../../../ui/screen';
+import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 
 export default function Groups() {
@@ -12,12 +14,8 @@ export default function Groups() {
   const query = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
 
   return (
-    <Screen>
-      <Top
-        title="Grupos"
-        kicker="La junta"
-        right={<Button label="Crear" onPress={() => router.push('/grupo/nuevo')} />}
-      />
+    <Screen tab>
+      <Top title="Grupos" kicker="La junta" right={<Button label="Crear" onPress={() => router.push('/grupo/nuevo')} />} />
       <Gate query={query}>
         {(groups) =>
           groups.length === 0 ? (
@@ -28,20 +26,20 @@ export default function Groups() {
             />
           ) : (
             groups.map((item) => (
-              <Link key={item.group.id} href={`/grupo/${item.group.id}` as Href} asChild>
-              <Pressable>
-                <Panel>
-                  <T variant="title">{item.group.name}</T>
-                  <View style={styles.meta}>
-                    <T color={colors.muted}>{item.memberCount} jugadores</T>
-                    <T color={colors.muted}>{item.yourPlace ? `Vas ${item.yourPlace}º` : 'Aún fuera del ranking'}</T>
-                  </View>
-                  <T variant="strong" color={colors.gold}>
+              <Pressable key={item.group.id} style={styles.card} onPress={() => router.push(`/grupo/${item.group.id}`)} accessibilityRole="button">
+                <Shield letters={monogram(item.group.name)} />
+                <View style={styles.flex}>
+                  <T variant="title" style={{ fontStyle: 'italic' }} numberOfLines={1}>
+                    {item.group.name}
+                  </T>
+                  <T variant="tiny" color={colors.muted}>
+                    {item.memberCount} jugadores · {item.yourPlace ? `vas ${item.yourPlace}º` : 'aún fuera del ranking'}
+                  </T>
+                  <T variant="strong" color={colors.yellow}>
                     {item.leader ? `Manda ${item.leader.displayName}` : 'Nadie manda todavía'}
                   </T>
-                </Panel>
+                </View>
               </Pressable>
-              </Link>
             ))
           )
         }
@@ -51,5 +49,14 @@ export default function Groups() {
 }
 
 const styles = StyleSheet.create({
-  meta: { flexDirection: 'row', justifyContent: 'space-between', gap: space.md },
+  card: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: 'rgba(16,22,64,0.88)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  flex: { flex: 1, gap: 4 },
 });

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, TextInput, View, type StyleProp, type ViewStyle } from 'react-native';
-import { colors, radius, space } from './theme';
+import { SkewBlock } from './broadcast';
+import { colors, font, space } from './theme';
 import { T } from './text';
 
 type Tone = 'accent' | 'ghost' | 'danger' | 'gold';
@@ -18,24 +19,34 @@ export function Button({
   disabled?: boolean;
   icon?: ReactNode;
 }) {
+  const fill = tone === 'danger' ? 'transparent' : tone === 'ghost' ? 'rgba(255,255,255,0.04)' : colors.yellow;
+  const ink = tone === 'accent' || tone === 'gold' ? colors.ink : tone === 'danger' ? colors.red : colors.text;
+  const border = tone === 'ghost' ? 'rgba(255,255,255,0.45)' : tone === 'danger' ? colors.red : undefined;
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        tone === 'accent' && styles.accent,
-        tone === 'ghost' && styles.ghost,
-        tone === 'danger' && styles.danger,
-        tone === 'gold' && styles.gold,
-        (pressed || disabled) && styles.dim,
-      ]}
+      style={({ pressed }) => [styles.hit, (pressed || disabled) && styles.dim]}
     >
-      {icon}
-      <T variant="strong" color={tone === 'accent' || tone === 'gold' ? colors.accentInk : colors.text}>
-        {label}
-      </T>
+      <View style={styles.stretch}>
+        <SkewBlock
+          color={fill}
+          shadow={tone === 'accent' || tone === 'gold' ? colors.red : undefined}
+          border={border}
+          padH={14}
+          padV={12}
+          angle="-8deg"
+          fill
+        >
+          <View style={styles.rowCenter}>
+            {icon}
+            <T variant="title" color={ink} style={styles.btnLabel}>
+              {label}
+            </T>
+          </View>
+        </SkewBlock>
+      </View>
     </Pressable>
   );
 }
@@ -57,7 +68,7 @@ export function Field({
 }) {
   return (
     <View style={styles.field}>
-      <T variant="label" color={colors.muted}>
+      <T variant="label" color={colors.yellow}>
         {label}
       </T>
       <TextInput
@@ -84,10 +95,12 @@ export function Chip({
   onPress?: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={[styles.chip, active && styles.chipOn]}>
-      <T variant="label" color={active ? colors.accentInk : colors.text}>
-        {label}
-      </T>
+    <Pressable onPress={onPress} accessibilityRole="button">
+      <SkewBlock color={active ? colors.red : 'rgba(255,255,255,0.06)'} shadow={active ? colors.yellow : undefined} border={active ? undefined : 'rgba(255,255,255,0.2)'} padH={12} padV={8}>
+        <T variant="label" color={active ? '#fff' : colors.text}>
+          {label}
+        </T>
+      </SkewBlock>
     </Pressable>
   );
 }
@@ -101,9 +114,9 @@ export function Banner({
   body?: string;
   tone?: 'warn' | 'danger' | 'accent';
 }) {
-  const color = tone === 'danger' ? colors.danger : tone === 'accent' ? colors.accent : colors.warn;
+  const color = tone === 'danger' ? colors.red : tone === 'accent' ? colors.yellow : colors.yellow;
   return (
-    <View style={[styles.banner, { borderColor: color }]}>
+    <View style={[styles.banner, { borderLeftColor: color }]}>
       <T variant="strong">{title}</T>
       {body ? <T color={colors.muted}>{body}</T> : null}
     </View>
@@ -123,7 +136,9 @@ export function Empty({ title, body, action }: { title: string; body: string; ac
 export function Loading({ label = 'Cargando el marcador…' }: { label?: string }) {
   return (
     <View style={styles.empty}>
-      <T color={colors.muted}>{label}</T>
+      <T variant="label" color={colors.yellow}>
+        {label}
+      </T>
     </View>
   );
 }
@@ -131,7 +146,7 @@ export function Loading({ label = 'Cargando el marcador…' }: { label?: string 
 export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <View style={styles.empty}>
-      <T variant="strong">No se pudo cargar</T>
+      <T variant="title">No se pudo cargar</T>
       <T color={colors.muted}>{message}</T>
       {onRetry ? <Button label="Reintentar" tone="ghost" onPress={onRetry} /> : null}
     </View>
@@ -155,47 +170,30 @@ export function rowStyle(extra?: StyleProp<ViewStyle>) {
 }
 
 const styles = StyleSheet.create({
-  button: {
-    minHeight: 52,
-    borderRadius: radius.md,
-    paddingHorizontal: space.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: space.sm,
-  },
-  accent: { backgroundColor: colors.accent },
-  gold: { backgroundColor: colors.gold },
-  ghost: { backgroundColor: colors.surface2, borderWidth: 1, borderColor: colors.line },
-  danger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.danger },
-  dim: { opacity: 0.55 },
-  field: { gap: space.sm },
+  hit: { alignSelf: 'stretch' },
+  stretch: { alignSelf: 'stretch' },
+  full: { alignSelf: 'stretch' },
+  rowCenter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm },
+  btnLabel: { fontSize: 18, textAlign: 'center' },
+  dim: { opacity: 0.5 },
+  field: { gap: 6, alignSelf: 'stretch' },
   input: {
     minHeight: 52,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.bg,
+    borderColor: 'rgba(255,255,255,0.16)',
+    backgroundColor: 'rgba(5,7,26,0.65)',
     color: colors.text,
     paddingHorizontal: space.md,
-    fontFamily: 'Sora_400Regular',
+    fontFamily: font.body,
     fontSize: 16,
   },
-  chip: {
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.line,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: colors.bg,
-  },
-  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   banner: {
-    borderRadius: radius.md,
+    borderLeftWidth: 4,
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(10,14,44,0.9)',
     padding: space.md,
     gap: 4,
-    backgroundColor: colors.bgElevated,
   },
   empty: { gap: space.sm, paddingVertical: space.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },

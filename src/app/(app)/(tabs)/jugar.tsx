@@ -20,8 +20,8 @@ export default function Play() {
   const [busy, setBusy] = useState(false);
 
   return (
-    <Screen>
-      <Top title="Nuevo partido" kicker="El pique" />
+    <Screen tab>
+      <Top title="Registrar" kicker="Nuevo partido" />
       <T color={colors.muted}>
         Tú lo propones y tu rival lo acepta. Al terminar, cada uno marca quién ganó. Si coinciden, el resultado cuenta.
       </T>

@@ -5,12 +5,11 @@ import { track } from '../../../lib/analytics';
 import type { ReportDraft } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { Avatar } from '../../../ui/avatar';
-import { Pill } from '../../../ui/bits';
+import { SkewBlock } from '../../../ui/broadcast';
 import { Banner, Button, Gate } from '../../../ui/controls';
-import { firstName, formatWhen, scoreText, statusLabel, statusTone } from '../../../ui/format';
-import { Panel, Screen, Top } from '../../../ui/screen';
-import { colors, radius, space } from '../../../ui/theme';
+import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
+import { Screen, Top } from '../../../ui/screen';
+import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 
 type Choice = 'me' | 'them' | 'draw';
@@ -20,7 +19,7 @@ export default function MatchScreen() {
   const { repo, userId, version } = useApp();
   const query = useQuery(() => repo.matchSnapshot(String(id), userId!), [repo, userId, version, id]);
   const [choice, setChoice] = useState<Choice>('me');
-  const [withGoals, setWithGoals] = useState(false);
+  const [withGoals, setWithGoals] = useState(true);
   const [mine, setMine] = useState(1);
   const [theirs, setTheirs] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -75,45 +74,115 @@ export default function MatchScreen() {
           const b = snap.people[snap.match.playerBId];
           const you = snap.youAre === 'a' ? a : b;
           const them = snap.youAre === 'a' ? b : a;
-          const score = scoreText(snap.match.goalsA, snap.match.goalsB);
+          const votes = [snap.yourReport, snap.opponentReport].filter(Boolean).length;
           const voting = snap.youAre !== 'other' && (snap.match.status === 'in_progress' || snap.match.status === 'disputed');
+          const leftGoals = snap.youAre === 'b' ? theirs : mine;
+          const rightGoals = snap.youAre === 'b' ? mine : theirs;
+          const locked = scoreText(snap.match.goalsA, snap.match.goalsB);
+          const scoreLabel = snap.match.status === 'confirmed' && locked ? locked.replace('–', ' : ') : withGoals && voting ? `${leftGoals} : ${rightGoals}` : 'VS';
+          const cta =
+            withGoals && draft && draft.goalsA != null && draft.goalsB != null
+              ? `Confirmar ${draft.goalsA}-${draft.goalsB}`
+              : snap.yourReport
+                ? 'Actualizar mi voto'
+                : 'Enviar mi voto';
           return (
             <>
-              <Top title="Partido" kicker={snap.tournamentName ?? snap.groupName ?? 'Amistoso'} back />
-              <Panel>
-                <View style={styles.score}>
-                  <Player name={a?.displayName ?? 'Jugador'} avatar={a?.avatarKey ?? 'rayo'} />
-                  <View style={styles.center}>
-                    <T variant="display">{score ?? 'VS'}</T>
-                    <Pill label={statusLabel[snap.match.status]} tone={statusTone(snap.match.status)} />
+              <Top
+                title="Confirmar resultado"
+                kicker={snap.tournamentName ?? snap.groupName ?? `Partido · ${formatWhen(snap.match.createdAt)}`}
+                back
+                right={
+                  <View style={styles.live}>
+                    <T variant="tiny" color={colors.ink}>
+                      Voto {votes}/2
+                    </T>
                   </View>
-                  <Player name={b?.displayName ?? 'Jugador'} avatar={b?.avatarKey ?? 'rayo'} />
-                </View>
-                <T color={colors.muted}>
-                  {snap.match.status === 'pending_accept'
-                    ? `Expira ${formatWhen(snap.match.expiresAt)}.`
-                    : `Creado ${formatWhen(snap.match.createdAt)}.`}
-                </T>
-                {snap.match.status === 'confirmed' ? (
-                  <T variant="strong">
-                    {snap.match.isDraw
-                      ? 'Empate confirmado por los dos.'
-                      : `Ganó ${snap.people[snap.match.winnerId ?? '']?.displayName ?? 'alguien'}. Los dos coincidieron.`}
+                }
+              />
+              <View style={styles.pitch}>
+                <View style={[styles.half, { backgroundColor: colors.red }]}>
+                  <T variant="display" style={styles.ghost}>
+                    {tagOf(a?.displayName ?? 'LOC')}
                   </T>
-                ) : null}
-                {snap.match.status === 'disputed' ? (
-                  <T color={colors.danger}>En disputa: nadie suma hasta que uno corrija su voto.</T>
-                ) : null}
-              </Panel>
-              {snap.yourReport || snap.opponentReport ? (
-                <Panel>
-                  <T variant="strong">Votos</T>
-                  <VoteLine label="Tú" report={snap.yourReport} people={snap.people} />
-                  <VoteLine label={them?.displayName ?? 'Rival'} report={snap.opponentReport} people={snap.people} />
-                </Panel>
+                  <View style={styles.nameTag}>
+                    <T variant="title" style={{ fontSize: 16, color: colors.ink }}>
+                      {firstName(a?.displayName ?? 'Local')}
+                    </T>
+                    <T variant="tiny" color={colors.muted} style={styles.plain}>
+                      Local
+                    </T>
+                  </View>
+                </View>
+                <View style={styles.cut} />
+                <View style={[styles.half, { backgroundColor: colors.blue }]}>
+                  <T variant="display" style={styles.ghost}>
+                    {tagOf(b?.displayName ?? 'VIS')}
+                  </T>
+                  <View style={[styles.nameTag, styles.nameRight]}>
+                    <T variant="title" style={{ fontSize: 16, color: colors.ink }}>
+                      {firstName(b?.displayName ?? 'Visita')}
+                    </T>
+                    <T variant="tiny" color={colors.muted} style={styles.plain}>
+                      Visita
+                    </T>
+                  </View>
+                </View>
+                <View style={styles.vs} pointerEvents="none">
+                  <T variant="display" style={styles.vsText}>
+                    VS
+                  </T>
+                </View>
+              </View>
+              <View style={styles.board}>
+                <View style={[styles.boardSide, { backgroundColor: colors.red }]}>
+                  <T variant="display" style={{ fontSize: 18, color: '#fff' }}>
+                    {tagOf(a?.displayName ?? 'LOC')}
+                  </T>
+                  <T variant="tiny" color="#fff">
+                    Local
+                  </T>
+                </View>
+                <View style={styles.boardScore}>
+                  <T variant="display" style={styles.boardNum}>
+                    {scoreLabel}
+                  </T>
+                  {voting && withGoals ? (
+                    <View style={styles.steppers}>
+                      <MiniStep
+                        value={leftGoals}
+                        onDec={() => (snap.youAre === 'b' ? setTheirs(Math.max(0, theirs - 1)) : setMine(Math.max(0, mine - 1)))}
+                        onInc={() => (snap.youAre === 'b' ? setTheirs(Math.min(30, theirs + 1)) : setMine(Math.min(30, mine + 1)))}
+                      />
+                      <MiniStep
+                        value={rightGoals}
+                        onDec={() => (snap.youAre === 'b' ? setMine(Math.max(0, mine - 1)) : setTheirs(Math.max(0, theirs - 1)))}
+                        onInc={() => (snap.youAre === 'b' ? setMine(Math.min(30, mine + 1)) : setTheirs(Math.min(30, theirs + 1)))}
+                      />
+                    </View>
+                  ) : null}
+                </View>
+                <View style={[styles.boardSide, { backgroundColor: colors.blue }]}>
+                  <T variant="display" style={{ fontSize: 18, color: '#fff' }}>
+                    {tagOf(b?.displayName ?? 'VIS')}
+                  </T>
+                  <T variant="tiny" color="#fff">
+                    Visita
+                  </T>
+                </View>
+              </View>
+              {snap.match.status === 'confirmed' ? (
+                <T variant="strong">
+                  {snap.match.isDraw
+                    ? 'Empate confirmado por los dos.'
+                    : `Ganó ${snap.people[snap.match.winnerId ?? '']?.displayName ?? 'alguien'}. Los dos coincidieron.`}
+                </T>
+              ) : null}
+              {snap.match.status === 'disputed' ? (
+                <T color={colors.danger}>En disputa: nadie suma hasta que uno corrija su voto.</T>
               ) : null}
               {snap.match.status === 'pending_accept' && snap.youAre === 'b' ? (
-                <Panel>
+                <View style={styles.block}>
                   <T variant="title">{firstName(a?.displayName ?? 'Tu rival')} quiere jugar</T>
                   <T color={colors.muted}>Acepta solo si de verdad están en ese partido, en la sala o en línea.</T>
                   <Button
@@ -132,10 +201,10 @@ export default function MatchScreen() {
                     disabled={busy}
                     onPress={() => void run(() => repo.declineMatch(snap.match.id, userId!).then(() => undefined))}
                   />
-                </Panel>
+                </View>
               ) : null}
               {snap.match.status === 'pending_accept' && snap.youAre === 'a' ? (
-                <Panel>
+                <View style={styles.block}>
                   <T variant="title">Esperando a {firstName(b?.displayName ?? 'tu rival')}</T>
                   <T color={colors.muted}>
                     Ábrelo en otra ventana con su cuenta si están juntos. Si no acepta, el partido expira y no suma.
@@ -146,35 +215,65 @@ export default function MatchScreen() {
                     disabled={busy}
                     onPress={() => void run(() => repo.declineMatch(snap.match.id, userId!).then(() => undefined))}
                   />
-                </Panel>
+                </View>
               ) : null}
               {voting && you && them ? (
-                <Panel>
-                  <T variant="title">{snap.match.status === 'disputed' ? 'Corrige tu voto' : '¿Quién ganó?'}</T>
+                <View style={styles.block}>
+                  <SkewBlock color="#fff" padH={10} padV={4}>
+                    <T variant="title" style={{ fontSize: 16, color: colors.ink, fontStyle: 'normal' }}>
+                      {snap.match.status === 'disputed' ? 'Corrige tu voto' : '¿Quién ganó?'}
+                    </T>
+                  </SkewBlock>
                   <View style={styles.choices}>
                     <ChoiceButton label={firstName(you.displayName)} active={choice === 'me'} onPress={() => pick('me')} />
-                    {snap.allowDraw ? (
-                      <ChoiceButton label="Empate" active={choice === 'draw'} onPress={() => pick('draw')} />
-                    ) : null}
+                    {snap.allowDraw ? <ChoiceButton label="Empate" active={choice === 'draw'} onPress={() => pick('draw')} /> : null}
                     <ChoiceButton label={firstName(them.displayName)} active={choice === 'them'} onPress={() => pick('them')} />
                   </View>
-                  <Button
-                    label={withGoals ? 'Quitar goles' : 'Anotar goles'}
-                    tone="ghost"
-                    onPress={() => setWithGoals((value) => !value)}
-                  />
-                  {withGoals ? (
-                    <View style={styles.goals}>
-                      <Stepper label="Tus goles" value={mine} onChange={setMine} />
-                      <Stepper label={`Goles de ${firstName(them.displayName)}`} value={theirs} onChange={setTheirs} />
-                    </View>
-                  ) : (
-                    <T variant="tiny" color={colors.faint}>
+                  <Pressable onPress={() => setWithGoals((value) => !value)} accessibilityRole="button">
+                    <T variant="label" color={colors.yellow}>
+                      {withGoals ? 'Quitar el marcador' : 'Anotar goles'}
+                    </T>
+                  </Pressable>
+                  {!withGoals ? (
+                    <T variant="tiny" color={colors.faint} style={styles.plain}>
                       Los goles son opcionales. Si los dos los anotan, tienen que coincidir.
                     </T>
-                  )}
+                  ) : null}
+                  <View style={styles.review}>
+                    <View style={styles.reviewHead}>
+                      <T variant="label" color={colors.yellow}>
+                        Revisión del resultado
+                      </T>
+                      <T variant="tiny" color={colors.muted}>
+                        {votes} de 2 votos
+                      </T>
+                    </View>
+                    <VoteRow
+                      tag={tagOf(them?.displayName ?? 'Rival')}
+                      name={firstName(them?.displayName ?? 'Rival')}
+                      report={snap.opponentReport}
+                      people={snap.people}
+                      pending="Todavía no vota"
+                    />
+                    <VoteRow
+                      tag={tagOf(you.displayName)}
+                      name="Tú"
+                      report={snap.yourReport}
+                      people={snap.people}
+                      pending="Tu voto cierra el partido"
+                    />
+                  </View>
+                  <T color={colors.muted}>Si coinciden, el marcador queda cerrado y el Elo se mueve.</T>
+                  <Pressable
+                    onPress={() => pick(choice === 'them' ? 'me' : 'them')}
+                    accessibilityRole="button"
+                  >
+                    <T variant="label" color={colors.cyan}>
+                      ¿No coincide? Reportar diferencia
+                    </T>
+                  </Pressable>
                   <Button
-                    label={busy ? 'Enviando…' : snap.yourReport ? 'Actualizar mi voto' : 'Enviar mi voto'}
+                    label={busy ? 'Enviando…' : cta}
                     disabled={busy || !draft}
                     onPress={() =>
                       void run(async () => {
@@ -184,7 +283,7 @@ export default function MatchScreen() {
                       })
                     }
                   />
-                </Panel>
+                </View>
               ) : null}
               {snap.match.status === 'in_progress' && snap.yourReport && !snap.opponentReport ? (
                 <Banner title="Falta el voto de tu rival" body="El resultado no cuenta hasta que los dos digan lo mismo." />
@@ -217,93 +316,115 @@ export default function MatchScreen() {
   );
 }
 
-function Player({ name, avatar }: { name: string; avatar: string }) {
+function MiniStep({ value, onDec, onInc }: { value: number; onDec: () => void; onInc: () => void }) {
   return (
-    <View style={styles.player}>
-      <Avatar avatarKey={avatar} size={56} />
-      <T variant="strong" style={styles.centerText}>
-        {firstName(name)}
+    <View style={styles.mini}>
+      <Pressable onPress={onDec} hitSlop={6} accessibilityRole="button" accessibilityLabel="Bajar">
+        <T variant="title" color={colors.ink}>
+          −
+        </T>
+      </Pressable>
+      <T variant="tiny" color={colors.muted} style={styles.plain}>
+        {value}
       </T>
+      <Pressable onPress={onInc} hitSlop={6} accessibilityRole="button" accessibilityLabel="Subir">
+        <T variant="title" color={colors.ink}>
+          +
+        </T>
+      </Pressable>
     </View>
   );
 }
 
 function ChoiceButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={[styles.choice, active && styles.choiceOn]}>
-      <T variant="label" color={active ? colors.accentInk : colors.text} style={styles.centerText}>
-        {label}
-      </T>
+    <Pressable onPress={onPress} style={styles.choiceHit} accessibilityRole="button">
+      <SkewBlock color={active ? colors.red : 'rgba(255,255,255,0.06)'} shadow={active ? colors.yellow : undefined} border={active ? undefined : 'rgba(255,255,255,0.16)'} padH={8} padV={10} fill>
+        <T variant="label" color="#fff" style={{ textAlign: 'center' }}>
+          {label}
+        </T>
+      </SkewBlock>
     </Pressable>
   );
 }
 
-function Stepper({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+function VoteRow({
+  tag,
+  name,
+  report,
+  people,
+  pending,
+}: {
+  tag: string;
+  name: string;
+  report: { isDraw: boolean; winnerId: string | null; goalsA: number | null; goalsB: number | null } | null;
+  people: Record<string, { displayName: string }>;
+  pending: string;
+}) {
+  const goals = report ? scoreText(report.goalsA, report.goalsB) : null;
+  const who = !report ? pending : report.isDraw ? 'Votó empate' : `Votó: ganó ${people[report.winnerId ?? '']?.displayName ?? 'alguien'}`;
   return (
-    <View style={styles.step}>
-      <T variant="tiny" color={colors.muted}>
-        {label}
-      </T>
-      <View style={styles.stepRow}>
-        <Pressable onPress={() => onChange(Math.max(0, value - 1))} style={styles.stepBtn}>
-          <T variant="title">−</T>
-        </Pressable>
-        <T variant="title">{value}</T>
-        <Pressable onPress={() => onChange(Math.min(30, value + 1))} style={styles.stepBtn}>
-          <T variant="title">+</T>
-        </Pressable>
+    <View style={styles.vote}>
+      <View style={styles.voteTag}>
+        <T variant="tiny" color="#fff">
+          {tag}
+        </T>
+      </View>
+      <View style={styles.flex}>
+        <T variant="strong">{name}</T>
+        <T variant="tiny" color={colors.muted} style={styles.plain}>
+          {who}
+          {goals ? ` ${goals}` : ''}
+        </T>
+      </View>
+      <View style={[styles.voteState, { backgroundColor: report ? colors.up : colors.yellow }]}>
+        <T variant="tiny" color={report ? '#fff' : colors.ink}>
+          {report ? 'Confirmado' : 'Pendiente'}
+        </T>
       </View>
     </View>
   );
 }
 
-function VoteLine({
-  label,
-  report,
-  people,
-}: {
-  label: string;
-  report: { isDraw: boolean; winnerId: string | null; goalsA: number | null; goalsB: number | null } | null;
-  people: Record<string, { displayName: string }>;
-}) {
-  if (!report) return <T color={colors.muted}>{label}: todavía no vota.</T>;
-  const who = report.isDraw ? 'empate' : `ganó ${people[report.winnerId ?? '']?.displayName ?? 'alguien'}`;
-  const goals = scoreText(report.goalsA, report.goalsB);
-  return (
-    <T>
-      {label}: {who}
-      {goals ? ` (${goals})` : ''}
-    </T>
-  );
-}
-
 const styles = StyleSheet.create({
-  score: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
-  center: { alignItems: 'center', gap: space.sm, flex: 1 },
-  player: { width: 88, alignItems: 'center', gap: space.sm },
-  centerText: { textAlign: 'center' },
-  choices: { flexDirection: 'row', gap: space.sm },
-  choice: {
-    flex: 1,
-    minHeight: 64,
-    borderRadius: radius.md,
+  live: { backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 5 },
+  pitch: { height: 168, flexDirection: 'row', overflow: 'hidden', position: 'relative' },
+  half: { flex: 1, justifyContent: 'flex-end', padding: 10, overflow: 'hidden' },
+  ghost: { position: 'absolute', top: 8, left: 4, fontSize: 54, color: 'rgba(255,255,255,0.18)', fontStyle: 'italic' },
+  cut: { width: 18, backgroundColor: colors.yellow, transform: [{ skewX: '-14deg' }], marginHorizontal: -6 },
+  nameTag: { backgroundColor: '#fff', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4 },
+  nameRight: { alignSelf: 'flex-end' },
+  vs: { position: 'absolute', left: 0, right: 0, top: 36, alignItems: 'center' },
+  vsText: {
+    fontSize: 54,
+    fontStyle: 'italic',
+    color: colors.yellow,
+    textShadowColor: '#000',
+    textShadowOffset: { width: 3, height: 3 },
+    textShadowRadius: 0,
+  },
+  board: { flexDirection: 'row', minHeight: 92, backgroundColor: '#fff' },
+  boardSide: { width: 74, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  boardScore: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
+  boardNum: { fontSize: 42, color: colors.ink, fontStyle: 'italic' },
+  steppers: { flexDirection: 'row', gap: 28 },
+  mini: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  block: { gap: 12 },
+  choices: { flexDirection: 'row', gap: 8 },
+  choiceHit: { flex: 1 },
+  review: {
+    backgroundColor: 'rgba(8,12,36,0.9)',
+    borderLeftWidth: 4,
+    borderLeftColor: colors.yellow,
     borderWidth: 1,
-    borderColor: colors.line,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: space.sm,
-    backgroundColor: colors.bg,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: 12,
+    gap: 10,
   },
-  choiceOn: { backgroundColor: colors.accent, borderColor: colors.accent },
-  goals: { flexDirection: 'row', gap: space.md },
-  step: { flex: 1, gap: space.sm },
-  stepRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  stepBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  reviewHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  vote: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  voteTag: { width: 36, height: 36, backgroundColor: colors.blue, alignItems: 'center', justifyContent: 'center' },
+  voteState: { paddingHorizontal: 8, paddingVertical: 4 },
+  flex: { flex: 1 },
+  plain: { textTransform: 'none', letterSpacing: 0 },
 });

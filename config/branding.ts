@@ -1,6 +1,8 @@
 /**
  * Identidad de Piquemos. Cambia el nombre, la frase y los colores aquí:
  * el resto de la app, el manifest y los metadatos salen de este archivo.
+ *
+ * Paleta "Broadcast": gráficos de transmisión sobre azul marino.
  */
 export const branding = {
   name: 'Piquemos',
@@ -16,34 +18,43 @@ export const branding = {
   locale: 'es-CR',
   lang: 'es',
   colors: {
-    bg: '#07080d',
-    bgElevated: '#10131c',
-    surface: '#161b27',
-    surface2: '#1e2533',
-    line: '#2a3346',
-    text: '#f4f6fb',
-    muted: '#93a0b8',
-    faint: '#66758d',
-    accent: '#3dff9a',
-    accentInk: '#062114',
-    violet: '#7c5cff',
-    gold: '#f5c16c',
-    danger: '#ff5d73',
-    warn: '#ffb020',
-    draw: '#7eb6ff',
-    loss: '#ff8a9a',
+    bg: '#05071a',
+    ink: '#05071a',
+    navy: '#0b1033',
+    bgElevated: '#0b1033',
+    surface: '#12183f',
+    surface2: '#0c1233',
+    line: 'rgba(255,255,255,0.10)',
+    text: '#ffffff',
+    muted: '#8d94c4',
+    faint: '#6b72a3',
+    red: '#ff2b4a',
+    red2: '#c4002a',
+    blue: '#2f6bff',
+    blue2: '#0b2fb0',
+    yellow: '#ffd400',
+    cyan: '#22e1ff',
+    up: '#1fa85a',
+    accent: '#ffd400',
+    accentInk: '#0a0a0a',
+    violet: '#b98cff',
+    gold: '#ffd400',
+    danger: '#ff2b4a',
+    warn: '#ffd400',
+    draw: '#2f6bff',
+    loss: '#ff5a72',
   },
 } as const;
 
 export const avatars = [
-  { key: 'rayo', label: 'Rayo', icon: 'flash', background: '#123524', foreground: '#3dff9a' },
-  { key: 'ola', label: 'Ola', icon: 'water', background: '#10243a', foreground: '#7eb6ff' },
-  { key: 'volcan', label: 'Volcán', icon: 'triangle', background: '#3a1c12', foreground: '#ff8a5b' },
-  { key: 'quetzal', label: 'Quetzal', icon: 'diamond', background: '#12322a', foreground: '#5ee0b5' },
-  { key: 'estrella', label: 'Estrella', icon: 'star', background: '#2a2412', foreground: '#f5c16c' },
-  { key: 'luna', label: 'Luna', icon: 'moon', background: '#241832', foreground: '#c4b5fd' },
-  { key: 'fuego', label: 'Fuego', icon: 'flame', background: '#3a1218', foreground: '#ff5d73' },
-  { key: 'montana', label: 'Montaña', icon: 'home', background: '#1b2430', foreground: '#d5deea' },
+  { key: 'rayo', label: 'Rayo', icon: 'flash', background: '#ff5a72', wash: '#b30024', foreground: '#ffffff' },
+  { key: 'ola', label: 'Ola', icon: 'water', background: '#5b8cff', wash: '#1031b5', foreground: '#ffffff' },
+  { key: 'volcan', label: 'Volcán', icon: 'triangle', background: '#ffb04a', wash: '#b84d00', foreground: '#1a0d00' },
+  { key: 'quetzal', label: 'Quetzal', icon: 'diamond', background: '#3ff0e0', wash: '#0a7f8a', foreground: '#042226' },
+  { key: 'estrella', label: 'Estrella', icon: 'star', background: '#ffe14a', wash: '#c9a000', foreground: '#1a1400' },
+  { key: 'luna', label: 'Luna', icon: 'moon', background: '#b98cff', wash: '#5320b8', foreground: '#ffffff' },
+  { key: 'fuego', label: 'Fuego', icon: 'flame', background: '#ff79c6', wash: '#9a0f63', foreground: '#ffffff' },
+  { key: 'montana', label: 'Montaña', icon: 'home', background: '#7aa2ff', wash: '#1a3fbf', foreground: '#ffffff' },
 ] as const;
 
 export type AvatarKey = (typeof avatars)[number]['key'];

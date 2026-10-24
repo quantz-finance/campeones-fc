@@ -12,8 +12,17 @@ export const space = {
 };
 
 export const radius = {
-  sm: 10,
-  md: 16,
-  lg: 22,
+  sm: 2,
+  md: 4,
+  lg: 6,
   pill: 999,
+};
+
+export const font = {
+  display: 'Anton_400Regular',
+  label: 'SairaSemiCondensed_800ExtraBold',
+  labelSoft: 'SairaSemiCondensed_600SemiBold',
+  body: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  strong: 'Inter_600SemiBold',
 };

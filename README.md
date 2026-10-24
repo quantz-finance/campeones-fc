@@ -6,7 +6,7 @@ Producto de Quantz, desarrolladora de software de finanzas en Costa Rica. Esta v
 
 ## Marca
 
-El nombre, la frase y los colores viven en `config/branding.ts`. La app los lee desde ahí. El manifest y `app.json` se regeneran con:
+El nombre, la frase y los colores viven en `config/branding.ts`. La app los lee desde ahí. La interfaz sigue la dirección Broadcast: gráficos de transmisión sobre azul marino, con bloques en rojo, amarillo y azul. El manifest y `app.json` se regeneran con:
 
 ```bash
 npm run brand
@@ -37,7 +37,7 @@ npm test
 npm run web
 ```
 
-Abre [http://127.0.0.1:8421](http://127.0.0.1:8421).
+Abre [http://127.0.0.1:8421](http://127.0.0.1:8421). En el iPhone, agrégala a la pantalla de inicio desde Safari: el manifest, `viewport-fit=cover` y las metas de Apple dejan la barra de estado sobre el azul marino.
 
 Cuentas de ejemplo (también sirven como correo `usuario@demo.piquemos`):
 

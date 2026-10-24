@@ -35,8 +35,8 @@ export const statusLabel: Record<MatchStatus, string> = {
   cancelled: 'Cancelado',
 };
 
-export function statusTone(status: MatchStatus): 'accent' | 'warn' | 'danger' | 'draw' | 'muted' | 'gold' {
-  if (status === 'confirmed') return 'accent';
+export function statusTone(status: MatchStatus): 'accent' | 'warn' | 'danger' | 'draw' | 'muted' | 'gold' | 'up' {
+  if (status === 'confirmed') return 'up';
   if (status === 'pending_accept') return 'warn';
   if (status === 'in_progress') return 'draw';
   if (status === 'disputed') return 'danger';
@@ -72,4 +72,33 @@ export function firstName(displayName: string): string {
 export function scoreText(goalsA: number | null, goalsB: number | null): string | null {
   if (goalsA == null || goalsB == null) return null;
   return `${goalsA}–${goalsB}`;
+}
+
+export function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '·';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+export function tagOf(name: string): string {
+  const first = name.trim().split(/\s+/)[0] ?? name;
+  return first.slice(0, 3).toUpperCase();
+}
+
+export function monogram(name: string): string {
+  const skip = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'y', 'a']);
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const strong = parts.filter((part) => !skip.has(part.toLowerCase()));
+  const use = strong.length > 0 ? strong : parts;
+  return use
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+}
+
+export function goalsPerMatch(goals: number, played: number): string {
+  if (played <= 0) return '0';
+  return (goals / played).toLocaleString('es-CR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
