@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { avatars, branding } from '../../../../config/branding';
 import { useApp } from '../../../state/app-provider';
@@ -27,6 +27,7 @@ export default function Profile() {
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
   const [username, setUsername] = useState(profile?.username ?? '');
   const [avatarKey, setAvatarKey] = useState(profile?.avatarKey ?? 'rayo');
+  const [showDemo, setShowDemo] = useState(profile?.showDemo === true);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -37,6 +38,7 @@ export default function Profile() {
     setDisplayName(profile.displayName);
     setUsername(profile.username);
     setAvatarKey(profile.avatarKey);
+    setShowDemo(profile.showDemo === true);
   }, [profile]);
 
   if (!profile) {
@@ -206,6 +208,30 @@ export default function Profile() {
           />
         </View>
       ) : null}
+      {app.mode === 'supabase' ? (
+        <View style={styles.demoRow}>
+          <View style={{ flex: 1 }}>
+            <T variant="label" color={colors.yellow}>
+              Modo prueba
+            </T>
+            <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>
+              Muestra los jugadores y partidos de demostración en inicio, ranking y listas.
+            </T>
+          </View>
+          <Switch
+            value={showDemo}
+            onValueChange={(next) => {
+              setShowDemo(next);
+              void app.repo
+                .updateProfile(app.userId!, { showDemo: next })
+                .then(() => app.refresh())
+                .catch(() => setShowDemo(!next));
+            }}
+            trackColor={{ true: colors.yellow, false: 'rgba(255,255,255,0.2)' }}
+            accessibilityLabel="Modo prueba"
+          />
+        </View>
+      ) : null}
       <View style={styles.links}>
         <Button label="Amigos" tone="ghost" onPress={() => router.push('/amigos')} />
         <Button label="Ranking" tone="ghost" onPress={() => router.push('/ranking')} />
@@ -219,6 +245,7 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
+  demoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
   top: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   flex: { flex: 1 },
   iconBtn: {

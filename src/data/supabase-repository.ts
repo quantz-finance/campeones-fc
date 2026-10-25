@@ -1,3 +1,4 @@
+import { hideDemo } from './demo-filter';
 import { trophyCatalog } from '../content/trophies';
 import { DomainError } from '../domain/errors';
 import type { Match, MatchReport, ReportDraft, Slot } from '../domain/types';
@@ -55,6 +56,8 @@ function mapUser(row: Row): UserAccount {
     username: asString(row.username),
     displayName: asString(row.display_name),
     avatarKey: asString(row.avatar_key || 'rayo'),
+    isDemo: row.is_demo === true,
+    showDemo: row.show_demo === true,
     email: '',
   };
 }
@@ -187,6 +190,12 @@ async function pullWorld(userId: string): Promise<World> {
       expiresAt: asString(row.expires_at),
     }),
   );
+  // Modo prueba apagado (default): sin jugadores, partidos, grupos ni torneos de demo.
+  const me = ((profiles.data ?? []) as Row[]).find((row) => row.id === userId);
+  if (me?.show_demo !== true) {
+    const ids = (rows: unknown[] | null) => new Set(((rows ?? []) as Row[]).filter((row) => row.is_demo === true).map((row) => asString(row.id)));
+    return hideDemo(world, { users: ids(profiles.data), matches: ids(matches.data), groups: ids(groups.data), tournaments: ids(tournaments.data) });
+  }
   return world;
 }
 
@@ -222,6 +231,7 @@ export function createSupabaseRepository(): Repository {
       if (patch.displayName != null) payload.display_name = patch.displayName.trim();
       if (patch.username != null) payload.username = patch.username.trim().toLowerCase();
       if (patch.avatarKey != null) payload.avatar_key = patch.avatarKey;
+      if (patch.showDemo != null) payload.show_demo = patch.showDemo;
       const { data, error } = await supabase.from('profiles').update(payload).eq('id', userId).select('*').single();
       fail(error);
       notify();

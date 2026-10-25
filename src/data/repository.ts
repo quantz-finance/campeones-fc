@@ -19,7 +19,7 @@ export type Repository = {
   getProfile(userId: string): Promise<Profile | null>;
   updateProfile(
     userId: string,
-    patch: { displayName?: string; username?: string; avatarKey?: string },
+    patch: { displayName?: string; username?: string; avatarKey?: string; showDemo?: boolean },
   ): Promise<Profile>;
   searchProfiles(query: string, me: string): Promise<Profile[]>;
   demoAccounts(): Profile[];

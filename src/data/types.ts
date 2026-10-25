@@ -12,6 +12,10 @@ export type Profile = {
   username: string;
   displayName: string;
   avatarKey: string;
+  /** Jugador de los datos de demo. */
+  isDemo?: boolean;
+  /** Modo prueba: ve los datos de demo (apagado por defecto). */
+  showDemo?: boolean;
 };
 
 export type UserAccount = Profile & { email: string };

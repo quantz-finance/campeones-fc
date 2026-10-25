@@ -27,7 +27,7 @@ export function validateEscrowTx(signedXdr: string, ex: Expect): Transaction {
     if (signer !== ex.source) throw new HttpError(400, 'El depósito no sale de tu billetera.', 'bad_xdr');
   }
   if (!tx.signatures.length) throw new HttpError(400, 'XDR sin firmar.', 'bad_xdr');
-  if (Number(tx.fee) > Number(process.env.FEEBUMP_MAX_INNER_FEE ?? '20000000')) throw new HttpError(400, 'Fee demasiado alto.', 'bad_xdr');
+  if (Number(tx.fee) > Number(process.env.FEEBUMP_MAX_INNER_FEE ?? '1000000000')) throw new HttpError(400, 'Fee demasiado alto.', 'bad_xdr');
   return tx;
 }
 
