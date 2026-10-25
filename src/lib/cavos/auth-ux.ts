@@ -56,8 +56,8 @@ export function otpFill(prev: string, i: number, chars: string, length: number):
 
 export const OTP_RESEND_S = 60;
 export const OTP_RATE_S = 180;
-/** Un código de Cavos vence a los 10 minutos. */
-export const OTP_TTL_S = 600;
+/** Un código de Cavos vence a los 5 minutos (lo dice el correo). */
+export const OTP_TTL_S = 300;
 
 type KV = { getItem(k: string): string | null; setItem(k: string, v: string): void };
 type OtpRecord = { sentAt?: number; until?: number };
@@ -86,7 +86,7 @@ export function otpWait(store: KV, email: string, nowMs = Date.now()): number {
   return typeof until === 'number' && until > nowMs ? Math.ceil((until - nowMs) / 1000) : 0;
 }
 
-/** ¿Hay un código enviado hace menos de 10 min? (se puede ir directo a escribirlo). */
+/** ¿Hay un código enviado hace menos de 5 min? (se puede ir directo a escribirlo). */
 export function otpHasLiveCode(store: KV, email: string, nowMs = Date.now()): boolean {
   const { sentAt } = readOtp(store, email);
   return typeof sentAt === 'number' && nowMs - sentAt < OTP_TTL_S * 1000;
