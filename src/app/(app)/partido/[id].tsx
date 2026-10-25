@@ -14,6 +14,7 @@ import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
+import { DetailSkeleton } from '../../../ui/skeleton';
 
 type Choice = 'me' | 'them' | 'draw';
 
@@ -71,7 +72,7 @@ export default function MatchScreen() {
 
   return (
     <Screen>
-      <Gate query={query}>
+      <Gate query={query} skeleton={<DetailSkeleton />}>
         {(snap) => {
           const a = snap.people[snap.match.playerAId];
           const b = snap.people[snap.match.playerBId];
@@ -198,7 +199,7 @@ export default function MatchScreen() {
                   <T color={colors.muted}>Acepta solo si de verdad están en ese partido, en la sala o en línea.</T>
                   <Button
                     label="Aceptar partido"
-                    disabled={busy}
+                    pending={busy}
                     onPress={() =>
                       void run(async () => {
                         await repo.acceptMatch(snap.match.id, userId!);
@@ -209,7 +210,7 @@ export default function MatchScreen() {
                   <Button
                     label="Rechazar"
                     tone="danger"
-                    disabled={busy}
+                    pending={busy}
                     onPress={() => void run(() => repo.declineMatch(snap.match.id, userId!).then(() => undefined))}
                   />
                 </View>
@@ -223,7 +224,7 @@ export default function MatchScreen() {
                   <Button
                     label="Cancelar propuesta"
                     tone="ghost"
-                    disabled={busy}
+                    pending={busy}
                     onPress={() => void run(() => repo.declineMatch(snap.match.id, userId!).then(() => undefined))}
                   />
                 </View>
@@ -285,7 +286,8 @@ export default function MatchScreen() {
                   </Pressable>
                   <Button
                     label={busy ? 'Enviando…' : cta}
-                    disabled={busy || !draft}
+                    pending={busy}
+                    disabled={!draft}
                     onPress={() =>
                       void run(async () => {
                         if (!draft) return;
@@ -304,7 +306,7 @@ export default function MatchScreen() {
               {snap.canReopen && snap.slotId ? (
                 <Button
                   label="Proponer el cruce de nuevo"
-                  disabled={busy}
+                  pending={busy}
                   onPress={() =>
                     void run(async () => {
                       const next = await repo.reopenSlot(snap.slotId!, userId!);

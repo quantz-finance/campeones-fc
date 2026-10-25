@@ -8,6 +8,9 @@ import { TabReplica } from './tabs';
 import { colors, space } from './theme';
 import { T } from './text';
 
+/** Aire extra bajo el notch / Dynamic Island / barra de Safari (también en PWA standalone). */
+export const TOP_AIR = 14;
+
 export function Screen({
   children,
   scroll = true,
@@ -15,6 +18,7 @@ export function Screen({
   dock,
   footer,
   footerHeight = 40,
+  fill = false,
 }: {
   children: ReactNode;
   scroll?: boolean;
@@ -23,16 +27,18 @@ export function Screen({
   footer?: ReactNode;
   /** Alto que ocupa el footer flotante, para que no tape el final del contenido. */
   footerHeight?: number;
+  /** Sin scroll propio: el contenido (p. ej. FlatList) ocupa el alto y hace scroll. */
+  fill?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const docked = tab || Boolean(dock);
   const footerReserve = !docked && footer ? 36 + Math.max(insets.bottom, 8) : 0;
   const bottom = docked ? tabBarSpace(insets.bottom) + (footer ? footerHeight + 12 : 18) : Math.max(insets.bottom, 12) + 16;
-  const body = <View style={styles.inner}>{children}</View>;
+  const body = <View style={[styles.inner, fill && styles.flex]}>{children}</View>;
   return (
     <View style={styles.root}>
       <Backdrop />
-      <View style={[styles.safe, { paddingTop: insets.top }]}>
+      <View style={[styles.safe, { paddingTop: insets.top + TOP_AIR }]}>
         {scroll ? (
           <ScrollView
             style={[styles.flex, footerReserve ? { marginBottom: footerReserve } : null]}

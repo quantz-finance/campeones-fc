@@ -11,6 +11,7 @@ import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import type { Match } from '../../../domain/types';
+import { DetailSkeleton } from '../../../ui/skeleton';
 
 export default function Versus() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -19,7 +20,7 @@ export default function Versus() {
 
   return (
     <Screen>
-      <Gate query={query}>
+      <Gate query={query} skeleton={<DetailSkeleton />}>
         {(data) => {
           const played = data.youRecord.played;
           const youGpm = goalsPerMatch(data.youRecord.goalsFor, played);

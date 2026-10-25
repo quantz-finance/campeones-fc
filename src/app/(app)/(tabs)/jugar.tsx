@@ -107,7 +107,8 @@ export default function Play() {
       {error ? <Banner tone="danger" title="No se armó el partido" body={error} /> : null}
       <Button
         label={busy ? 'Proponiendo…' : 'Proponer partido'}
-        disabled={!opponentId || busy}
+        pending={busy}
+        disabled={!opponentId}
         onPress={() => {
           if (!opponentId) return;
           setBusy(true);

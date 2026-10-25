@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, TextInput, View, type StyleProp, type ViewStyle } from 'react-native';
 import { SkewBlock } from './broadcast';
+import { Animated } from 'react-native';
+import { FadeIn, useDelayed, useShimmerStyle } from './motion';
+import { CardsSkeleton } from './skeleton';
 import { colors, font, space } from './theme';
 import { T } from './text';
 
@@ -11,12 +14,15 @@ export function Button({
   onPress,
   tone = 'accent',
   disabled = false,
+  pending = false,
   icon,
 }: {
   label: string;
   onPress: () => void;
   tone?: Tone;
   disabled?: boolean;
+  /** Estado en curso inline (sin loader de pantalla completa). */
+  pending?: boolean;
   icon?: ReactNode;
 }) {
   const fill = tone === 'danger' ? 'transparent' : tone === 'ghost' ? 'rgba(255,255,255,0.04)' : colors.yellow;
@@ -24,9 +30,10 @@ export function Button({
   const border = tone === 'ghost' ? 'rgba(255,255,255,0.45)' : tone === 'danger' ? colors.danger : undefined;
   return (
     <Pressable
-      disabled={disabled}
+      disabled={disabled || pending}
       onPress={onPress}
-      style={({ pressed }) => [styles.hit, (pressed || disabled) && styles.dim]}
+      accessibilityState={{ disabled: disabled || pending, busy: pending }}
+      style={({ pressed }) => [styles.hit, (pressed || disabled) && styles.dim, pending && styles.pending]}
     >
       <View style={styles.stretch}>
         <SkewBlock
@@ -43,6 +50,7 @@ export function Button({
             <T variant="title" color={ink} style={styles.btnLabel}>
               {label}
             </T>
+            {pending ? <PendingDots color={ink} /> : null}
           </View>
         </SkewBlock>
       </View>
@@ -155,13 +163,21 @@ export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () 
 export function Gate<T>({
   query,
   children,
+  skeleton,
+  fill = false,
 }: {
   query: { data: T | null; error: string | null; loading: boolean };
   children: (data: T) => ReactNode;
+  skeleton?: ReactNode;
+  /** Ocupa el alto disponible (para FlatList en pantallas sin scroll). */
+  fill?: boolean;
 }) {
-  if (query.loading && !query.data) return <Loading />;
-  if (query.error || !query.data) return <ErrorNote message={query.error ?? 'Sin datos'} />;
-  return <>{children(query.data)}</>;
+  const waiting = query.loading && !query.data;
+  const showSkeleton = useDelayed(waiting);
+  // Datos previos se quedan visibles mientras refresca (stale-while-revalidate).
+  if (waiting) return showSkeleton ? <>{skeleton ?? <CardsSkeleton />}</> : null;
+  if (!query.data) return <ErrorNote message={query.error ?? 'Sin datos'} />;
+  return <FadeIn style={[styles.gate, fill && styles.fill]}>{children(query.data)}</FadeIn>;
 }
 
 export function rowStyle(extra?: StyleProp<ViewStyle>) {
@@ -169,12 +185,17 @@ export function rowStyle(extra?: StyleProp<ViewStyle>) {
 }
 
 const styles = StyleSheet.create({
+  gate: { gap: 14 },
+  fill: { flex: 1 },
   hit: { alignSelf: 'stretch' },
   stretch: { alignSelf: 'stretch' },
   full: { alignSelf: 'stretch' },
   rowCenter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm },
   btnLabel: { fontSize: 18, textAlign: 'center' },
   dim: { opacity: 0.5 },
+  pending: { opacity: 0.85 },
+  dots: { flexDirection: 'row', gap: 3, marginLeft: 2 },
+  dot: { width: 5, height: 5, transform: [{ skewX: '-8deg' }] },
   field: { gap: 6, alignSelf: 'stretch' },
   input: {
     minHeight: 52,
@@ -197,3 +218,14 @@ const styles = StyleSheet.create({
   empty: { gap: space.sm, paddingVertical: space.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
 });
+
+function PendingDots({ color }: { color: string }) {
+  const pulse = useShimmerStyle();
+  return (
+    <Animated.View style={[styles.dots, pulse]} accessibilityElementsHidden>
+      {[0, 1, 2].map((i) => (
+        <View key={i} style={[styles.dot, { backgroundColor: color }]} />
+      ))}
+    </Animated.View>
+  );
+}

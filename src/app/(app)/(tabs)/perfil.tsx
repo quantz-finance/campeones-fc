@@ -12,6 +12,8 @@ import { elo, firstName, goalsPerMatch, pct, recordLine } from '../../../ui/form
 import { Screen } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
+import { useDelayed } from '../../../ui/motion';
+import { CardsSkeleton } from '../../../ui/skeleton';
 
 const stickerMeta = {
   first_win: { title: 'Primera', icon: 'flash' as const, color: colors.yellow, tilt: '-6deg' },
@@ -45,7 +47,7 @@ export default function Profile() {
   if (!profile) {
     return (
       <Screen tab>
-        <T color={colors.muted}>Cargando tu ficha…</T>
+        <ProfileSkeleton />
       </Screen>
     );
   }
@@ -311,3 +313,7 @@ const styles = StyleSheet.create({
   avatarOn: { borderColor: colors.yellow },
   links: { gap: 8 },
 });
+
+function ProfileSkeleton() {
+  return useDelayed(true) ? <CardsSkeleton cards={3} /> : null;
+}

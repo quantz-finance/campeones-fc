@@ -8,6 +8,7 @@ import { monogram } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
+import { Rise } from '../../../ui/motion';
 
 export default function Groups() {
   const { repo, userId, version } = useApp();
@@ -25,8 +26,9 @@ export default function Groups() {
               action={<Button label="Crear grupo" onPress={() => router.push('/grupo/nuevo')} />}
             />
           ) : (
-            groups.map((item) => (
-              <Pressable key={item.group.id} style={styles.card} onPress={() => router.push(`/grupo/${item.group.id}`)}>
+            groups.map((item, index) => (
+              <Rise key={item.group.id} index={index}>
+              <Pressable style={styles.card} onPress={() => router.push(`/grupo/${item.group.id}`)}>
                 <Shield letters={monogram(item.group.name)} />
                 <View style={styles.flex}>
                   <T variant="title" style={{ fontStyle: 'italic' }} numberOfLines={1}>
@@ -40,6 +42,7 @@ export default function Groups() {
                   </T>
                 </View>
               </Pressable>
+              </Rise>
             ))
           )
         }

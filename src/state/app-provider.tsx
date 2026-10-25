@@ -155,3 +155,8 @@ export function useApp() {
   if (!value) throw new Error('La app no está lista.');
   return value;
 }
+
+/** Igual que useApp, pero null si el proveedor aún no tiene valor (p. ej. config inválida). */
+export function useAppMaybe() {
+  return useContext(AppContext);
+}

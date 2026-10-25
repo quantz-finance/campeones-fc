@@ -203,7 +203,9 @@ async function pullWorld(userId: string): Promise<World> {
 export function createSupabaseRepository(): Repository {
   const supabase = getSupabase();
   const listeners = new Set<() => void>();
+  let generation = 0;
   const notify = () => {
+    generation += 1;
     for (const listener of listeners) listener();
   };
   const channel = supabase
@@ -216,8 +218,16 @@ export function createSupabaseRepository(): Repository {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'achievements' }, notify)
     .subscribe();
 
+  // Un solo pull por cambio: inicio, grupos y perfil piden snapshots a la vez y comparten el mismo mundo.
+  let cache: { userId: string; gen: number; world: Promise<World> } | null = null;
   async function worldFor(userId: string) {
-    return pullWorld(userId);
+    if (cache && cache.userId === userId && cache.gen === generation) return cache.world;
+    const entry = { userId, gen: generation, world: pullWorld(userId) };
+    cache = entry;
+    entry.world.catch(() => {
+      if (cache === entry) cache = null;
+    });
+    return entry.world;
   }
 
   return {

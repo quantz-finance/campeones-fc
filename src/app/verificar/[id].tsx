@@ -9,6 +9,8 @@ import { Banner } from '../../ui/controls';
 import { Screen, Top } from '../../ui/screen';
 import { T } from '../../ui/text';
 import { colors, space } from '../../ui/theme';
+import { useDelayed } from '../../ui/motion';
+import { DetailSkeleton } from '../../ui/skeleton';
 
 const mono = Platform.select({ web: 'ui-monospace, SFMono-Regular, Menlo, monospace', default: undefined });
 
@@ -99,7 +101,7 @@ export default function VerifyScreen() {
     <Screen>
       <Top title={anchored ? 'Verificado en Stellar' : 'Verificación en Stellar'} kicker="Campeones FC" />
       {error ? <Banner tone="danger" title="No se pudo verificar" body={error} /> : null}
-      {!data && !error ? <T color={colors.muted}>Cargando el registro…</T> : null}
+      {!data && !error ? <DelayedSkeleton /> : null}
       {data ? (
         <>
           <Section title={`Estado · ${net}`}>
@@ -190,3 +192,7 @@ const styles = StyleSheet.create({
   row: { gap: 2 },
   mono: { fontSize: 12, lineHeight: 17, color: colors.text },
 });
+
+function DelayedSkeleton() {
+  return useDelayed(true) ? <DetailSkeleton /> : null;
+}

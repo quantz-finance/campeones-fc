@@ -23,8 +23,9 @@ export const font = {
   /** Archivo al 78 % de ancho (instancias estáticas en assets/fonts). */
   label: 'ArchivoEtiqueta_800ExtraBold',
   labelSoft: 'ArchivoEtiqueta_600SemiBold',
-  body: 'Archivo_400Regular',
-  medium: 'Archivo_500Medium',
-  strong: 'Archivo_600SemiBold',
-  bold: 'Archivo_700Bold',
+  /** Barlow (texto/UI): deportiva y legible. Solo 400/500/600, subset latino. */
+  body: 'Barlow_400Regular',
+  medium: 'Barlow_500Medium',
+  strong: 'Barlow_600SemiBold',
+  bold: 'Barlow_600SemiBold',
 };

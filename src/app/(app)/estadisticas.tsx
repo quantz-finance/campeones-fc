@@ -7,6 +7,7 @@ import { elo, formatDay, recordLine, signed } from '../../ui/format';
 import { Panel, Screen, Top } from '../../ui/screen';
 import { colors } from '../../ui/theme';
 import { T } from '../../ui/text';
+import { ListSkeleton } from '../../ui/skeleton';
 
 export default function Stats() {
   const { repo, userId, version } = useApp();
@@ -14,7 +15,7 @@ export default function Stats() {
   return (
     <Screen>
       <Top title="Tus números" kicker="Estadísticas" back />
-      <Gate query={query}>
+      <Gate query={query} skeleton={<ListSkeleton />}>
         {(data) => (
           <>
             <Panel>

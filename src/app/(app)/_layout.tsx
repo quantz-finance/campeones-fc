@@ -7,6 +7,6 @@ export default function AppStack() {
   if (!ready) return null;
   if (!userId) return <Redirect href="/entrar" />;
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+    <Stack screenOptions={{ headerShown: false, animation: 'fade', animationDuration: 180, contentStyle: { backgroundColor: colors.bg } }} />
   );
 }

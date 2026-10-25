@@ -12,15 +12,17 @@ export function useQuery<T>(load: () => Promise<T>, deps: readonly unknown[]) {
   useEffect(() => {
     let active = true;
     setState((current) => ({ ...current, loading: current.data == null, error: null }));
-    loadRef
-      .current()
+    // Solo para capturas/QA: window.__cfcSlowMs simula una red lenta (nunca se define en producción).
+    const slow = typeof globalThis !== 'undefined' ? Number((globalThis as { __cfcSlowMs?: number }).__cfcSlowMs ?? 0) : 0;
+    const run = () => loadRef.current();
+    (slow > 0 ? new Promise<T>((resolve, reject) => setTimeout(() => run().then(resolve, reject), slow)) : run())
       .then((data) => {
         if (active) setState({ data, error: null, loading: false });
       })
       .catch((error: unknown) => {
         if (!active) return;
         const message = error instanceof Error ? error.message : 'No se pudo cargar.';
-        setState({ data: null, error: message, loading: false });
+        setState((current) => ({ data: current.data, error: message, loading: false }));
       });
     return () => {
       active = false;

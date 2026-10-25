@@ -12,6 +12,7 @@ import { copyText, inviteUrl, openWhatsApp, shareInvite } from '../../ui/share';
 import { Screen, Top } from '../../ui/screen';
 import { colors } from '../../ui/theme';
 import { T } from '../../ui/text';
+import { ListSkeleton } from '../../ui/skeleton';
 
 export default function Friends() {
   const { repo, userId, version } = useApp();
@@ -37,7 +38,7 @@ export default function Friends() {
   return (
     <Screen>
       <Top title="Amigos" kicker="Tu círculo" back />
-      <Gate query={query}>
+      <Gate query={query} skeleton={<ListSkeleton />}>
         {(data) => (
           <>
             <SectionHead title="Invita con un enlace" />

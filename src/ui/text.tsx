@@ -16,9 +16,9 @@ const family: Record<Variant, string> = {
 const size: Record<Variant, number> = {
   display: 34,
   title: 22,
-  body: 15,
-  medium: 15,
-  strong: 15,
+  body: 16,
+  medium: 16,
+  strong: 16,
   label: 12,
   tiny: 11,
 };
@@ -39,8 +39,8 @@ export function T({
           fontFamily: family[variant],
           fontSize: size[variant],
           color,
-          lineHeight: anton ? size[variant] * 1.02 : size[variant] * 1.35,
-          letterSpacing: variant === 'label' ? 1.1 : variant === 'tiny' ? 0.6 : anton ? 0.3 : 0,
+          lineHeight: anton ? size[variant] * 1.02 : Math.round(size[variant] * (variant === 'label' || variant === 'tiny' ? 1.35 : 1.4)),
+          letterSpacing: variant === 'label' ? 1.1 : variant === 'tiny' ? 0.6 : anton ? 0.3 : 0.1,
           textTransform: upper ? 'uppercase' : 'none',
         },
         style,

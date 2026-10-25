@@ -12,6 +12,8 @@ import { Screen } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { appModeOf, modeChip } from '../../../lib/app-mode';
+import { Pop, Rise } from '../../../ui/motion';
+import { HomeSkeleton } from '../../../ui/skeleton';
 
 export default function Home() {
   const { repo, userId, version, mode, profile } = useApp();
@@ -41,7 +43,7 @@ export default function Home() {
 
   return (
     <Screen tab footer={<NewsTicker items={news} />} footerHeight={TICKER_SPACE}>
-      <Gate query={query}>
+      <Gate query={query} skeleton={<HomeSkeleton />}>
         {(home) => {
           const group = groups.data?.[0];
           const pending = [...home.actionMatches, ...home.waitingMatches];
@@ -91,6 +93,7 @@ export default function Home() {
                   Modo demostración · los datos viven en este navegador
                 </T>
               ) : null}
+              <Rise index={0}>
               <Pressable style={styles.hero} onPress={() => router.push('/perfil')}>
                 <View style={styles.heroLeft}>
                   <View
@@ -129,9 +132,11 @@ export default function Home() {
                       </T>
                     </View>
                     <View style={styles.eloNum}>
-                      <T variant="display" style={{ fontSize: 28, color: colors.ink, fontStyle: 'italic' }}>
-                        {elo(home.rating)}
-                      </T>
+                      <Pop value={home.rating}>
+                        <T variant="display" style={{ fontSize: 28, color: colors.ink, fontStyle: 'italic' }}>
+                          {elo(home.rating)}
+                        </T>
+                      </Pop>
                     </View>
                   </View>
                   <View style={styles.tags}>
@@ -163,6 +168,7 @@ export default function Home() {
                   </View>
                 </View>
               </Pressable>
+              </Rise>
               <SectionHead title={`Por confirmar · ${pending.length}`} action="Ver todos" onAction={() => {
                 const next = pending[0];
                 if (next) router.push(`/partido/${next.id}`);
@@ -170,7 +176,7 @@ export default function Home() {
               {pending.length === 0 ? (
                 <T color={colors.muted}>No tienes nada pendiente. Cuando alguien te rete, aparece aquí.</T>
               ) : (
-                pending.slice(0, 3).map((match) => {
+                pending.slice(0, 3).map((match, index) => {
                   const otherId = match.playerAId === userId ? match.playerBId : match.playerAId;
                   const other = home.people[otherId];
                   const me = home.people[userId!];
@@ -189,8 +195,8 @@ export default function Home() {
                           ? `Te toca votar · ${formatWhen(match.createdAt)}`
                           : `Falta ${firstName(other?.displayName ?? 'tu rival')} · ${formatWhen(match.createdAt)}`;
                   return (
+                    <Rise key={match.id} index={index + 1}>
                     <ScoreBar
-                      key={match.id}
                       leftTag={tagOf(me?.displayName ?? 'Tú')}
                       rightTag={tagOf(other?.displayName ?? 'Rival')}
                       score={shown ?? 'VS'}
@@ -199,11 +205,12 @@ export default function Home() {
                       onPress={() => router.push(`/partido/${match.id}`)}
                       note={note}
                     />
+                    </Rise>
                   );
                 })
               )}
               <SectionHead title="Accesos rápidos" />
-              <View style={styles.grid}>
+              <Rise index={4} style={styles.grid}>
                 <QuickTile kicker="Nuevo partido" title="Registrar" color={colors.yellow} ink={colors.ink} icon="add" onPress={() => router.push('/jugar')} />
                 <QuickTile
                   kicker="Cara a cara"
@@ -221,7 +228,7 @@ export default function Home() {
                   onPress={() => (group ? router.push(`/grupo/${group.group.id}`) : router.push('/grupos'))}
                 />
                 <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="bracket" onPress={() => router.push('/torneos')} />
-              </View>
+              </Rise>
             </>
           );
         }}
