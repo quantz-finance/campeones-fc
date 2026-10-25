@@ -7,11 +7,12 @@
 //     y la 1.ª casilla acepta el largo completo.
 //  3) Copy del flujo por correo y de los botones en español (tuteo). Opcional: si un texto cambió, solo se avisa.
 //  4) logout() ya no borra la llave del dispositivo (ver REQUIRED 'conservar-llave').
-// Falla fuerte si 1), 2) o 4) ya no calzan (el kit cambió): hay que revisar el parche antes de subir de versión.
+//  5) Sin PRF, la passkey de respaldo se salta en vez de trabar el login (REQUIRED 'passkey-sin-prf').
+// Falla fuerte si 1), 2), 4) o 5) ya no calzan (el kit cambió): hay que revisar el parche antes de subir de versión.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-export const PATCH_MARK = '/* campeones-patch:cavos-kit 0.4.4 v2 */';
+export const PATCH_MARK = '/* campeones-patch:cavos-kit 0.4.4 v3 */';
 
 export const REQUIRED = [
   {
@@ -37,6 +38,16 @@ export const REQUIRED = [
     done: (s) => s.includes('globalThis.__cfcKeepDeviceKey'),
     re: /(VaultClient\.attach\(\{ appId: config\.appId, \.\.\.typeof vault === "object" \? vault : \{\} \}\)\.forget\(identity\.userId, config\.appSalt\)\.catch\(\(\) => void 0\);)/g,
     to: (_m, call) => `if (!globalThis.__cfcKeepDeviceKey) ${call}`,
+  },
+  {
+    // 5) Navegador/autenticador sin la extensión PRF: crear la passkey de respaldo fallaba con
+    //    "kit/passkey-prf: ... PRF is unsupported here" y el login quedaba ahí. Se salta el respaldo y se sigue
+    //    con la llave del dispositivo (la billetera ya existe); otros errores salen en español.
+    name: 'passkey-sin-prf',
+    done: (s) => s.includes('__cfcPasskeySkip'),
+    re: /(\} catch \(e\) \{\n\s*)setPkError\(e instanceof Error \? e\.message : "We couldn't set up your passkey\. Try again\."\);/g,
+    to: (_m, head) =>
+      `${head}const __m = e instanceof Error ? e.message : ""; if (/prf|not supported|unsupported|NotSupportedError/i.test(__m)) { globalThis.__cfcPasskeySkip = true; finishSecureStep(); return; } setPkError(globalThis.__cfcAuthError ? globalThis.__cfcAuthError(__m || "passkey") : (__m || "We couldn't set up your passkey. Try again."));`,
   },
 ];
 

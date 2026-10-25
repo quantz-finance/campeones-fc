@@ -10,6 +10,7 @@ export const ORIGIN_NOT_ALLOWED = 'Este sitio todavía no está habilitado en Ca
 export const NETWORK = 'No hay conexión con Cavos. Revisa tu internet y vuelve a intentar.';
 export const POPUP_CLOSED = 'Cerraste la ventana antes de terminar. Vuelve a intentarlo.';
 export const RELOGIN = 'Tu sesión de Cavos terminó. Vuelve a entrar con la misma cuenta.';
+export const PASSKEY = 'No pudimos crear tu passkey en este navegador. Puedes saltar este paso y seguir.';
 export const GENERIC = 'No pudimos completar la entrada con Cavos. Vuelve a intentarlo en un momento.';
 
 /** Error del kit (o nuestro) -> texto para la persona. */
@@ -22,6 +23,7 @@ export function authErrorText(raw: string | null | undefined): string {
   if (/email_undeliverable|provider is not supported/i.test(m)) return EMAIL_UNSUPPORTED;
   if (/invalid_email|valid email/i.test(m)) return EMAIL_INVALID;
   if (/allowed web origins|origin/i.test(m) && /vault|cavos/i.test(m)) return ORIGIN_NOT_ALLOWED;
+  if (/passkey|webauthn|prf|NotAllowedError|not allowed|timed out or was not allowed/i.test(m)) return PASSKEY;
   if (/popup|closed by user|cancel/i.test(m)) return POPUP_CLOSED;
   if (/Failed to fetch|NetworkError|network|timed? ?out|ECONN/i.test(m)) return NETWORK;
   if (/token|401|unauthori[sz]ed|sign in again|no login/i.test(m)) return RELOGIN;
