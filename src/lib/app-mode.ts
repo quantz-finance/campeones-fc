@@ -16,3 +16,6 @@ export function appModeOf(profile: Pick<Profile, 'showDemo'> | null | undefined,
 export function modeChip(mode: AppMode): string {
   return APP_MODES.find((m) => m.key === mode)!.chip;
 }
+
+// Regla 6 de Neo: los rostros fotorrealistas del mundo demo son inventados y generados con IA.
+export const AI_PHOTO_NOTE = 'Personaje ficticio. Imagen generada con IA.';

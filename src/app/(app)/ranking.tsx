@@ -5,6 +5,7 @@ import type { RankingSnapshot } from '../../data/snapshots';
 import { Pop, Rise } from '../../ui/motion';
 import { ListSkeleton } from '../../ui/skeleton';
 import { rules } from '../../domain/rules';
+import { AI_PHOTO_NOTE, appModeOf } from '../../lib/app-mode';
 import { useApp } from '../../state/app-provider';
 import { useQuery } from '../../state/use-query';
 import { Avatar } from '../../ui/avatar';
@@ -44,7 +45,8 @@ const Row = memo(function Row({ row, index, me }: { row: RankRow; index: number;
 });
 
 export default function Ranking() {
-  const { repo, userId, version } = useApp();
+  const { repo, userId, version, mode, profile } = useApp();
+  const fake = appModeOf(profile, mode !== 'supabase') === 'fake';
   const query = useQuery(() => repo.rankingSnapshot(userId!), [repo, userId, version]);
   const renderItem = useCallback(
     ({ item, index }: { item: RankRow; index: number }) => <Row row={item} index={index} me={item.playerId === userId} />,
@@ -80,6 +82,13 @@ export default function Ranking() {
                 ) : null}
               </View>
             }
+            ListFooterComponent={
+              fake ? (
+                <T variant="tiny" color={colors.faint} style={styles.note}>
+                  {AI_PHOTO_NOTE}
+                </T>
+              ) : undefined
+            }
             ListEmptyComponent={<T color={colors.muted}>Nadie del círculo acumula los partidos mínimos.</T>}
           />
         )}
@@ -101,4 +110,5 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   list: { gap: 4, paddingBottom: 8 },
   head: { gap: 14, marginBottom: 10 },
+  note: { textAlign: 'center', marginTop: 12, fontSize: 10, textTransform: 'none', letterSpacing: 0 },
 });

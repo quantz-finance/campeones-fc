@@ -144,16 +144,27 @@ function confirmFixture(
 }
 
 
-// Fotos inventadas del mundo demo (DiceBear Notionists CC0 + escudos propios), en Storage. Ver REGISTRO-PROMPTS.md.
+// Fotos del mundo demo en Storage: rostros fotorrealistas de personas inventadas (generados con IA, v2)
+// y escudos propios para grupos y torneos. Ver REGISTRO-PROMPTS.md.
 const DEMO_PHOTOS = 'https://ncduberxgrvgbkruhkvr.supabase.co/storage/v1/object/public/photos/demo';
-const DEMO_USER_PHOTOS = ["0219793a-6bf8-50f1-b40f-515fa020a13f", "0c47214e-e629-5679-b1a8-5f97806593f8", "0ff3d1b5-7f44-5c98-a081-41d61acb55bf", "17e24e4e-8228-5f7d-a3a6-4cafbc431351", "1ff52c34-1624-5958-9c93-4ecf4933c912", "2025ad15-4f09-54cc-9942-e3cf329e1e85", "379272a2-76c5-5ba0-9514-a68a50509e00", "4895f6c0-71f8-51a8-bad7-4cb6365181da", "4c1e72e8-bacc-5faf-b277-fccc567e001e", "4cc403de-caf8-5563-b361-e4afbd21c463", "54a6e865-cd32-5709-927c-a94f91d91b8e", "58836299-dcd1-5a6f-aabb-8ab1187eb53d"];
+// Cada usuario local usa la foto de un perfil demo del mismo género.
+const DEMO_USER_PHOTOS: Record<string, string> = {
+  user_andre: '9fac3e52-2940-5538-81c9-2971235a1640',
+  user_vale: '96452910-b0ff-58f3-9f9c-029a49c21969',
+  user_mateo: '3aa93c4c-f497-5d2a-86cf-dae9748c220d',
+  user_sofi: 'c4b8f8de-a2ca-5d8d-bd18-d6c5f9d50802',
+  user_diego: '4895f6c0-71f8-51a8-bad7-4cb6365181da',
+  user_cami: '58836299-dcd1-5a6f-aabb-8ab1187eb53d',
+  user_nati: '54a6e865-cd32-5709-927c-a94f91d91b8e',
+};
+const DEMO_USER_FALLBACK = '0219793a-6bf8-50f1-b40f-515fa020a13f';
 const DEMO_GROUP_PHOTOS = ["055d71cd-9d97-531c-ba81-f37ad2ee447a", "1d9a2ea7-3f06-50de-bee6-b93d58337774"];
 const DEMO_CUP_PHOTOS = ["0f676ba8-6faf-5196-8b31-e4e3b1b051fa", "4de820ac-add1-55fd-8108-aa014ec3e14d", "5762d60b-df20-55bf-be44-6fbab9071953"];
 
 function withDemoPhotos(db: World): void {
-  db.users.forEach((user, i) => {
-    const id = DEMO_USER_PHOTOS[i % DEMO_USER_PHOTOS.length];
-    user.photoUrl = `${DEMO_PHOTOS}/users/${id}-v1.webp`;
+  db.users.forEach((user) => {
+    const id = DEMO_USER_PHOTOS[user.id] ?? DEMO_USER_FALLBACK;
+    user.photoUrl = `${DEMO_PHOTOS}/users/${id}-v2.webp`;
   });
   db.groups.forEach((group, i) => {
     group.photoUrl = `${DEMO_PHOTOS}/groups/${DEMO_GROUP_PHOTOS[i % DEMO_GROUP_PHOTOS.length]}-v1.webp`;

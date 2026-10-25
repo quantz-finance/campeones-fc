@@ -11,7 +11,7 @@ import { NewsTicker, TICKER_SPACE } from '../../../ui/news-ticker';
 import { Screen } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
-import { appModeOf, modeChip } from '../../../lib/app-mode';
+import { AI_PHOTO_NOTE, appModeOf, modeChip } from '../../../lib/app-mode';
 import { Pop, Rise } from '../../../ui/motion';
 import { HomeSkeleton } from '../../../ui/skeleton';
 
@@ -91,6 +91,11 @@ export default function Home() {
               {mode === 'demo' ? (
                 <T variant="tiny" color={colors.faint} style={styles.plain}>
                   Modo demostración · los datos viven en este navegador
+                </T>
+              ) : null}
+              {modeNow === 'fake' ? (
+                <T variant="tiny" color={colors.faint} style={[styles.plain, { fontSize: 10 }]}>
+                  {AI_PHOTO_NOTE}
                 </T>
               ) : null}
               <Rise index={0}>
