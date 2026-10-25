@@ -22,6 +22,11 @@ export type Match = {
   expiresAt: string;
   acceptedAt: string | null;
   confirmedAt: string | null;
+  /** Rating global antes del partido y cambio Elo (los guarda el servidor al confirmar). */
+  ratingABefore?: number | null;
+  ratingBBefore?: number | null;
+  ratingDeltaA?: number | null;
+  ratingDeltaB?: number | null;
 };
 
 export type MatchReport = {

@@ -76,6 +76,10 @@ function mapMatch(row: Row): Match {
     expiresAt: asString(row.expires_at),
     acceptedAt: asNullable(row.accepted_at),
     confirmedAt: asNullable(row.confirmed_at),
+    ratingABefore: asNumber(row.rating_a_before),
+    ratingBBefore: asNumber(row.rating_b_before),
+    ratingDeltaA: asNumber(row.rating_delta_a),
+    ratingDeltaB: asNumber(row.rating_delta_b),
   };
 }
 

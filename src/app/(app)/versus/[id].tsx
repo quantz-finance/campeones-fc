@@ -5,7 +5,8 @@ import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { CompareRow, EloChart, SectionHead } from '../../../ui/broadcast';
 import { Gate } from '../../../ui/controls';
-import { elo, firstName, formatDay, goalsPerMatch, tagOf } from '../../../ui/format';
+import { elo, firstName, formatDay, goalsPerMatch, signed, tagOf } from '../../../ui/format';
+import { matchDelta } from '../../../domain/elo';
 import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
@@ -188,6 +189,7 @@ function ResultChip({
   const win = !draw && match.winnerId === me;
   const bg = draw ? colors.draw : win ? colors.red : colors.blue;
   const ink = draw ? colors.ink : win ? colors.redInk : colors.blueInk;
+  const delta = matchDelta(match, me);
   const label = draw ? 'Empate' : win ? `Gana ${tagOf(you)}` : `Gana ${tagOf(them)}`;
   return (
     <View style={[styles.chip, { backgroundColor: bg }]}>
@@ -199,6 +201,7 @@ function ResultChip({
       </T>
       <T variant="tiny" color={ink} style={{ fontSize: 9, textTransform: 'none' }}>
         {match.confirmedAt ? formatDay(match.confirmedAt) : ''}
+        {delta != null ? ` · ${signed(delta)}` : ''}
       </T>
     </View>
   );

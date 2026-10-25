@@ -208,6 +208,7 @@ describe('bracket y trofeos', () => {
     const replay = replayRatings(matches);
     expect(replay.ratings.a).not.toBe(rules.initialRating);
     expect(replay.history).toHaveLength(4);
+    expect(Number.isInteger(replay.ratings.a)).toBe(true);
   });
 });
 

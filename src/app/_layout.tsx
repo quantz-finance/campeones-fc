@@ -29,7 +29,16 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (loaded || error) void SplashScreen.hideAsync();
+    if (!loaded && !error) return;
+    void SplashScreen.hideAsync();
+    // Web: quita el splash inline de public/index.html.
+    if (typeof document !== 'undefined') {
+      const splash = document.getElementById('boot-splash');
+      if (splash) {
+        splash.classList.add('out');
+        setTimeout(() => splash.remove(), 300);
+      }
+    }
   }, [loaded, error]);
 
   if (!loaded && !error) return null;

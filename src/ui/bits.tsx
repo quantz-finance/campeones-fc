@@ -4,10 +4,11 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { branding } from '../../config/branding';
 import { Toro } from './broadcast';
+import { matchDelta } from '../domain/elo';
 import type { Match } from '../domain/types';
 import type { Profile } from '../data/types';
 import { colors, font, space } from './theme';
-import { elo, firstName, formatWhen, scoreText, statusLabel, statusTone, streakLabel, tagOf } from './format';
+import { elo, firstName, formatWhen, scoreText, signed, statusLabel, statusTone, streakLabel, tagOf } from './format';
 import type { SideRecord } from '../domain/stats';
 import { Avatar } from './avatar';
 import { T } from './text';
@@ -120,6 +121,7 @@ export function MatchRow({
     if (match.isDraw) result = 'Empate';
     else result = match.winnerId === me ? 'Ganaste' : 'Perdiste';
   }
+  const delta = matchDelta(match, me);
   return (
     <Link href={`/partido/${match.id}` as Href} asChild>
       <Pressable style={styles.match}>
@@ -133,7 +135,13 @@ export function MatchRow({
             {firstName(opponent?.displayName ?? 'Rival')}
           </T>
           <T variant="tiny" color={colors.muted}>
-            {result} · {formatWhen(match.confirmedAt ?? match.createdAt)}
+            {result}
+            {delta != null ? (
+              <T variant="tiny" color={delta > 0 ? colors.win : delta < 0 ? colors.loss : colors.draw}>
+                {` · ${signed(delta)} Elo`}
+              </T>
+            ) : null}
+            {` · ${formatWhen(match.confirmedAt ?? match.createdAt)}`}
           </T>
         </View>
         <View style={styles.end}>

@@ -9,6 +9,7 @@ import {
   normalizeDraft,
   resolveStatus,
 } from '../domain/match-flow';
+import { replayRatings } from '../domain/elo';
 import { rules } from '../domain/rules';
 import { standings, uniqueLeader } from '../domain/stats';
 import { between, isOpenStatus, type Match, type ReportDraft } from '../domain/types';
@@ -221,6 +222,21 @@ export function mutateDecline(db: World, matchId: string, userId: string, now: D
   return next;
 }
 
+/** Igual que el servidor: guarda el rating previo y el cambio Elo de cada jugador en el partido. */
+function stampRating(db: World, match: Match) {
+  const history = replayRatings(db.matches).history.filter((row) => row.matchId === match.id);
+  const a = history.find((row) => row.userId === match.playerAId);
+  const b = history.find((row) => row.userId === match.playerBId);
+  if (!a || !b) return;
+  replaceMatch(db, {
+    ...match,
+    ratingABefore: a.rating - a.delta,
+    ratingBBefore: b.rating - b.delta,
+    ratingDeltaA: a.delta,
+    ratingDeltaB: b.delta,
+  });
+}
+
 export function mutateSubmit(db: World, matchId: string, userId: string, draft: ReportDraft, now: Date): Match {
   const current = mustMatch(db, matchId);
   const due = expireIfDue(current, now);
@@ -244,6 +260,7 @@ export function mutateSubmit(db: World, matchId: string, userId: string, draft: 
   );
   replaceMatch(db, next);
   if (next.status === 'confirmed') {
+    stampRating(db, next);
     settleTournament(db, next, now);
     syncAchievements(db, next.playerAId, now);
     syncAchievements(db, next.playerBId, now);

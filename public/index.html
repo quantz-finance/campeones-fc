@@ -1,30 +1,83 @@
 <!DOCTYPE html>
-<html lang="%LANG_ISO_CODE%">
+<html lang="%LANG_ISO_CODE%" style="background-color:#080B13;color-scheme:dark">
   <head>
     <meta charset="utf-8" />
-    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>%WEB_TITLE%</title>
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#080B13" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Campeones FC" />
-    <meta name="theme-color" content="#080B13" />
+    <meta name="application-name" content="Campeones FC" />
+    <meta name="format-detection" content="telephone=no" />
+    <!-- Fondo oscuro desde el primer frame (antes del JS): sin destello blanco. -->
     <style id="expo-reset">
+      html,
+      body,
+      #root {
+        background-color: #080B13;
+        color: #FFFFFF;
+        color-scheme: dark;
+      }
       html,
       body {
         height: 100%;
+        height: 100dvh;
+        margin: 0;
       }
       body {
         overflow: hidden;
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-text-size-adjust: 100%;
       }
       #root {
         display: flex;
         height: 100%;
         flex: 1;
+      }
+      /* Splash de arranque: pinta en el primer frame y la app lo quita al cargar las fuentes. */
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        transition: opacity 0.25s ease-out;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        background: #080B13;
+      }
+      #boot-splash.out {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #boot-splash img {
+        width: 120px;
+        height: 120px;
+        animation: boot-pulse 1.6s ease-in-out infinite;
+      }
+      #boot-splash span {
+        font: 700 13px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: #8E97AD;
+      }
+      @keyframes boot-pulse {
+        0%, 100% { transform: scale(1); opacity: 0.9; }
+        50% { transform: scale(1.05); opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot-splash img { animation: none; }
       }
       @keyframes ticker-slide {
         from { transform: translateX(0); }
@@ -32,13 +85,16 @@
       }
     </style>
   </head>
-  <body>
+  <body style="background-color:#080B13">
     <noscript>Necesitas JavaScript para llevar el marcador.</noscript>
+    <div id="boot-splash" role="img" aria-label="Cargando Campeones FC"><img alt="" src="data:image/webp;base64,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" /><span>Campeones FC</span></div>
     <div id="root"></div>
     <script>
+      // Por si la app no arranca: el splash nunca tapa la pantalla más de 10 s.
+      setTimeout(function () { var s = document.getElementById('boot-splash'); if (s) s.remove(); }, 10000);
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').catch(function () {});
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () {});
         });
       }
     </script>

@@ -20,8 +20,8 @@ export default function Ranking() {
         {(data) => (
           <>
             <T color={colors.muted}>
-              El Elo entre tus amigos cuenta los partidos del círculo. Ganarle a alguien más fuerte suma más. Hacen falta{' '}
-              {rules.minMatchesForRanking} partidos para aparecer.
+              Elo como en el ajedrez (reglas FIDE): todos arrancan en 1200, ganarle a alguien más fuerte suma más y
+              empatarle también suma. Ordenado por Elo; hacen falta {rules.minMatchesForRanking} partidos para aparecer.
             </T>
             {!data.qualified && data.you ? (
               <Banner
