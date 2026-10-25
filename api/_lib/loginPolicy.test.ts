@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assertTokenOnlyAllowed, TOKEN_ONLY_MAX_AGE_S, walletOutcome } from './loginPolicy';
+import { assertTokenOnlyAllowed, TOKEN_ONLY_MAX_AGE_S, tokenOnceKey, walletOutcome } from './loginPolicy';
 
 const now = 1_800_000_000;
 
@@ -28,5 +28,15 @@ describe('billetera al entrar firmado', () => {
   });
   it('una billetera ligada a OTRA cuenta nunca pasa', () => {
     expect(() => walletOutcome('address_taken', { allowOtherWallet: true })).toThrow(expect.objectContaining({ code: 'address_taken' }));
+  });
+});
+
+describe('clave de un solo uso del token', () => {
+  it('cumple el CHECK de session_nonces y no se parece a un nonce aleatorio (48 hex)', () => {
+    const k = tokenOnceKey('eyJ.a.b');
+    expect(k).toMatch(/^[a-f0-9]{32,128}$/);
+    expect(k).toHaveLength(64);
+    expect(tokenOnceKey('eyJ.a.b')).toBe(k);
+    expect(tokenOnceKey('eyJ.a.c')).not.toBe(k);
   });
 });

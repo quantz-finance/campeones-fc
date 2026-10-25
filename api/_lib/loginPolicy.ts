@@ -6,6 +6,7 @@
 //   CAVOS_TOKEN_ONLY_LOGIN=allow, con el token recién emitido y de un solo uso; nunca liga por correo
 //   ni liga billetera. Riesgo aceptado mientras Cavos comparta el aud entre apps y el registro no responda:
 //   el operador de otra app de Cavos que reciba el token de una persona podría reusarlo aquí.
+import { createHash } from 'node:crypto';
 import { HttpError } from './http';
 
 export const TOKEN_ONLY_MAX_AGE_S = 15 * 60;
@@ -36,4 +37,12 @@ export function walletOutcome(bind: WalletBind, opts: { allowOtherWallet: boolea
     throw new HttpError(409, 'Tu cuenta usa otra billetera de Cavos. Entra con el mismo método que usaste la primera vez.', 'other_wallet');
   }
   return { status: bind };
+}
+
+/**
+ * Clave de un solo uso para un token en session_nonces. Debe cumplir el CHECK de la tabla
+ * (^[a-f0-9]{32,128}$); 64 hex nunca choca con los nonces aleatorios (48 hex).
+ */
+export function tokenOnceKey(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
 }
