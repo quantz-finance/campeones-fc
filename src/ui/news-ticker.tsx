@@ -13,18 +13,20 @@ import { Toro } from './broadcast';
 import { colors } from './theme';
 import { T } from './text';
 
-const anchor = require('../../assets/banners/comentarista-ticker.webp');
+const anchor = require('../../assets/banners/comentarista-recorte.webp');
 
 /** Alto de la cinta (sin contar al comentarista, que sobresale hacia arriba). */
-export const TICKER_BAR = 40;
-/** Lado del recuadro del comentarista. */
-export const TICKER_ANCHOR = 112;
+export const TICKER_BAR = 27;
+/** Alto y ancho del recorte del comentarista (figura sin fondo, 157x144 a 2x). */
+export const TICKER_ANCHOR = 70;
+const ANCHOR_W = Math.round((TICKER_ANCHOR * 157) / 144);
+const ANCHOR_BOTTOM = 2;
 /** Cuánto sube el comentarista por encima de la cinta. */
-export const TICKER_RISE = TICKER_ANCHOR - TICKER_BAR + 6;
+export const TICKER_RISE = TICKER_ANCHOR + ANCHOR_BOTTOM - TICKER_BAR;
 /** Espacio total que ocupa la cinta con el comentarista. */
 export const TICKER_SPACE = TICKER_BAR + TICKER_RISE;
 
-const SPEED = 46; // px por segundo, ritmo de cinta de tele
+const SPEED = 40; // px por segundo, ritmo de cinta de tele
 const ROTATE_MS = 6000;
 
 function useReduceMotion(): boolean {
@@ -52,7 +54,7 @@ function Items({ items }: { items: string[] }) {
             {item}
           </T>
           <View style={styles.sep}>
-            <Toro size={16} />
+            <Toro size={12} />
           </View>
         </View>
       ))}
@@ -62,7 +64,7 @@ function Items({ items }: { items: string[] }) {
 
 /**
  * Cinta de noticias tipo tele, fija abajo del inicio: el comentarista sentado de
- * frente sobre la cinta y los titulares corriendo de derecha a izquierda.
+ * frente (recorte sin fondo) sobre la cinta y los titulares corriendo de derecha a izquierda.
  */
 export function NewsTicker({ items }: { items: string[] }) {
   const reduce = useReduceMotion();
@@ -138,25 +140,15 @@ export function NewsTicker({ items }: { items: string[] }) {
         <Image
           source={anchor}
           style={styles.anchorImage}
-          resizeMode="cover"
+          resizeMode="contain"
           accessible
           accessibilityRole="image"
           accessibilityLabel="Comentarista de Campeones FC"
-        />
-        <View
-          style={[
-            styles.anchorFade,
-            Platform.OS === 'web'
-              ? ({ backgroundImage: 'linear-gradient(to bottom, rgba(8,11,19,0) 0%, rgba(8,11,19,0.0) 70%, rgba(46,75,240,0.55) 100%)' } as object)
-              : null,
-          ]}
         />
       </View>
     </View>
   );
 }
-
-const ARCH = TICKER_ANCHOR / 2;
 
 const styles = StyleSheet.create({
   root: { height: TICKER_SPACE, justifyContent: 'flex-end' },
@@ -165,45 +157,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.blue,
-    borderTopWidth: 3,
+    borderTopWidth: 2,
     borderTopColor: colors.red,
-    paddingLeft: TICKER_ANCHOR + 14,
+    paddingLeft: ANCHOR_W + 10,
     overflow: 'hidden',
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
     backgroundColor: colors.yellow,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
     transform: [{ skewX: '-10deg' }],
     zIndex: 2,
   },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.red },
-  chipText: { fontSize: 11 },
-  track: { flex: 1, height: '100%', overflow: 'hidden', marginLeft: 10, justifyContent: 'center' },
+  dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: colors.red },
+  chipText: { fontSize: 9, lineHeight: 12, letterSpacing: 0.8 },
+  track: { flex: 1, height: '100%', overflow: 'hidden', marginLeft: 8, justifyContent: 'center' },
   row: { position: 'absolute', left: 0, top: 0, bottom: 0, flexDirection: 'row', alignItems: 'center' },
   copy: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
   item: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
-  itemText: { fontSize: 13, color: colors.text, flexShrink: 0 },
-  sep: { marginHorizontal: 12, opacity: 0.95 },
+  itemText: { fontSize: 11, lineHeight: 14, letterSpacing: 0.8, color: colors.text, flexShrink: 0 },
+  sep: { marginHorizontal: 9, opacity: 0.95 },
   staticRow: { paddingRight: 8 },
   anchor: {
     position: 'absolute',
-    left: 8,
-    bottom: 0,
-    width: TICKER_ANCHOR,
+    left: 6,
+    bottom: ANCHOR_BOTTOM,
+    width: ANCHOR_W,
     height: TICKER_ANCHOR,
-    borderTopLeftRadius: ARCH,
-    borderTopRightRadius: ARCH,
-    overflow: 'hidden',
-    backgroundColor: colors.bg,
-    borderWidth: 2,
-    borderBottomWidth: 0,
-    borderColor: colors.red,
     zIndex: 3,
   },
   anchorImage: { width: '100%', height: '100%' },
-  anchorFade: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
 });
