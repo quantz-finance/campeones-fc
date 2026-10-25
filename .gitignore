@@ -30,9 +30,10 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files (nunca subir secretos)
 .env
-.env*.local
+.env*
+!.env.example
 
 # agent scratch
 /agent-tools/

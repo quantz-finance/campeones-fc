@@ -154,3 +154,7 @@ Esta versión no mueve valor. `src/lib/payments/escrow.ts` deja el lugar para, e
 - No hay apps nativas compiladas, notificaciones push ni cron de expiración.
 - La custodia en Stellar no está implementada.
 - El ranking de la pantalla usa los partidos que puedes ver, no la caché `player_ratings`.
+
+## Licencia
+
+Código abierto bajo la licencia MIT. Ver [LICENSE](LICENSE). Copyright (c) 2026 Quantz.

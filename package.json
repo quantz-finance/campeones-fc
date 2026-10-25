@@ -50,6 +50,7 @@
     "postinstall": "node scripts/patch-cavos-kit.mjs"
   },
   "private": true,
+  "license": "MIT",
   "engines": {
     "node": "22.x"
   }
