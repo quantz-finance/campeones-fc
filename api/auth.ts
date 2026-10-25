@@ -19,8 +19,9 @@ import {
 import { env, missingEnv } from './_lib/env';
 import { bearer, body, fail, HttpError, json } from './_lib/http';
 import { bindMessage, ProofError, verifyBindProof } from './_lib/proof';
+import { assertRegisteredWallet } from './_lib/registry';
 
-const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'CAVOS_JWT_ISSUERS', 'CAVOS_JWT_AUDIENCE'];
+const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'CAVOS_JWT_ISSUERS', 'CAVOS_JWT_AUDIENCE', 'EXPO_PUBLIC_CAVOS_APP_ID'];
 
 export default async function handler(req: any, res: any) {
   try {
@@ -32,7 +33,8 @@ export default async function handler(req: any, res: any) {
     const missing = missingEnv(REQUIRED);
     if (missing.length) throw new HttpError(503, 'Cavos todavía no está configurado en el servidor.', 'cavos_not_configured', { missing });
 
-    const user = await verifyCavosToken(bearer(req));
+    const token = bearer(req);
+    const user = await verifyCavosToken(token);
     const b = body(req);
     if (b.step === 'nonce') {
       const nonce = await issueNonce(user.iss, user.sub);
@@ -47,6 +49,12 @@ export default async function handler(req: any, res: any) {
       const code = e instanceof ProofError ? e.code : 'proof_invalid';
       throw new HttpError(401, 'No pudimos comprobar tu billetera. Vuelve a entrar con Cavos.', code);
     }
+    await assertRegisteredWallet(
+      { baseUrl: env.cavosApiUrl(), appId: env.cavosAppId(), network: env.stellarNetwork(), environment: env.cavosEnvironment() },
+      token,
+      user.sub,
+      proof.address,
+    );
     if (!(await consumeNonce(user.iss, user.sub, proof.nonce))) {
       throw new HttpError(401, 'El código de entrada venció. Vuelve a intentarlo.', 'nonce_invalid');
     }

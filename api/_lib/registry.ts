@@ -1,0 +1,45 @@
+// Registro de billeteras de Cavos: (usuario, appId, red) -> dirección.
+// El aud de los tokens de Google/Apple es el cliente OAuth compartido de Cavos, así que un token
+// válido no prueba que la billetera que firma sea la de ESTA app. El registro sí: preguntamos con el
+// mismo token por la dirección de este usuario en nuestro appId y exigimos que sea la que firmó.
+import { HttpError } from './http';
+
+export interface RegistryConfig {
+  baseUrl: string;
+  appId: string;
+  network: 'testnet' | 'mainnet';
+  environment: 'development' | 'production';
+}
+
+export type RegistryFetch = (url: string, init: { headers: Record<string, string>; signal?: AbortSignal }) => Promise<{
+  ok: boolean;
+  status: number;
+  json(): Promise<any>;
+}>;
+
+export async function registryAddress(cfg: RegistryConfig, token: string, userId: string, f: RegistryFetch = fetch as any): Promise<string | null> {
+  const url = new URL('/api/wallets', cfg.baseUrl);
+  url.searchParams.set('app_id', cfg.appId);
+  url.searchParams.set('user_social_id', userId);
+  url.searchParams.set('network', `stellar-${cfg.network}`);
+  url.searchParams.set('environment', cfg.environment);
+  let res;
+  try {
+    res = await f(url.toString(), { headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'campeones-fc-api' }, signal: AbortSignal.timeout(8000) });
+  } catch {
+    throw new HttpError(503, 'No pudimos consultar Cavos. Inténtalo de nuevo en un momento.', 'registry_unreachable');
+  }
+  if (res.status === 401 || res.status === 403) {
+    throw new HttpError(401, 'Tu sesión de Cavos venció. Vuelve a entrar.', 'registry_unauthorized');
+  }
+  if (!res.ok) throw new HttpError(503, 'No pudimos consultar Cavos. Inténtalo de nuevo en un momento.', 'registry_error', { status: res.status });
+  const data = await res.json().catch(() => ({}));
+  return data?.found && typeof data.address === 'string' ? data.address : null;
+}
+
+/** Falla cerrado: la dirección que firmó debe ser la registrada para este usuario en esta app. */
+export async function assertRegisteredWallet(cfg: RegistryConfig, token: string, userId: string, address: string, f?: RegistryFetch): Promise<void> {
+  const registered = await registryAddress(cfg, token, userId, f);
+  if (!registered) throw new HttpError(409, 'Tu billetera de Cavos todavía no está lista. Vuelve a entrar.', 'wallet_not_registered');
+  if (registered !== address) throw new HttpError(401, 'Esa billetera no corresponde a tu cuenta de Cavos.', 'wallet_mismatch');
+}

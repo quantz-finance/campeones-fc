@@ -1,7 +1,8 @@
 // Verificación del JWT de Cavos (adaptado de Meteorito api/_lib/auth.ts).
 // - Lista CERRADA de issuers (CAVOS_JWT_ISSUERS + CAVOS_EXTRA_ISSUER opcional).
 // - aud obligatorio: el appId de Cavos (CAVOS_JWT_AUDIENCE). Sin appId no se acepta ningún token.
-// - Tokens de Google/Apple: además del appId, solo los aud de CAVOS_GOOGLE_AUDIENCE / CAVOS_APPLE_AUDIENCE (opt-in).
+// - Tokens de Google/Apple/enclave: además del appId, solo el aud configurado para ESE issuer (opt-in).
+//   Esos aud son compartidos entre apps de Cavos; /api/auth exige además la billetera registrada (registry.ts).
 // - Sin ventana de gracia: el token solo se usa una vez, al entrar, para acuñar la sesión de Supabase.
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
 import { env } from './env';
@@ -70,7 +71,14 @@ export async function verifyCavosToken(token: string): Promise<CavosUser> {
     console.warn('[auth] issuer rechazado', JSON.stringify({ iss }));
     throw invalid('issuer');
   }
-  const audiences = isGoogle ? [...base, ...env.googleAudiences()] : iss === APPLE_ISS ? [...base, ...env.appleAudiences()] : base;
+  const extra = env.cavosExtraIssuer();
+  const audiences = isGoogle
+    ? [...base, ...env.googleAudiences()]
+    : iss === APPLE_ISS
+      ? [...base, ...env.appleAudiences()]
+      : extra && extra.iss === iss && extra.aud
+        ? [...base, extra.aud]
+        : base;
   let payload: JWTPayload;
   try {
     ({ payload } = await jwtVerify(token, jwksFor(iss), { issuer: iss, audience: audiences, clockTolerance: 30 }));

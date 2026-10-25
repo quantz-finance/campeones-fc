@@ -60,6 +60,17 @@ describe('JWT de Cavos', () => {
     await expect(verifyCavosToken(t)).resolves.toMatchObject({ iss: 'https://enclave.cavos.xyz' });
   });
 
+  it('el aud compartido del enclave ("cavos-email") solo vale para ese issuer y si se configura', async () => {
+    const enclave = await token({}, { iss: 'https://enclave.cavos.xyz', aud: 'cavos-email' });
+    process.env.CAVOS_EXTRA_ISSUER = 'https://enclave.cavos.xyz|https://enclave.cavos.xyz/.well-known/jwks.json';
+    await expect(verifyCavosToken(enclave)).rejects.toMatchObject({ code: 'auth_invalid' });
+    process.env.CAVOS_EXTRA_ISSUER = 'https://enclave.cavos.xyz|https://enclave.cavos.xyz/.well-known/jwks.json|cavos-email';
+    await expect(verifyCavosToken(enclave)).resolves.toMatchObject({ iss: 'https://enclave.cavos.xyz' });
+    // El mismo aud no abre la puerta a otro issuer.
+    const other = await token({}, { aud: 'cavos-email' });
+    await expect(verifyCavosToken(other)).rejects.toMatchObject({ code: 'auth_invalid' });
+  });
+
   it('distingue un token vencido', async () => {
     const t = await token({}, { exp: Math.floor(Date.now() / 1000) - 3600 });
     await expect(verifyCavosToken(t)).rejects.toMatchObject({ code: 'session_expired' });

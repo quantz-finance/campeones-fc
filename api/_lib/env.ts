@@ -33,20 +33,26 @@ export const env = {
   cavosIssuers: () => list(process.env.CAVOS_JWT_ISSUERS),
   /**
    * Issuer del login por correo (enclave), opcional y apagado por defecto. Solo se agrega tras
-   * decodificar un token OTP real y confirmar su JWKS. Formato: "<issuer>|<jwks url>".
+   * decodificar un token OTP real y confirmar su JWKS. Formato: "<issuer>|<jwks url>|<aud>".
+   * El aud del enclave es compartido entre apps de Cavos ("cavos-email"), por eso /api/auth exige
+   * además que la billetera que firma sea la registrada en Cavos para ESTE appId.
    */
-  cavosExtraIssuer(): { iss: string; jwks: string } | null {
+  cavosExtraIssuer(): { iss: string; jwks: string; aud: string | null } | null {
     const raw = (process.env.CAVOS_EXTRA_ISSUER ?? '').trim();
     if (!raw) return null;
-    const [iss, jwks] = raw.split('|').map((s: string) => s.trim());
+    const [iss, jwks, aud] = raw.split('|').map((s: string) => s.trim());
     if (!iss || !jwks || !/^https:\/\//.test(jwks)) return null;
-    return { iss, jwks };
+    return { iss, jwks, aud: aud || null };
   },
   /** appId de Cavos. aud se exige siempre: sin esto el servidor no acepta ningún token. */
   cavosAudiences: () => list(process.env.CAVOS_JWT_AUDIENCE),
   /** Cliente OAuth de Cavos, aceptado como aud SOLO en tokens emitidos por Google / Apple. */
   googleAudiences: () => list(process.env.CAVOS_GOOGLE_AUDIENCE),
   appleAudiences: () => list(process.env.CAVOS_APPLE_AUDIENCE),
+  /** appId público de Cavos (el mismo del cliente). */
+  cavosAppId: () => (process.env.CAVOS_APP_ID ?? process.env.EXPO_PUBLIC_CAVOS_APP_ID ?? '').trim(),
+  cavosApiUrl: () => process.env.CAVOS_API_URL ?? 'https://cavos.xyz',
+  cavosEnvironment: (): 'development' | 'production' => (process.env.CAVOS_ENVIRONMENT === 'development' ? 'development' : 'production'),
   cronSecret: () => process.env.CRON_SECRET ?? '',
   /** Horas que se espera la firma de los dos jugadores antes de anclar con las que haya. */
   attestWaitHours(): number {
