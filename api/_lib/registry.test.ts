@@ -7,7 +7,7 @@ const B = 'GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H';
 
 const reply = (status: number, body: unknown, seen?: string[]): RegistryFetch => async (url, init) => {
   seen?.push(url, init.headers.Authorization);
-  return { ok: status < 300, status, json: async () => body };
+  return { ok: status < 300, status, json: async () => body, text: async () => JSON.stringify(body) };
 };
 
 describe('registro de Cavos', () => {
@@ -27,8 +27,9 @@ describe('registro de Cavos', () => {
   });
 
   it('falla cerrado si Cavos rechaza el token o no responde', async () => {
-    await expect(assertRegisteredWallet(cfg, 't', 's', A, reply(401, {}))).rejects.toMatchObject({ status: 401, code: 'registry_unauthorized' });
+    await expect(assertRegisteredWallet(cfg, 't', 's', A, reply(401, { error: 'Invalid user token' }))).rejects.toMatchObject({ status: 401, code: 'registry_unauthorized' });
     await expect(assertRegisteredWallet(cfg, 't', 's', A, reply(500, {}))).rejects.toMatchObject({ status: 503 });
+    await expect(assertRegisteredWallet(cfg, 't', 's', A, reply(403, 'error code: 1010'))).rejects.toMatchObject({ status: 503, code: 'registry_error' });
     const boom: RegistryFetch = async () => {
       throw new Error('net');
     };

@@ -15,6 +15,7 @@ export type RegistryFetch = (url: string, init: { headers: Record<string, string
   ok: boolean;
   status: number;
   json(): Promise<any>;
+  text?(): Promise<string>;
 }>;
 
 export async function registryAddress(cfg: RegistryConfig, token: string, userId: string, f: RegistryFetch = fetch as any): Promise<string | null> {
@@ -29,10 +30,14 @@ export async function registryAddress(cfg: RegistryConfig, token: string, userId
   } catch {
     throw new HttpError(503, 'No pudimos consultar Cavos. Inténtalo de nuevo en un momento.', 'registry_unreachable');
   }
-  if (res.status === 401 || res.status === 403) {
-    throw new HttpError(401, 'Tu sesión de Cavos venció. Vuelve a entrar.', 'registry_unauthorized');
+  if (!res.ok) {
+    const snippet = res.text ? (await res.text().catch(() => '')).slice(0, 160) : '';
+    console.warn('[registry] respuesta', JSON.stringify({ host: url.host, status: res.status, body: snippet }));
+    if (res.status === 401 && /token/i.test(snippet)) {
+      throw new HttpError(401, 'Tu sesión de Cavos venció. Vuelve a entrar.', 'registry_unauthorized');
+    }
+    throw new HttpError(503, 'No pudimos consultar Cavos. Inténtalo de nuevo en un momento.', 'registry_error', { status: res.status });
   }
-  if (!res.ok) throw new HttpError(503, 'No pudimos consultar Cavos. Inténtalo de nuevo en un momento.', 'registry_error', { status: res.status });
   const data = await res.json().catch(() => ({}));
   return data?.found && typeof data.address === 'string' ? data.address : null;
 }
