@@ -5,7 +5,7 @@ import { branding } from '../../config/branding';
 import { track } from '../lib/analytics';
 import { authErrorText } from '../lib/cavos/auth-ux';
 import { cavosConfigured, cavosSupported } from '../lib/cavos/config';
-import { exchangeCavosSession } from '../lib/cavos/session';
+import { DeviceApprovalNeeded, exchangeCavosSession, loginPath } from '../lib/cavos/session';
 import { cavosStore, useCavosState } from '../lib/cavos/store';
 import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
@@ -15,7 +15,7 @@ import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
 
-type Phase = 'idle' | 'opening' | 'session';
+type Phase = 'idle' | 'opening' | 'session' | 'approve';
 
 export default function Login() {
   const app = useApp();
@@ -35,6 +35,9 @@ export default function Login() {
   useEffect(() => {
     if (!configured || app.userId || !bridged || bridged.isLoading) return;
     if (!bridged.isAuthenticated || !bridged.address || exchanging.current || error) return;
+    // Esperar a que el kit sepa si la llave de la billetera está en este navegador.
+    const path = loginPath(bridged.wallet);
+    if (path === null || (path === 'approve' && phase === 'approve')) return;
     exchanging.current = true;
     setPhase('session');
     exchangeCavosSession(bridged)
@@ -42,13 +45,38 @@ export default function Login() {
         track('sign_in', { method: 'cavos', wallet: w.status });
       })
       .catch((cause) => {
+        if (cause instanceof DeviceApprovalNeeded) {
+          setPhase('approve');
+          return;
+        }
         setError(cause instanceof Error ? authErrorText(cause.message) : 'No se pudo entrar.');
         setPhase('idle');
       })
       .finally(() => {
         exchanging.current = false;
       });
-  }, [configured, app.userId, bridged, error]);
+  }, [configured, app.userId, bridged, error, phase]);
+
+  async function approveDevice() {
+    if (!bridged) return;
+    setError(null);
+    try {
+      await bridged.approveDevice();
+      setPhase('idle'); // con la llave lista, el efecto de arriba acuña la sesión
+    } catch (cause) {
+      setError(cause instanceof Error ? authErrorText(cause.message) : 'No se pudo confirmar.');
+    }
+  }
+
+  /** Salir de esta cuenta de Cavos (la llave del dispositivo se queda) y abrir el login otra vez. */
+  async function otherAccount() {
+    setError(null);
+    setPhase('idle');
+    if (bridged) {
+      await bridged.logout().catch(() => undefined);
+      bridged.openModal();
+    }
+  }
 
   useEffect(() => {
     if (bridged?.error) {
@@ -64,7 +92,11 @@ export default function Login() {
       cavosStore.want();
       return;
     }
-    if (bridged.isAuthenticated && bridged.address) return; // el efecto de arriba acuña la sesión
+    // Ya entró a Cavos pero falló el paso siguiente: volver a empezar en vez de reintentar lo mismo en bucle.
+    if (bridged.isAuthenticated && bridged.address) {
+      void otherAccount();
+      return;
+    }
     bridged.openModal();
   }
 
@@ -78,7 +110,7 @@ export default function Login() {
   // Después de todos los hooks: un return temprano antes de un hook rompe el orden (error #300 de React).
   if (app.ready && app.userId) return <Redirect href="/inicio" />;
 
-  const busy = phase !== 'idle';
+  const busy = phase === 'opening' || phase === 'session';
   const label =
     phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar con Cavos';
 
@@ -129,7 +161,19 @@ export default function Login() {
         </>
       ) : configured ? (
         <>
-          <Button label={label} disabled={busy} onPress={openCavos} />
+          {phase === 'approve' ? (
+            <>
+              <Banner
+                tone="accent"
+                title="Confirma que eres tú"
+                body="Tu billetera de Cavos se creó en otro dispositivo. Usa tu passkey para traerla a este."
+              />
+              <Button label="Confirmar con mi passkey" onPress={approveDevice} />
+              <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
+            </>
+          ) : (
+            <Button label={label} disabled={busy} onPress={openCavos} />
+          )}
           <T color={colors.muted}>
             Entra con Google, Apple o tu correo. Al entrar recibes tu billetera en Stellar y cada resultado que confirmen los dos queda registrado ahí.
           </T>

@@ -13,6 +13,7 @@ describe('parche del modal de @cavos/kit', () => {
       expect(src).toContain('maxLength: i === 0 ? EMAIL_CODE_LENGTH : 1,');
       expect(src).not.toContain('normalizeEmailCode(raw).slice(-1)');
       expect(src).toContain('"Ingresa tu código"');
+      expect(src).toContain('if (!globalThis.__cfcKeepDeviceKey) VaultClient.attach(');
     }
   });
 

@@ -36,7 +36,7 @@ beforeEach(() => {
 describe('JWT de Cavos', () => {
   it('acepta un token válido y devuelve (iss, sub)', async () => {
     const u = await verifyCavosToken(await token({ email: 'Ana@Gmail.com', email_verified: true, name: 'Ana' }));
-    expect(u).toEqual({ iss: ISS, sub: 'sub-1', email: 'ana@gmail.com', emailVerified: true, name: 'Ana' });
+    expect(u).toEqual({ iss: ISS, sub: 'sub-1', email: 'ana@gmail.com', emailVerified: true, name: 'Ana', iat: expect.any(Number) });
   });
 
   it('sin appId configurado no acepta ningún token', async () => {

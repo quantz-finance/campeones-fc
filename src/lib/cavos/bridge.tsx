@@ -11,6 +11,8 @@ import { cavosStore, type CavosBridged } from './store';
 if (typeof window !== 'undefined') {
   (globalThis as any).__cfcAuthError = authErrorText;
   (globalThis as any).__cfcOtpFill = otpFill;
+  // Salir de Cavos no borra la llave de la billetera de este navegador (si no, la billetera queda huérfana).
+  (globalThis as any).__cfcKeepDeviceKey = true;
 }
 
 const TOKEN_KEY = `cavos-kit:token:${CAVOS_APP_ID}`;
@@ -38,6 +40,21 @@ function Bridge() {
       isAuthenticated: c.isAuthenticated,
       address: c.address,
       email: c.user?.email ?? null,
+      wallet: {
+        ready: !!c.walletStatus?.isReady,
+        undeployed: !!c.walletStatus?.isUndeployed,
+        needsApproval: !!c.walletStatus?.needsDeviceApproval,
+        hasPasskey: !!c.walletStatus?.hasPasskey,
+        deploying: !!c.walletStatus?.isDeploying,
+      },
+      approveDevice: async () => {
+        try {
+          await ref.current.approveDeviceWithPasskey();
+        } catch (e) {
+          console.error('[cavos] approveDevice', e);
+          throw new Error(authErrorText(e instanceof Error ? e.message : String(e)));
+        }
+      },
       error: c.authError ? authErrorText(c.authError) : null,
       openModal: () => {
         ref.current.clearAuthError();
@@ -52,7 +69,10 @@ function Bridge() {
           return { publicKey: r.publicKey, signature: b64(r.signature) };
         } catch (e) {
           console.error('[cavos] signMessage', e);
-          throw new Error(authErrorText(e instanceof Error ? e.message : String(e)));
+          const raw = e instanceof Error ? e.message : String(e);
+          const err = new Error(authErrorText(raw));
+          if (/not an authorized signer/i.test(raw)) (err as any).code = 'not_signer';
+          throw err;
         }
       },
       token: () => {
@@ -64,7 +84,18 @@ function Bridge() {
       },
     };
     cavosStore.setBridged(value);
-  }, [c.isLoading, c.isAuthenticated, c.address, c.user?.email, c.authError]);
+  }, [
+    c.isLoading,
+    c.isAuthenticated,
+    c.address,
+    c.user?.email,
+    c.authError,
+    c.walletStatus?.isReady,
+    c.walletStatus?.isUndeployed,
+    c.walletStatus?.needsDeviceApproval,
+    c.walletStatus?.hasPasskey,
+    c.walletStatus?.isDeploying,
+  ]);
   useEffect(() => () => cavosStore.setBridged(null), []);
   return null;
 }
@@ -81,7 +112,7 @@ export default function CavosBridge() {
         rpId: CAVOS_RP_ID,
         persistSession: true,
       }}
-      modal={{ appName: 'Campeones FC', providers: ['google', 'apple', 'email'], primaryColor: colors.red, theme: 'dark', secureStep: 'off' }}
+      modal={{ appName: 'Campeones FC', providers: ['google', 'apple', 'email'], primaryColor: colors.red, theme: 'dark', secureStep: 'optional' }}
     >
       <Bridge />
     </CavosProvider>

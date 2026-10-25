@@ -121,6 +121,17 @@ export async function consumeNonce(iss: string, sub: string, nonce: string): Pro
   return !!data;
 }
 
+/** Registra un uso único (p. ej. el hash de un token). false si ya existía. */
+export async function claimTokenOnce(iss: string, sub: string, key: string): Promise<boolean> {
+  const now = new Date();
+  const { error } = await adminClient()
+    .from('session_nonces')
+    .insert({ nonce: key, iss, sub, used_at: now.toISOString(), expires_at: new Date(now.getTime() + 2 * 3_600_000).toISOString() });
+  if (error && (error as any).code === '23505') return false;
+  check(error, 'claimTokenOnce');
+  return true;
+}
+
 export async function identityUser(iss: string, sub: string): Promise<string | null> {
   const { data, error } = await adminClient().from('cavos_identities').select('user_id').eq('iss', iss).eq('sub', sub).maybeSingle();
   check(error, 'identityUser');

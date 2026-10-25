@@ -39,6 +39,8 @@ export interface CavosUser {
   /** true SOLO si el token trae email_verified === true (booleano o "true"). */
   emailVerified: boolean;
   name: string | null;
+  /** Emitido en (segundos epoch). */
+  iat: number | null;
 }
 
 export const AUTH_INVALID = 'No pudimos verificar tu sesión de Cavos. Vuelve a entrar.';
@@ -94,7 +96,8 @@ export async function verifyCavosToken(token: string): Promise<CavosUser> {
   const email = typeof p.email === 'string' && p.email.includes('@') ? p.email.trim().toLowerCase() : null;
   const emailVerified = p.email_verified === true || p.email_verified === 'true';
   const name = typeof p.name === 'string' ? p.name.slice(0, 64) : null;
-  return { iss, sub, email, emailVerified, name };
+  const iat = typeof payload.iat === 'number' ? payload.iat : null;
+  return { iss, sub, email, emailVerified, name, iat };
 }
 
 /** ¿Se puede ligar por correo? Solo con email_verified explícito y nunca con el relay privado de Apple. */
