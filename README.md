@@ -125,6 +125,8 @@ node scripts/chain/elo-from-chain.mjs            # comprueba cada acta contra St
 node scripts/chain/elo-from-chain.mjs --json
 ```
 
+Paso a mainnet (solo variables de entorno, con verificación de la cuenta): ver `docs/mainnet-cutover.md`.
+
 Poner al día (necesita `CRON_SECRET`, no lo imprime):
 
 ```bash

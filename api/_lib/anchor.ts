@@ -34,6 +34,8 @@ export type MatchRow = {
   chain_attempts: number;
   /** Partido confirmado antes del registro en Stellar: se ancla sin esperar firmas ("sin firma"). */
   chain_backfill?: boolean;
+  /** Red en la que se ancló (o se está anclando). */
+  chain_network?: ChainNetwork | null;
 };
 
 export type Attestation = { match_id: string; user_id: string; address: string; public_key: string; message: string; signature: string };
@@ -46,16 +48,16 @@ export interface AnchorStore {
   saveAttestation(a: Attestation): Promise<void>;
   /** pending -> submitting, o submitting viejo (claimed_at < staleBefore) -> submitting. Devuelve la fila o null. */
   claim(id: string, staleBefore: Date): Promise<MatchRow | null>;
-  savePrepared(id: string, p: { chain_hash: string; chain_payload: unknown; chain_tx: string; chain_max_time: number; chain_attempts: number }): Promise<void>;
+  savePrepared(id: string, p: { chain_hash: string; chain_payload: unknown; chain_tx: string; chain_max_time: number; chain_attempts: number; chain_network: ChainNetwork }): Promise<void>;
   markAnchored(id: string, tx: string): Promise<void>;
   release(id: string, p: { status: 'pending' | 'submitting' | 'failed'; error: string | null }): Promise<void>;
   queue(limit: number, staleBefore: Date): Promise<string[]>;
   /** Encola hasta `limit` partidos confirmados viejos como "sin firma". Devuelve cuántos. */
-  queueBackfill?(limit: number): Promise<number>;
+  queueBackfill?(limit: number, network: ChainNetwork): Promise<number>;
 }
 
 export type AnchorResult =
-  | { state: 'anchored'; tx: string; hash: string | null; fresh: boolean }
+  | { state: 'anchored'; tx: string; hash: string | null; fresh: boolean; network: ChainNetwork }
   | { state: 'not_found' | 'not_confirmed' | 'not_queued' | 'busy' | 'in_flight' | 'waiting_signatures' | 'failed' }
   | { state: 'retry_later'; error: string };
 
@@ -119,7 +121,11 @@ export async function anchorMatch(
   const now = deps.now ?? (() => new Date());
   const m0 = await store.getMatch(matchId);
   if (!m0) return { state: 'not_found' };
-  if (m0.chain_status === 'anchored' && m0.chain_tx) return { state: 'anchored', tx: m0.chain_tx, hash: m0.chain_hash, fresh: false };
+  if (m0.chain_status === 'anchored' && m0.chain_tx) {
+    // Anclado en otra red (antes del cambio a mainnet): lo vuelve a encolar el backfill.
+    if (m0.chain_network && m0.chain_network !== network) return { state: 'not_queued' };
+    return { state: 'anchored', tx: m0.chain_tx, hash: m0.chain_hash, fresh: false, network };
+  }
   if (m0.status !== 'confirmed' || !m0.confirmed_at) return { state: 'not_confirmed' };
   if (m0.chain_status === null) return { state: 'not_queued' };
   if (m0.chain_status === 'failed') return { state: 'failed' };
@@ -140,7 +146,7 @@ export async function anchorMatch(
       const status = await chain.txStatus(m.chain_tx);
       if (status === 'success') {
         await store.markAnchored(m.id, m.chain_tx);
-        return { state: 'anchored', tx: m.chain_tx, hash: m.chain_hash, fresh: false };
+        return { state: 'anchored', tx: m.chain_tx, hash: m.chain_hash, fresh: false, network };
       }
       if (status === 'missing') {
         const dec = rebuildDecision({ maxTime: m.chain_max_time, ledgerCloseS: await chain.ledgerCloseS(), landed: false });
@@ -158,17 +164,17 @@ export async function anchorMatch(
     }
     const { payload, hash } = await buildPayload(store, network, m);
     const built = await chain.buildAnchor(hash);
-    await store.savePrepared(m.id, { chain_hash: hash, chain_payload: payload, chain_tx: built.hash, chain_max_time: built.maxTime, chain_attempts: attempts });
+    await store.savePrepared(m.id, { chain_hash: hash, chain_payload: payload, chain_tx: built.hash, chain_max_time: built.maxTime, chain_attempts: attempts, chain_network: network });
     try {
       const sent = await chain.submit(built.tx);
       await store.markAnchored(m.id, sent.hash);
-      return { state: 'anchored', tx: sent.hash, hash, fresh: true };
+      return { state: 'anchored', tx: sent.hash, hash, fresh: true, network };
     } catch (e) {
       // ¿Entró igual? (timeout después de aceptar)
       const landed = await chain.txStatus(built.hash).catch(() => 'missing' as const);
       if (landed === 'success') {
         await store.markAnchored(m.id, built.hash);
-        return { state: 'anchored', tx: built.hash, hash, fresh: true };
+        return { state: 'anchored', tx: built.hash, hash, fresh: true, network };
       }
       const msg = e instanceof Error ? e.message : String(e);
       const retryable = e instanceof SubmitError ? e.retryable : true;

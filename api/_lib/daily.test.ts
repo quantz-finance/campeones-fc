@@ -152,5 +152,9 @@ describe('backfill', () => {
     const r = await anchorMatch({ store, chain, network: 'testnet', attestWaitS: 86_400 }, s.id);
     expect(r.state).toBe('anchored');
     expect((s as any).chain_payload.players.every((p: any) => p.signature === null)).toBe(true);
+    expect(s.chain_network).toBe('testnet');
+    // Al cambiar a mainnet, lo anclado en testnet no cuenta: lo vuelve a encolar el backfill.
+    const onMainnet = await anchorMatch({ store, chain, network: 'mainnet', attestWaitS: 86_400 }, s.id);
+    expect(onMainnet.state).toBe('not_queued');
   });
 });

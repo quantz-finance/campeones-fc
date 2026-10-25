@@ -16,15 +16,19 @@ import { T } from './text';
 
 type ChainInfo = { status: string | null; tx: string | null; backfill: boolean; signers: string[] };
 
+/** Lo anclado en otra red (antes de cambiar de red) cuenta como pendiente en la red actual. */
+const here = (network: unknown) => !network || network === STELLAR_NETWORK;
+
 async function loadChain(matchId: string): Promise<ChainInfo> {
   const db = getSupabase();
   const [m, a] = await Promise.all([
-    db.from('matches').select('chain_status,chain_tx,chain_backfill').eq('id', matchId).maybeSingle(),
+    db.from('matches').select('chain_status,chain_tx,chain_backfill,chain_network').eq('id', matchId).maybeSingle(),
     db.from('match_attestations').select('user_id').eq('match_id', matchId),
   ]);
+  const sameNet = here(m.data?.chain_network);
   return {
-    status: (m.data?.chain_status as string | null) ?? null,
-    tx: (m.data?.chain_tx as string | null) ?? null,
+    status: sameNet ? ((m.data?.chain_status as string | null) ?? null) : 'pending',
+    tx: sameNet ? ((m.data?.chain_tx as string | null) ?? null) : null,
     backfill: !!m.data?.chain_backfill,
     signers: ((a.data ?? []) as { user_id: string }[]).map((r) => r.user_id),
   };

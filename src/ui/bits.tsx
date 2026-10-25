@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { STELLAR_NETWORK } from '../lib/cavos/config';
 import { Link, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
@@ -142,7 +143,7 @@ export function MatchRow({
               </T>
             ) : null}
             {` · ${formatWhen(match.confirmedAt ?? match.createdAt)}`}
-            {match.chainStatus === 'anchored' ? (
+            {match.chainStatus === 'anchored' && (!match.chainNetwork || match.chainNetwork === STELLAR_NETWORK) ? (
               <T variant="tiny" color={colors.cyan} accessibilityLabel="Verificado en Stellar">
                 {' · ✓ Stellar'}
               </T>

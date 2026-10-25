@@ -82,6 +82,7 @@ function mapMatch(row: Row): Match {
     ratingDeltaB: asNumber(row.rating_delta_b),
     chainStatus: asNullable(row.chain_status) as Match['chainStatus'],
     chainTx: asNullable(row.chain_tx),
+    chainNetwork: asNullable(row.chain_network) as Match['chainNetwork'],
   };
 }
 

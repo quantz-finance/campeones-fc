@@ -3,6 +3,7 @@
 //   ?id=<uuid>      -> un partido: JSON canónico anclado, hash, tx, firmas y su prueba Merkle en el acta del día.
 //   ?index=1        -> todas las actas diarias (para scripts/chain/elo-from-chain.mjs).
 //   ?day=YYYY-MM-DD -> un acta con los resultados canónicos de ese día, en el orden del árbol.
+//   ?status=1       -> red configurada, Horizon y estado público de la cuenta de la plataforma.
 import { explorerTxUrl, resultDigest, resultObject, type ChainNetwork } from '../src/domain/match-proof';
 import { merkleProof, recordHash } from '../src/domain/merkle';
 import { toResult, type MatchRow } from './_lib/anchor';
@@ -10,11 +11,12 @@ import { dayDigests, type DailyRow, type DayMatch } from './_lib/daily';
 import { adminClient } from './_lib/db';
 import { env } from './_lib/env';
 import { fail, HttpError } from './_lib/http';
+import { platformFunding } from './_lib/stellar';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const MATCH_COLS =
-  'id,player_a_id,player_b_id,status,winner_id,is_draw,goals_a,goals_b,confirmed_at,chain_status,chain_hash,chain_payload,chain_tx,chain_backfill,anchored_at';
+  'id,player_a_id,player_b_id,status,winner_id,is_draw,goals_a,goals_b,confirmed_at,chain_status,chain_hash,chain_payload,chain_tx,chain_backfill,chain_network,anchored_at';
 const DAILY_COLS = 'day,network,match_count,root,prev_hash,record_hash,record,match_ids,status,tx,anchored_at';
 
 function send(res: any, status: number, body: unknown, cacheS = 30) {
@@ -58,12 +60,21 @@ async function recordMatches(r: DailyRow): Promise<DayMatch[]> {
 
 async function oneMatch(id: string) {
   const db = adminClient();
-  const network = env.stellarNetwork();
+  const current = env.stellarNetwork();
   const { data: m, error } = await db.from('matches').select(MATCH_COLS).eq('id', id).maybeSingle();
   if (error) throw new Error(error.message);
   if (!m || m.status !== 'confirmed' || !m.confirmed_at) throw new HttpError(404, 'No encontramos un partido confirmado con ese código.', 'not_found');
   const row = m as MatchRow & { chain_payload: any; chain_backfill: boolean; anchored_at: string | null };
-  const current = resultObject(toResult(row));
+  // Lo anclado en otra red (antes de cambiar de red) se muestra como pendiente en la red actual.
+  const sameNet = !row.chain_network || row.chain_network === current;
+  const network: ChainNetwork = current;
+  if (!sameNet) {
+    row.chain_status = 'pending';
+    row.chain_hash = null;
+    row.chain_tx = null;
+    row.chain_payload = null;
+  }
+  const currentResult = resultObject(toResult(row));
   const currentDigest = resultDigest(toResult(row));
   const payload = row.chain_payload ?? null;
   const players = Array.isArray(payload?.players)
@@ -71,7 +82,7 @@ async function oneMatch(id: string) {
     : [];
 
   let daily: unknown = null;
-  const { data: rec, error: e2 } = await db.from('chain_daily_records').select(DAILY_COLS).contains('match_ids', [id]).maybeSingle();
+  const { data: rec, error: e2 } = await db.from('chain_daily_records').select(DAILY_COLS).eq('network', network).contains('match_ids', [id]).maybeSingle();
   if (e2) throw new Error(e2.message);
   if (rec) {
     const r = rec as DailyRow & { anchored_at: string | null };
@@ -103,7 +114,7 @@ async function oneMatch(id: string) {
     url: row.chain_status === 'anchored' ? txUrl(row.chain_tx, network) : null,
     payload,
     signatures: { count: players.filter((p: any) => p.signed).length, players },
-    current: { result: current, digest: currentDigest, matches_anchored: payload ? payload.result_digest === currentDigest : null },
+    current: { result: currentResult, digest: currentDigest, matches_anchored: payload ? payload.result_digest === currentDigest : null },
     daily,
   };
 }
@@ -117,12 +128,22 @@ export default async function handler(req: any, res: any) {
       if (!UUID.test(q.id)) throw new HttpError(400, 'Código de partido inválido.', 'bad_id');
       return send(res, 200, await oneMatch(q.id.toLowerCase()));
     }
+    if (q.status) {
+      const f = await platformFunding().catch(() => null);
+      return send(
+        res,
+        200,
+        { network: env.stellarNetwork(), horizon: env.horizon(), platform: f ? { address: f.address || null, exists: f.exists, balance: f.balance, funded: f.funded } : null },
+        15,
+      );
+    }
     if (q.index) {
       const all: any[] = [];
       for (let page = 0; ; page++) {
         const { data, error } = await db
           .from('chain_daily_records')
           .select(DAILY_COLS)
+          .eq('network', env.stellarNetwork())
           .order('day', { ascending: true })
           .range(page * 1000, page * 1000 + 999);
         if (error) throw new Error(error.message);
@@ -133,7 +154,7 @@ export default async function handler(req: any, res: any) {
     }
     if (typeof q.day === 'string') {
       if (!DAY.test(q.day)) throw new HttpError(400, 'Día inválido.', 'bad_day');
-      const { data, error } = await db.from('chain_daily_records').select(DAILY_COLS).eq('day', q.day).maybeSingle();
+      const { data, error } = await db.from('chain_daily_records').select(DAILY_COLS).eq('network', env.stellarNetwork()).eq('day', q.day).maybeSingle();
       if (error) throw new Error(error.message);
       if (!data) throw new HttpError(404, 'No hay acta para ese día.', 'not_found');
       const r = data as unknown as DailyRow;

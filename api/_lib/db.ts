@@ -29,7 +29,7 @@ const check = (error: { message: string } | null, what: string) => {
 };
 
 const MATCH_COLS =
-  'id,player_a_id,player_b_id,status,winner_id,is_draw,goals_a,goals_b,confirmed_at,chain_status,chain_hash,chain_tx,chain_max_time,chain_attempts,chain_backfill';
+  'id,player_a_id,player_b_id,status,winner_id,is_draw,goals_a,goals_b,confirmed_at,chain_status,chain_hash,chain_tx,chain_max_time,chain_attempts,chain_backfill,chain_network';
 
 export function supabaseAnchorStore(db: SupabaseClient = adminClient()): AnchorStore {
   return {
@@ -92,8 +92,8 @@ export function supabaseAnchorStore(db: SupabaseClient = adminClient()): AnchorS
       check(error, 'queue');
       return (data ?? []).map((r: any) => String(r.id));
     },
-    async queueBackfill(limit) {
-      const { data, error } = await db.rpc('queue_chain_backfill', { p_limit: limit });
+    async queueBackfill(limit, network) {
+      const { data, error } = await db.rpc('queue_chain_backfill', { p_limit: limit, p_network: network });
       check(error, 'queueBackfill');
       return Number(data ?? 0);
     },
@@ -231,10 +231,11 @@ const DAY_MATCH_COLS = 'id,player_a_id,player_b_id,winner_id,is_draw,goals_a,goa
 const staleOr = (staleBefore: Date) =>
   `status.eq.pending,and(status.eq.submitting,claimed_at.lt.${staleBefore.toISOString()}),and(status.eq.submitting,claimed_at.is.null)`;
 
-export function supabaseDailyStore(db: SupabaseClient = adminClient()): DailyStore {
+export function supabaseDailyStore(network: string, db: SupabaseClient = adminClient()): DailyStore {
+  const daily = () => db.from('chain_daily_records');
   return {
     async lastRecord() {
-      const { data, error } = await db.from('chain_daily_records').select(DAILY_COLS).order('day', { ascending: false }).limit(1).maybeSingle();
+      const { data, error } = await daily().select(DAILY_COLS).eq('network', network).order('day', { ascending: false }).limit(1).maybeSingle();
       check(error, 'lastRecord');
       return (data as DailyRow | null) ?? null;
     },
@@ -268,13 +269,14 @@ export function supabaseDailyStore(db: SupabaseClient = adminClient()): DailySto
       }
     },
     async insertRecord(row) {
-      const { error } = await db.from('chain_daily_records').upsert(row, { onConflict: 'day', ignoreDuplicates: true });
+      const { error } = await daily().upsert(row, { onConflict: 'network,day', ignoreDuplicates: true });
       check(error, 'insertRecord');
     },
     async queue(limit, staleBefore) {
       const { data, error } = await db
         .from('chain_daily_records')
         .select('day')
+        .eq('network', network)
         .or(staleOr(staleBefore))
         .order('day', { ascending: true })
         .limit(limit);
@@ -285,6 +287,7 @@ export function supabaseDailyStore(db: SupabaseClient = adminClient()): DailySto
       const { data, error } = await db
         .from('chain_daily_records')
         .update({ status: 'submitting', claimed_at: new Date().toISOString() })
+        .eq('network', network)
         .eq('day', day)
         .or(staleOr(staleBefore))
         .select(DAILY_COLS)
@@ -293,20 +296,21 @@ export function supabaseDailyStore(db: SupabaseClient = adminClient()): DailySto
       return (data as DailyRow | null) ?? null;
     },
     async savePrepared(day, p) {
-      const { error } = await db.from('chain_daily_records').update({ ...p, error: null }).eq('day', day).eq('status', 'submitting');
+      const { error } = await daily().update({ ...p, error: null }).eq('network', network).eq('day', day).eq('status', 'submitting');
       check(error, 'daily.savePrepared');
     },
     async markAnchored(day, tx) {
       const { error } = await db
         .from('chain_daily_records')
         .update({ status: 'anchored', tx, anchored_at: new Date().toISOString(), error: null, claimed_at: null })
+        .eq('network', network)
         .eq('day', day);
       check(error, 'daily.markAnchored');
     },
     async release(day, p) {
       const patch: Record<string, unknown> = { status: p.status, error: p.error ? p.error.slice(0, 500) : null };
       if (p.status !== 'submitting') patch.claimed_at = null;
-      const { error } = await db.from('chain_daily_records').update(patch).eq('day', day);
+      const { error } = await daily().update(patch).eq('network', network).eq('day', day);
       check(error, 'daily.release');
     },
   };

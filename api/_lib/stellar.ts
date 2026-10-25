@@ -2,6 +2,7 @@
 // La clave de manageData es fija ('cfc:last') y se sobrescribe: las reservas de la cuenta no crecen.
 import { Horizon, Keypair, Memo, Operation, TransactionBuilder, type Transaction } from '@stellar/stellar-sdk';
 import { env } from './env';
+import { HttpError } from './http';
 import { withRetry } from './retry';
 import { txWindowS } from './timebounds';
 
@@ -85,4 +86,31 @@ export function horizonChain(): Chain {
       }
     },
   };
+}
+
+/** Saldo mínimo (XLM) de la cuenta platform para anclar: 1 XLM de reserva base + 2 entradas de datos + margen. */
+export const PLATFORM_MIN_XLM = 2.5;
+
+/** Estado público de la cuenta platform en la red configurada (Horizon). No usa el secreto. */
+export async function platformFunding(): Promise<{ address: string; exists: boolean; balance: number | null; funded: boolean }> {
+  const address = env.platformPublic();
+  if (!address) return { address, exists: false, balance: null, funded: false };
+  const r = await fetch(`${env.horizon()}/accounts/${address}`);
+  if (r.status === 404) return { address, exists: false, balance: null, funded: false };
+  if (!r.ok) throw new Error(`Horizon ${r.status}`);
+  const a: any = await r.json();
+  const native = (a.balances ?? []).find((b: any) => b.asset_type === 'native');
+  const balance = native ? Number(native.balance) : 0;
+  return { address, exists: true, balance, funded: balance >= PLATFORM_MIN_XLM };
+}
+
+/** Corta antes de anclar si la cuenta platform no existe o no tiene saldo en ESTA red. */
+export async function assertPlatformFunded() {
+  const f = await platformFunding();
+  if (!f.funded) {
+    throw new HttpError(503, 'La cuenta de la plataforma no existe o no tiene saldo en esta red.', 'platform_unfunded', {
+      network: env.stellarNetwork(),
+      exists: f.exists,
+    });
+  }
 }
