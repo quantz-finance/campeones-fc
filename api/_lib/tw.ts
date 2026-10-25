@@ -1,7 +1,7 @@
 // Cliente mínimo de Trustless Work (API V1 en testnet: dev.api.trustlesswork.com), probado en Meteorito.
 // TW arma XDR SIN firmar; el servidor firma con la llave del rol y lo envía con /helper/send-transaction.
 // SOLO testnet: si STELLAR_NETWORK=mainnet, todo lo de apuestas se niega.
-import { Account, Asset, Contract, Keypair, Networks, rpc, scValToNative, nativeToScVal, TransactionBuilder, type Transaction } from '@stellar/stellar-sdk';
+import { Account, Asset, Contract, Horizon, Keypair, Networks, rpc, scValToNative, nativeToScVal, TransactionBuilder, type Transaction } from '@stellar/stellar-sdk';
 import { env } from './env';
 import { HttpError } from './http';
 import { withRetry } from './retry';
@@ -79,21 +79,36 @@ export async function fundEscrowXdr(contractId: string, signer: string, units: n
   return r.unsignedTransaction;
 }
 
-/** Abre la disputa (firma la cuenta platform como approver). */
+/** Abre la disputa (firma la cuenta platform como approver). Directo a Horizon, no por send-transaction (Meteorito). */
 export async function disputeEscrow(contractId: string) {
   const r = await tw<{ unsignedTransaction: string }>('/escrow/single-release/dispute-escrow', { contractId, signer: env.platformPublic() });
-  return signAndSend(r.unsignedTransaction, env.platformSecret());
+  return signAndSubmitHorizon(r.unsignedTransaction, env.platformSecret());
 }
 
-/** Reparte el saldo (firma el dispute resolver). La suma debe ser EXACTAMENTE el saldo del escrow. */
+/** Reparte el saldo (firma el dispute resolver, que paga su propio fee). La suma debe ser EXACTAMENTE el saldo. */
 export async function resolveDispute(contractId: string, distributions: { address: string; amount: number }[]) {
   const r = await tw<{ unsignedTransaction: string }>('/escrow/single-release/resolve-dispute', {
     contractId, disputeResolver: resolverPublic(), distributions,
   });
-  return signAndSend(r.unsignedTransaction, twEnv.resolverSecret());
+  return signAndSubmitHorizon(r.unsignedTransaction, twEnv.resolverSecret());
 }
 
-/** Firma con una llave del servidor y envía por TW. El hash se calcula local (TW no lo devuelve). */
+/** Firma una tx de TW con una llave del servidor y la envía directo a Horizon. Antes de reintentar mira si ya entró. */
+export async function signAndSubmitHorizon(unsignedXdr: string, secret: string): Promise<{ hash: string }> {
+  const tx = TransactionBuilder.fromXDR(unsignedXdr, Networks.TESTNET) as Transaction;
+  tx.sign(Keypair.fromSecret(secret));
+  const hash = Buffer.from(tx.hash()).toString('hex');
+  const h = new Horizon.Server(env.horizon());
+  try {
+    await withRetry('Horizon submit', () => h.submitTransaction(tx), { landed: async () => ((await landedTx(hash)) ? ({} as any) : null) });
+  } catch (e: any) {
+    if (await landedTx(hash).catch(() => null)) return { hash };
+    throw new Error(`envío falló: ${JSON.stringify(e?.response?.data?.extras?.result_codes ?? e?.message ?? String(e)).slice(0, 300)}`);
+  }
+  return { hash };
+}
+
+/** Deploy: firma con una llave del servidor y envía por TW (devuelve el contractId). El hash se calcula local (TW no lo devuelve). */
 export async function signAndSend(unsignedXdr: string, secret: string) {
   const tx = TransactionBuilder.fromXDR(unsignedXdr, Networks.TESTNET) as Transaction;
   tx.sign(Keypair.fromSecret(secret));

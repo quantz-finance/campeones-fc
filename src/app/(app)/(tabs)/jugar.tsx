@@ -9,6 +9,7 @@ import { Banner, Button, Gate } from '../../../ui/controls';
 import { Panel, Screen, Top } from '../../../ui/screen';
 import { colors, radius, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
+import { DEFAULT_STAKE, netPot, proposeStake, STAKE_OPTIONS, stakesEnabled } from '../../../lib/payments/stake';
 
 export default function Play() {
   const { repo, userId, version } = useApp();
@@ -18,6 +19,7 @@ export default function Play() {
   const [groupId, setGroupId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [stake, setStake] = useState<number>(stakesEnabled() ? DEFAULT_STAKE : 0);
 
   return (
     <Screen tab>
@@ -80,6 +82,27 @@ export default function Play() {
           )
         }
       </Gate>
+      {stakesEnabled() ? (
+        <Panel>
+          <T variant="label" color={colors.yellow}>
+            Apuesta · USDC de prueba
+          </T>
+          <View style={styles.stakes}>
+            {[0, ...STAKE_OPTIONS].map((v) => (
+              <Pressable key={v} onPress={() => setStake(v)} style={[styles.stake, stake === v && styles.stakeOn]} accessibilityRole="button">
+                <T variant="strong" color={stake === v ? colors.ink : colors.text}>
+                  {v === 0 ? 'Sin apuesta' : `${v}`}
+                </T>
+              </Pressable>
+            ))}
+          </View>
+          <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>
+            {stake
+              ? `Cada uno bloquea ${stake} USDC en custodia de Trustless Work (Stellar, red de prueba). El ganador se lleva ${netPot(stake)} USDC.`
+              : 'Solo cuenta para el ranking.'}
+          </T>
+        </Panel>
+      ) : null}
       {error ? <Banner tone="danger" title="No se armó el partido" body={error} /> : null}
       <Button
         label={busy ? 'Proponiendo…' : 'Proponer partido'}
@@ -92,7 +115,9 @@ export default function Play() {
             .createMatch({ me: userId!, opponentId, groupId })
             .then((match) => {
               track('match_created', { grouped: Boolean(groupId) });
-              router.push(`/partido/${match.id}`);
+              // La apuesta no bloquea el partido: si falla, se juega sin apuesta y se avisa en la pantalla del partido.
+              const proposed = stake > 0 ? proposeStake(match.id, stake).catch(() => undefined) : Promise.resolve();
+              return proposed.then(() => router.push(`/partido/${match.id}`));
             })
             .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'No se pudo crear.'))
             .finally(() => setBusy(false));
@@ -114,4 +139,7 @@ const styles = StyleSheet.create({
   },
   on: { borderColor: colors.accent, backgroundColor: colors.bg },
   flex: { flex: 1 },
+  stakes: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  stake: { paddingHorizontal: space.md, paddingVertical: space.sm, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', transform: [{ skewX: '-8deg' }] },
+  stakeOn: { backgroundColor: colors.yellow, borderColor: colors.yellow },
 });

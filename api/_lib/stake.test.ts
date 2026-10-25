@@ -13,12 +13,13 @@ const POT = 200n * STROOPS;
 
 describe('parseAmount', () => {
   it('parses units with up to 7 decimals', () => {
-    expect(parseAmount('100')).toBe(100n * STROOPS);
+    expect(parseAmount('100', 100)).toBe(100n * STROOPS);
+    expect(parseAmount('10')).toBe(10n * STROOPS);
     expect(parseAmount('2.5')).toBe(25_000_000n);
     expect(parseAmount(1)).toBe(STROOPS);
   });
   it('rejects bad amounts', () => {
-    for (const v of ['0', '-1', '1.12345678', 'abc', '', '1e3', '5000']) expect(() => parseAmount(v)).toThrow();
+    for (const v of ['0', '-1', '1.12345678', 'abc', '', '1e3', '21']) expect(() => parseAmount(v)).toThrow();
   });
 });
 

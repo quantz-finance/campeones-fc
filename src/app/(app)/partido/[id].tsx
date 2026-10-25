@@ -7,6 +7,8 @@ import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { SkewBlock } from '../../../ui/broadcast';
 import { ChainCard } from '../../../ui/chain-card';
+import { StakeCard } from '../../../ui/stake-card';
+import { settleStake, stakesEnabled } from '../../../lib/payments/stake';
 import { Banner, Button, Gate } from '../../../ui/controls';
 import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
@@ -182,6 +184,14 @@ export default function MatchScreen() {
               {snap.match.status === 'disputed' ? (
                 <T color={colors.danger}>En disputa: nadie suma hasta que uno corrija su voto.</T>
               ) : null}
+              {mode === 'supabase' && stakesEnabled() ? (
+                <StakeCard
+                  match={snap.match}
+                  userId={userId!}
+                  youAre={snap.youAre}
+                  names={Object.fromEntries(Object.entries(snap.people).map(([id, p]) => [id, p.displayName]))}
+                />
+              ) : null}
               {snap.match.status === 'pending_accept' && snap.youAre === 'b' ? (
                 <View style={styles.block}>
                   <T variant="title">{firstName(a?.displayName ?? 'Tu rival')} quiere jugar</T>
@@ -281,6 +291,8 @@ export default function MatchScreen() {
                         if (!draft) return;
                         await repo.submitReport(snap.match.id, userId!, draft);
                         track('report_submitted');
+                        // Si con este voto quedó confirmado y hay pozo, pagarlo ya (idempotente; el cron también lo hace).
+                        if (mode === 'supabase' && stakesEnabled()) void settleStake(snap.match.id).catch(() => undefined);
                       })
                     }
                   />

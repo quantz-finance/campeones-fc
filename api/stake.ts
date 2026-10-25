@@ -64,7 +64,7 @@ export default async function handler(req: any, res: any) {
         return json(res, 200, { ready: true, tx: await submitTrustlineTx(validateTrustlineTx(b.signedXdr, addr)) });
       }
       case 'faucet': {
-        const units = Number(process.env.STAKE_FAUCET_UNITS ?? '0');
+        const units = Number(process.env.STAKE_FAUCET_UNITS ?? '10');
         if (!(units > 0)) throw new HttpError(404, 'El faucet de prueba está apagado.', 'faucet_off');
         const addr = await myWallet(userId);
         if ((await walletState(addr)) !== 'ready') throw new HttpError(409, 'Activa USDC de prueba primero.', 'trustline_missing');

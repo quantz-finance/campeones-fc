@@ -53,7 +53,7 @@ export interface Distribution {
 }
 
 /** "100" | "2.5" -> stroops. Máximo 7 decimales, > 0 y <= maxUnits. */
-export function parseAmount(raw: unknown, maxUnits = 1000): bigint {
+export function parseAmount(raw: unknown, maxUnits = 20): bigint {
   const s = typeof raw === 'number' ? String(raw) : typeof raw === 'string' ? raw.trim() : '';
   const m = /^(\d{1,9})(?:\.(\d{1,7}))?$/.exec(s);
   if (!m) throw new Error('monto inválido');

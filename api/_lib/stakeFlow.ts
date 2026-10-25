@@ -13,7 +13,7 @@ const nowIso = () => new Date().toISOString();
 const minutes = (n: number) => new Date(Date.now() + n * 60_000).toISOString();
 const fundWindowMin = () => Number(process.env.STAKE_FUND_WINDOW_MIN ?? '30');
 const resultWindowH = () => Number(process.env.STAKE_RESULT_WINDOW_HOURS ?? '24');
-const maxUnits = () => Number(process.env.STAKE_MAX_UNITS ?? '100');
+const maxUnits = () => Number(process.env.STAKE_MAX_UNITS ?? '20');
 const STALE_MS = 120_000;
 
 async function match(id: string): Promise<MatchLite> {
@@ -78,6 +78,8 @@ export async function accept(userId: string, matchId: string) {
   for (const addr of [A, B]) {
     if ((await walletState(addr)) !== 'ready') throw new HttpError(409, 'Los dos jugadores necesitan activar USDC de prueba en su billetera.', 'trustline_missing', { address: addr });
   }
+  // El receiver (platform) sin trustline USDC -> TW responde 400 crudo: cortarlo antes con un error claro.
+  if ((await walletState(tw.stakeRoles().receiver)) !== 'ready') throw new HttpError(503, 'La cuenta de la plataforma no está lista para USDC.', 'receiver_not_ready');
   const claimed = await move(matchId, ['proposed'], { status: 'deploying', claimed_at: nowIso(), player_a_address: A, player_b_address: B, accepted_at: nowIso() });
   if (!claimed) return { status: (await stake(matchId)).status };
   try {

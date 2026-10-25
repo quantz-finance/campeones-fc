@@ -94,7 +94,7 @@ export function confirmedResult(m: Match): ConfirmedResult {
   };
 }
 
-async function accessToken(): Promise<string> {
+export async function accessToken(): Promise<string> {
   const { data } = await getSupabase().auth.getSession();
   if (!data.session) throw new ApiError('Tu sesión venció. Vuelve a entrar.', 401, 'auth_missing');
   return data.session.access_token;

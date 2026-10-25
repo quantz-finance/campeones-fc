@@ -7,7 +7,7 @@ create table if not exists public.match_stakes (
   network          text not null default 'testnet' check (network = 'testnet'),
   asset_code       text not null default 'USDC',
   asset_issuer     text not null,
-  stake_stroops    bigint not null check (stake_stroops > 0 and stake_stroops <= 10000000000), -- máx. 1000 por jugador
+  stake_stroops    bigint not null check (stake_stroops > 0 and stake_stroops <= 1000000000), -- máx. 100 por jugador (la API limita a STAKE_MAX_UNITS, 20)
   proposed_by      uuid not null references public.profiles (id),
   status           text not null default 'proposed' check (status in (
                      'proposed', 'declined', 'deploying', 'funding', 'locked', 'settling', 'paid', 'refunded', 'failed')),
