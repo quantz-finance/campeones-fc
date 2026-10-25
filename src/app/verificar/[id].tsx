@@ -97,7 +97,7 @@ export default function VerifyScreen() {
 
   return (
     <Screen>
-      <Top title="Verificado en Stellar" kicker="Campeones FC" />
+      <Top title={anchored ? 'Verificado en Stellar' : 'Verificación en Stellar'} kicker="Campeones FC" />
       {error ? <Banner tone="danger" title="No se pudo verificar" body={error} /> : null}
       {!data && !error ? <T color={colors.muted}>Cargando el registro…</T> : null}
       {data ? (
@@ -170,7 +170,7 @@ export default function VerifyScreen() {
             </Section>
           ) : (
             <Section title="Acta del día">
-              <T color={colors.muted}>Este partido entra en el acta de esta noche.</T>
+              <T color={colors.muted}>Todavía no está en un acta diaria. Las actas se registran cada noche.</T>
             </Section>
           )}
         </>
