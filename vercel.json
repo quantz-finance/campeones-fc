@@ -19,6 +19,9 @@
     },
     "api/verificar.ts": {
       "maxDuration": 20
+    },
+    "api/stake.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
@@ -29,6 +32,10 @@
     {
       "path": "/api/daily",
       "schedule": "20 6 * * *"
+    },
+    {
+      "path": "/api/stake",
+      "schedule": "*/10 * * * *"
     }
   ],
   "headers": [

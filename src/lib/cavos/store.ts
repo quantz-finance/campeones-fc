@@ -16,6 +16,8 @@ export type CavosBridged = {
   openModal: () => void;
   logout: () => Promise<void>;
   signMessage: (message: string) => Promise<CavosSignature>;
+  /** Firma (sin enviar) un XDR de Stellar testnet, p. ej. el fund_escrow de Trustless Work. Devuelve el XDR firmado. */
+  signXdr: (unsignedXdr: string) => Promise<string>;
   /** id_token del login (lo guarda el kit en sessionStorage). Solo sirve ~1 h. */
   token: () => string | null;
 };

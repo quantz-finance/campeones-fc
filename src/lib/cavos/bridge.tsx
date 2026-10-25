@@ -81,6 +81,18 @@ function Bridge() {
           throw err;
         }
       },
+      signXdr: async (x) => {
+        try {
+          // @cavos/kit 0.4.4: firma y NO envía (el servidor valida y paga el fee con fee-bump).
+          return await stellarWallet(ref.current).signXdr(x);
+        } catch (e) {
+          console.error('[cavos] signXdr', e);
+          const raw = e instanceof Error ? e.message : String(e);
+          const err = new Error(authErrorText(raw));
+          if (/not an authorized signer/i.test(raw)) (err as any).code = 'not_signer';
+          throw err;
+        }
+      },
       token: () => {
         try {
           return window.sessionStorage.getItem(TOKEN_KEY);
