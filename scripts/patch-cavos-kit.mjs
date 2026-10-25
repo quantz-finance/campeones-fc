@@ -16,22 +16,25 @@ export const PATCH_MARK = '/* campeones-patch:cavos-kit 0.4.4 v2 */';
 export const REQUIRED = [
   {
     name: 'errores',
+    done: (s) => s.includes('__setErrorRaw'),
     re: /const \[error, setError\] = ((?:react\.)?useState)\(""\);/g,
     to: (_m, us) =>
       `const [error, __setErrorRaw] = ${us}(""); const setError = (m) => __setErrorRaw(typeof m === "string" && m && globalThis.__cfcAuthError ? globalThis.__cfcAuthError(m) : m);`,
   },
   {
     name: 'autofill',
+    done: (s) => s.includes('globalThis.__cfcOtpFill'),
     re: /const digit = normalizeEmailCode\(raw\)\.slice\(-1\);/g,
     to: () =>
       'const __all = normalizeEmailCode(raw); const __fill = globalThis.__cfcOtpFill ? globalThis.__cfcOtpFill(otpCode, i, __all, EMAIL_CODE_LENGTH) : null; if (__fill) { setOtpCode(__fill.code); otpBoxRefs.current[__fill.focus]?.focus(); return; } const digit = __all.slice(-1);',
   },
-  { name: 'maxlength', re: /maxLength: 1,/g, to: () => 'maxLength: i === 0 ? EMAIL_CODE_LENGTH : 1,' },
+  { name: 'maxlength', done: (s) => s.includes('maxLength: i === 0 ? EMAIL_CODE_LENGTH : 1,'), re: /maxLength: 1,/g, to: () => 'maxLength: i === 0 ? EMAIL_CODE_LENGTH : 1,' },
   {
     // 4) logout() borraba la llave de la billetera de ESTE navegador (vault.forget). Sin passkey ni respaldo, la
     //    billetera quedaba huérfana: al volver a entrar, "this device is not an authorized signer". Con
     //    globalThis.__cfcKeepDeviceKey la llave se queda; salir de Cavos sigue borrando la identidad y el token.
     name: 'conservar-llave',
+    done: (s) => s.includes('globalThis.__cfcKeepDeviceKey'),
     re: /(VaultClient\.attach\(\{ appId: config\.appId, \.\.\.typeof vault === "object" \? vault : \{\} \}\)\.forget\(identity\.userId, config\.appSalt\)\.catch\(\(\) => void 0\);)/g,
     to: (_m, call) => `if (!globalThis.__cfcKeepDeviceKey) ${call}`,
   },
@@ -66,10 +69,11 @@ const COPY = [
 /** Devuelve el fuente parchado. Idempotente; lanza si falta un punto requerido. */
 export function patchKitSource(src) {
   if (src.includes(PATCH_MARK)) return { out: src, applied: [], missingCopy: [] };
-  if (src.startsWith('/* campeones-patch:')) throw new Error('patch-cavos-kit: el kit tiene un parche viejo; reinstala @cavos/kit (rm -rf node_modules/@cavos/kit && npm i).');
-  let out = src;
+  // Parche de una versión anterior (p. ej. node_modules del caché de Vercel): quitar la marca y aplicar lo que falte.
+  let out = src.replace(/^\/\* campeones-patch:[^\n]*\*\/\n/, '');
   const applied = [];
   for (const r of REQUIRED) {
+    if (r.done && r.done(out)) continue;
     r.re.lastIndex = 0;
     const hits = out.match(r.re)?.length ?? 0;
     if (hits !== 1) throw new Error(`patch-cavos-kit: "${r.name}" calzó ${hits} veces (esperaba 1). ¿Cambió @cavos/kit?`);

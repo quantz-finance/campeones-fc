@@ -21,6 +21,18 @@ describe('parche del modal de @cavos/kit', () => {
     expect(() => patchKitSource('const x = 1;')).toThrow(/errores/);
   });
 
+  it('actualiza un kit con el parche v1 (caché de Vercel) sin fallar ni duplicar', () => {
+    const src = readFileSync('node_modules/@cavos/kit/dist/react/index.mjs', 'utf8');
+    const v1 = src
+      .replace(PATCH_MARK, '/* campeones-patch:cavos-kit 0.4.4 v1 */')
+      .replace('if (!globalThis.__cfcKeepDeviceKey) VaultClient.attach(', 'VaultClient.attach(');
+    const { out, applied } = patchKitSource(v1);
+    expect(applied).toEqual(['conservar-llave']);
+    expect(out.startsWith(PATCH_MARK)).toBe(true);
+    expect(out.split('__setErrorRaw').length).toBe(src.split('__setErrorRaw').length);
+    expect(out).toContain('if (!globalThis.__cfcKeepDeviceKey) VaultClient.attach(');
+  });
+
   it('es idempotente', () => {
     const src = readFileSync('node_modules/@cavos/kit/dist/react/index.mjs', 'utf8');
     expect(patchKitSource(src).applied).toEqual([]);
