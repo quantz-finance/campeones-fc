@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { APP_MODES, appModeOf } from '../../../lib/app-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { avatars, branding } from '../../../../config/branding';
 import { useApp } from '../../../state/app-provider';
@@ -208,30 +209,50 @@ export default function Profile() {
           />
         </View>
       ) : null}
-      {app.mode === 'supabase' ? (
-        <View style={styles.demoRow}>
-          <View style={{ flex: 1 }}>
-            <T variant="label" color={colors.yellow}>
-              Modo prueba
-            </T>
-            <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>
-              Muestra los jugadores y partidos de demostración en inicio, ranking y listas.
-            </T>
-          </View>
-          <Switch
-            value={showDemo}
-            onValueChange={(next) => {
-              setShowDemo(next);
-              void app.repo
-                .updateProfile(app.userId!, { showDemo: next })
-                .then(() => app.refresh())
-                .catch(() => setShowDemo(!next));
-            }}
-            trackColor={{ true: colors.yellow, false: 'rgba(255,255,255,0.2)' }}
-            accessibilityLabel="Modo prueba"
-          />
+      <View style={styles.modeBox}>
+        <T variant="label" color={colors.yellow}>
+          Modo
+        </T>
+        <View style={styles.segment} accessibilityRole="radiogroup">
+          {APP_MODES.map((m) => {
+            const current = appModeOf({ showDemo }, app.mode !== 'supabase');
+            const on = current === m.key;
+            const locked = m.disabled || app.mode !== 'supabase';
+            return (
+              <Pressable
+                key={m.key}
+                disabled={locked || on}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on, disabled: locked }}
+                accessibilityLabel={m.label}
+                onPress={() => {
+                  const next = m.key === 'fake';
+                  setShowDemo(next);
+                  void app.repo
+                    .updateProfile(app.userId!, { showDemo: next })
+                    .then(() => app.refresh())
+                    .catch(() => setShowDemo(!next));
+                }}
+                style={[styles.segItem, on && styles.segOn, m.disabled && styles.segOff]}
+              >
+                <T variant="strong" color={on ? colors.ink : colors.text} style={{ fontSize: 13 }}>
+                  {m.label}
+                </T>
+                {m.disabled ? (
+                  <T variant="tiny" color={colors.muted} style={{ fontSize: 9 }}>
+                    Próximamente
+                  </T>
+                ) : null}
+              </Pressable>
+            );
+          })}
         </View>
-      ) : null}
+        <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>
+          {showDemo || app.mode !== 'supabase'
+            ? 'Datos falsos: ves el mundo de demostración (jugadores, partidos, grupos). Sin apuestas: nada va a la blockchain.'
+            : 'Testnet: solo jugadores y partidos reales. Apuestas y verificación en Stellar (red de prueba, sin dinero real).'}
+        </T>
+      </View>
       <View style={styles.links}>
         <Button label="Amigos" tone="ghost" onPress={() => router.push('/amigos')} />
         <Button label="Ranking" tone="ghost" onPress={() => router.push('/ranking')} />
@@ -245,7 +266,11 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  demoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  modeBox: { gap: 8, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  segment: { flexDirection: 'row', transform: [{ skewX: '-8deg' }], borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, minHeight: 48 },
+  segOn: { backgroundColor: colors.yellow },
+  segOff: { opacity: 0.5 },
   top: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   flex: { flex: 1 },
   iconBtn: {

@@ -1,4 +1,4 @@
-import { hideDemo } from './demo-filter';
+import { hideDemo, joinDemo } from './demo-filter';
 import { trophyCatalog } from '../content/trophies';
 import { DomainError } from '../domain/errors';
 import type { Match, MatchReport, ReportDraft, Slot } from '../domain/types';
@@ -192,11 +192,12 @@ async function pullWorld(userId: string): Promise<World> {
   );
   // Modo prueba apagado (default): sin jugadores, partidos, grupos ni torneos de demo.
   const me = ((profiles.data ?? []) as Row[]).find((row) => row.id === userId);
+  const ids = (rows: unknown[] | null) => new Set(((rows ?? []) as Row[]).filter((row) => row.is_demo === true).map((row) => asString(row.id)));
   if (me?.show_demo !== true) {
-    const ids = (rows: unknown[] | null) => new Set(((rows ?? []) as Row[]).filter((row) => row.is_demo === true).map((row) => asString(row.id)));
     return hideDemo(world, { users: ids(profiles.data), matches: ids(matches.data), groups: ids(groups.data), tournaments: ids(tournaments.data) });
   }
-  return world;
+  // Datos falsos: el mundo demo visible para cualquier cuenta (RLS lo permite con show_demo).
+  return joinDemo(world, userId, { users: ids(profiles.data), groups: ids(groups.data) });
 }
 
 export function createSupabaseRepository(): Repository {

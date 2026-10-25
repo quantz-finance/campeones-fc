@@ -11,9 +11,11 @@ import { NewsTicker, TICKER_SPACE } from '../../../ui/news-ticker';
 import { Screen } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
+import { appModeOf, modeChip } from '../../../lib/app-mode';
 
 export default function Home() {
-  const { repo, userId, version, mode } = useApp();
+  const { repo, userId, version, mode, profile } = useApp();
+  const modeNow = appModeOf(profile, mode !== 'supabase');
   const query = useQuery(() => repo.homeSnapshot(userId!), [repo, userId, version]);
   const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
   const firstGroupId = groups.data?.[0]?.group.id ?? null;
@@ -57,7 +59,14 @@ export default function Home() {
           return (
             <>
               <View style={styles.brandRow}>
-                <Wordmark size={20} />
+                <View style={styles.brandLeft}>
+                  <Wordmark size={20} />
+                  <View style={[styles.modeChip, modeNow === 'fake' && styles.modeChipFake]}>
+                    <T variant="tiny" color={modeNow === 'fake' ? colors.ink : colors.text} style={{ fontSize: 10 }}>
+                      {modeChip(modeNow)}
+                    </T>
+                  </View>
+                </View>
                 <Pressable
                  
                   accessibilityLabel="Pendientes"
@@ -223,6 +232,9 @@ export default function Home() {
 
 
 const styles = StyleSheet.create({
+  brandLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  modeChip: { paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: colors.yellow, transform: [{ skewX: '-8deg' }] },
+  modeChipFake: { backgroundColor: colors.yellow },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bell: {
     width: 42,

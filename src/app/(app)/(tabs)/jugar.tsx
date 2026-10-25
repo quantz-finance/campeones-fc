@@ -12,7 +12,7 @@ import { T } from '../../../ui/text';
 import { DEFAULT_STAKE, netPot, proposeStake, STAKE_OPTIONS, stakesEnabled } from '../../../lib/payments/stake';
 
 export default function Play() {
-  const { repo, userId, version } = useApp();
+  const { repo, userId, version, mode, profile } = useApp();
   const friends = useQuery(() => repo.friendsSnapshot(userId!), [repo, userId, version]);
   const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
   const [opponentId, setOpponentId] = useState<string | null>(null);
@@ -20,6 +20,7 @@ export default function Play() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [stake, setStake] = useState<number>(stakesEnabled() ? DEFAULT_STAKE : 0);
+  const stakesOn = stakesEnabled() && mode === 'supabase' && profile?.showDemo !== true;
 
   return (
     <Screen tab>
@@ -82,7 +83,7 @@ export default function Play() {
           )
         }
       </Gate>
-      {stakesEnabled() ? (
+      {stakesOn ? (
         <Panel>
           <T variant="label" color={colors.yellow}>
             Apuesta · USDC de prueba
@@ -116,7 +117,7 @@ export default function Play() {
             .then((match) => {
               track('match_created', { grouped: Boolean(groupId) });
               // La apuesta no bloquea el partido: si falla, se juega sin apuesta y se avisa en la pantalla del partido.
-              const proposed = stake > 0 ? proposeStake(match.id, stake).catch(() => undefined) : Promise.resolve();
+              const proposed = stakesOn && stake > 0 ? proposeStake(match.id, stake).catch(() => undefined) : Promise.resolve();
               return proposed.then(() => router.push(`/partido/${match.id}`));
             })
             .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'No se pudo crear.'))

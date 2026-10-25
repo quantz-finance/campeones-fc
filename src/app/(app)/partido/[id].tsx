@@ -19,7 +19,7 @@ type Choice = 'me' | 'them' | 'draw';
 
 export default function MatchScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { repo, userId, version, mode } = useApp();
+  const { repo, userId, version, mode, profile } = useApp();
   const query = useQuery(() => repo.matchSnapshot(String(id), userId!), [repo, userId, version, id]);
   const [choice, setChoice] = useState<Choice>('me');
   const [withGoals, setWithGoals] = useState(true);
@@ -184,7 +184,7 @@ export default function MatchScreen() {
               {snap.match.status === 'disputed' ? (
                 <T color={colors.danger}>En disputa: nadie suma hasta que uno corrija su voto.</T>
               ) : null}
-              {mode === 'supabase' && stakesEnabled() ? (
+              {mode === 'supabase' && stakesEnabled() && profile?.showDemo !== true ? (
                 <StakeCard
                   match={snap.match}
                   userId={userId!}

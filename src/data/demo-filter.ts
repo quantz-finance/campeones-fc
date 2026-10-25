@@ -25,3 +25,23 @@ export function hideDemo(world: World, ids: DemoIds): World {
     achievements: world.achievements.filter((a) => !u.has(a.userId) && (!a.refId || !ids.matches.has(a.refId))),
   };
 }
+
+// Datos falsos: una cuenta nueva no está vinculada al mundo demo. Solo en memoria (nada se escribe en la base),
+// la tratamos como amiga de los jugadores demo y miembro de los grupos demo para que inicio, ranking y listas tengan datos.
+export function joinDemo(world: World, me: string, ids: Pick<DemoIds, 'users' | 'groups'>): World {
+  const linked = new Set(
+    world.friendships.filter((f) => f.requesterId === me || f.addresseeId === me).map((f) => (f.requesterId === me ? f.addresseeId : f.requesterId)),
+  );
+  const at = new Date(0).toISOString();
+  const friendships = [...world.friendships];
+  for (const id of ids.users) {
+    if (id !== me && !linked.has(id)) {
+      friendships.push({ id: `demo-${id}`, requesterId: id, addresseeId: me, status: 'accepted', createdAt: at, respondedAt: at });
+    }
+  }
+  const groupMembers = [...world.groupMembers];
+  for (const groupId of ids.groups) {
+    if (!groupMembers.some((m) => m.groupId === groupId && m.userId === me)) groupMembers.push({ groupId, userId: me, role: 'member', joinedAt: at });
+  }
+  return { ...world, friendships, groupMembers };
+}
