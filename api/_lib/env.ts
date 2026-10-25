@@ -51,7 +51,8 @@ export const env = {
   appleAudiences: () => list(process.env.CAVOS_APPLE_AUDIENCE),
   /** appId público de Cavos (el mismo del cliente). */
   cavosAppId: () => (process.env.CAVOS_APP_ID ?? process.env.EXPO_PUBLIC_CAVOS_APP_ID ?? '').trim(),
-  cavosApiUrl: () => process.env.CAVOS_API_URL ?? 'https://cavos.xyz',
+  /** Hosts del registro de billeteras, en orden (el vault usa vault.cavos.xyz). */
+  cavosApiUrl: () => process.env.CAVOS_REGISTRY_URLS ?? 'https://vault.cavos.xyz,https://cavos.xyz',
   cavosEnvironment: (): 'development' | 'production' => (process.env.CAVOS_ENVIRONMENT === 'development' ? 'development' : 'production'),
   cronSecret: () => process.env.CRON_SECRET ?? '',
   /** Horas que se espera la firma de los dos jugadores antes de anclar con las que haya. */

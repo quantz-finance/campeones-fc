@@ -11,6 +11,17 @@ const reply = (status: number, body: unknown, seen?: string[]): RegistryFetch =>
 };
 
 describe('registro de Cavos', () => {
+  it('prueba el siguiente host si uno responde con un desafío en vez de JSON', async () => {
+    const hosts: string[] = [];
+    const f: RegistryFetch = async (url) => {
+      hosts.push(new URL(url).host);
+      if (url.includes('vault.')) return { ok: false, status: 403, json: async () => null, text: async () => '<!DOCTYPE html>Just a moment' };
+      return { ok: true, status: 200, json: async () => ({ found: true, address: A }) };
+    };
+    expect(await registryAddress({ ...cfg, baseUrl: 'https://vault.cavos.xyz,https://cavos.xyz' }, 't', 's', f)).toBe(A);
+    expect(hosts).toEqual(['vault.cavos.xyz', 'cavos.xyz']);
+  });
+
   it('consulta con el token del usuario, el appId, la red y el entorno', async () => {
     const seen: string[] = [];
     expect(await registryAddress(cfg, 'tok', 'sub-1', reply(200, { found: true, address: A }, seen))).toBe(A);

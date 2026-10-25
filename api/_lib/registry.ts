@@ -18,28 +18,46 @@ export type RegistryFetch = (url: string, init: { headers: Record<string, string
   text?(): Promise<string>;
 }>;
 
-export async function registryAddress(cfg: RegistryConfig, token: string, userId: string, f: RegistryFetch = fetch as any): Promise<string | null> {
-  const url = new URL('/api/wallets', cfg.baseUrl);
+async function queryOnce(base: string, cfg: RegistryConfig, token: string, userId: string, f: RegistryFetch) {
+  const url = new URL('/api/wallets', base);
   url.searchParams.set('app_id', cfg.appId);
   url.searchParams.set('user_social_id', userId);
   url.searchParams.set('network', `stellar-${cfg.network}`);
   url.searchParams.set('environment', cfg.environment);
-  let res;
-  try {
-    res = await f(url.toString(), { headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'campeones-fc-api' }, signal: AbortSignal.timeout(8000) });
-  } catch {
-    throw new HttpError(503, 'No pudimos consultar Cavos. Inténtalo de nuevo en un momento.', 'registry_unreachable');
+  const res = await f(url.toString(), { headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'campeones-fc-api' }, signal: AbortSignal.timeout(8000) });
+  if (res.ok) {
+    const data = await res.json().catch(() => null);
+    if (data && typeof data === 'object') return { data };
   }
-  if (!res.ok) {
-    const snippet = res.text ? (await res.text().catch(() => '')).slice(0, 160) : '';
-    console.warn('[registry] respuesta', JSON.stringify({ host: url.host, status: res.status, body: snippet }));
-    if (res.status === 401 && /token/i.test(snippet)) {
+  const snippet = res.text ? (await res.text().catch(() => '')).slice(0, 160) : '';
+  console.warn('[registry] respuesta', JSON.stringify({ host: url.host, status: res.status, body: snippet }));
+  return { status: res.status, snippet };
+}
+
+export async function registryAddress(cfg: RegistryConfig, token: string, userId: string, f: RegistryFetch = fetch as any): Promise<string | null> {
+  const bases = cfg.baseUrl.split(',').map((s) => s.trim()).filter(Boolean);
+  let last: { status?: number; snippet?: string } = {};
+  for (const base of bases) {
+    let r;
+    try {
+      r = await queryOnce(base, cfg, token, userId, f);
+    } catch (e: any) {
+      console.warn('[registry] sin respuesta', JSON.stringify({ base, error: String(e?.name ?? e) }));
+      last = {};
+      continue;
+    }
+    if ('data' in r) {
+      const data = r.data as any;
+      return data?.found && typeof data.address === 'string' ? data.address : null;
+    }
+    // Rechazo explícito del token: no tiene sentido probar otro host.
+    if (r.status === 401 && /token/i.test(r.snippet ?? '')) {
       throw new HttpError(401, 'Tu sesión de Cavos venció. Vuelve a entrar.', 'registry_unauthorized');
     }
-    throw new HttpError(503, 'No pudimos consultar Cavos. Inténtalo de nuevo en un momento.', 'registry_error', { status: res.status });
+    last = r;
   }
-  const data = await res.json().catch(() => ({}));
-  return data?.found && typeof data.address === 'string' ? data.address : null;
+  if (last.status === undefined) throw new HttpError(503, 'No pudimos consultar Cavos. Inténtalo de nuevo en un momento.', 'registry_unreachable');
+  throw new HttpError(503, 'No pudimos consultar Cavos. Inténtalo de nuevo en un momento.', 'registry_error', { status: last.status });
 }
 
 /** Falla cerrado: la dirección que firmó debe ser la registrada para este usuario en esta app. */
