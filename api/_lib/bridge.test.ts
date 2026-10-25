@@ -67,4 +67,16 @@ describe('puente Cavos -> usuario de Supabase', () => {
     expect(r.linkedBy).toBe('new_user');
     expect(f.created[0].email).toBe('nuevo@gmail.com');
   });
+  it('reintenta el alta si el trigger choca con otra alta simultánea', async () => {
+    const f = fakeDeps();
+    let fails = 1;
+    const create = f.d.createAuthUser;
+    f.d.createAuthUser = async (email, meta) => {
+      if (fails-- > 0) throw new Error('createUser: Database error creating new user');
+      return create(email, meta);
+    };
+    const r = await resolveUser(u({ sub: 'race', email: 'ana@gmail.com', emailVerified: true }), f.d);
+    expect(r.linkedBy).toBe('new_user');
+    expect(f.created).toHaveLength(1);
+  });
 });

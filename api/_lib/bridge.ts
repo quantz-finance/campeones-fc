@@ -20,6 +20,22 @@ function usernameHint(u: CavosUser): string | undefined {
   return base.length >= 3 ? base.slice(0, 12) : undefined;
 }
 
+/**
+ * El trigger handle_new_user elige un usuario libre, pero dos altas simultáneas pueden elegir el mismo
+ * y una choca con el índice único ("Database error creating new user"). Reintentar resuelve la carrera.
+ */
+async function createWithRetry(d: BridgeDeps, email: string, meta: Record<string, unknown>, tries = 3): Promise<string> {
+  for (let i = 1; ; i++) {
+    try {
+      return await d.createAuthUser(email, meta);
+    } catch (e: any) {
+      const retryable = /database error/i.test(String(e?.message ?? ''));
+      if (!retryable || i >= tries) throw e;
+      await new Promise((r) => setTimeout(r, 150 * i + Math.floor(Math.random() * 100)));
+    }
+  }
+}
+
 export async function resolveUser(u: CavosUser, d: BridgeDeps): Promise<{ userId: string; linkedBy: 'existing' | 'new_user' | 'verified_email' }> {
   const existing = await d.identityUser(u.iss, u.sub);
   if (existing) return { userId: existing, linkedBy: 'existing' };
@@ -39,7 +55,7 @@ export async function resolveUser(u: CavosUser, d: BridgeDeps): Promise<{ userId
   if (hint) meta.username = hint;
   let userId: string;
   try {
-    userId = await d.createAuthUser(email, meta);
+    userId = await createWithRetry(d, email, meta);
   } catch (e) {
     // Carrera (dos entradas a la vez) o correo ya registrado: reusar si ya quedó ligado.
     const again = await d.identityUser(u.iss, u.sub);
