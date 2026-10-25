@@ -1,6 +1,7 @@
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { __setJwksForTests, canLinkByEmail, verifyCavosToken } from './cavosAuth';
+import { CAVOS_APPLE_CLIENT, CAVOS_GOOGLE_CLIENT } from './env';
 
 const ISS = 'https://cavos.app/firebase';
 const APP_ID = 'app_test_123';
@@ -29,6 +30,7 @@ beforeEach(() => {
   process.env.CAVOS_JWT_AUDIENCE = APP_ID;
   delete process.env.CAVOS_EXTRA_ISSUER;
   delete process.env.CAVOS_GOOGLE_AUDIENCE;
+  delete process.env.CAVOS_APPLE_AUDIENCE;
 });
 
 describe('JWT de Cavos', () => {
@@ -46,10 +48,25 @@ describe('JWT de Cavos', () => {
     await expect(verifyCavosToken(await token({}, { aud: 'otra-app' }))).rejects.toMatchObject({ status: 401, code: 'auth_invalid' });
   });
 
-  it('un token de Google con el cliente OAuth de Cavos solo pasa si se habilita CAVOS_GOOGLE_AUDIENCE', async () => {
-    const t = await token({}, { iss: 'https://accounts.google.com', aud: 'cavos-oauth-client' });
-    await expect(verifyCavosToken(t)).rejects.toMatchObject({ code: 'auth_invalid' });
+  it('acepta los tokens de Google y Apple con el cliente OAuth real de Cavos (sin configurar nada)', async () => {
+    const g = await token({}, { iss: 'https://accounts.google.com', aud: CAVOS_GOOGLE_CLIENT });
+    await expect(verifyCavosToken(g)).resolves.toMatchObject({ iss: 'https://accounts.google.com' });
+    const a = await token({}, { iss: 'https://appleid.apple.com', aud: CAVOS_APPLE_CLIENT });
+    await expect(verifyCavosToken(a)).resolves.toMatchObject({ iss: 'https://appleid.apple.com' });
+  });
+
+  it('el cliente de Google solo vale con issuer de Google (y viceversa); otro aud se rechaza', async () => {
+    const wrongIss = await token({}, { aud: CAVOS_GOOGLE_CLIENT });
+    await expect(verifyCavosToken(wrongIss)).rejects.toMatchObject({ code: 'auth_invalid' });
+    const appleWithGoogle = await token({}, { iss: 'https://appleid.apple.com', aud: CAVOS_GOOGLE_CLIENT });
+    await expect(verifyCavosToken(appleWithGoogle)).rejects.toMatchObject({ code: 'auth_invalid' });
+    const other = await token({}, { iss: 'https://accounts.google.com', aud: 'otra-app.apps.googleusercontent.com' });
+    await expect(verifyCavosToken(other)).rejects.toMatchObject({ code: 'auth_invalid' });
+  });
+
+  it('CAVOS_GOOGLE_AUDIENCE sobrescribe el cliente por defecto', async () => {
     process.env.CAVOS_GOOGLE_AUDIENCE = 'cavos-oauth-client';
+    const t = await token({}, { iss: 'https://accounts.google.com', aud: 'cavos-oauth-client' });
     await expect(verifyCavosToken(t)).resolves.toMatchObject({ iss: 'https://accounts.google.com' });
   });
 
