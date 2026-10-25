@@ -50,7 +50,7 @@ export default function TournamentScreen() {
                 back
                 right={
                   <View style={styles.topRight}>
-                  {data.tournament.photoUrl ? <Shield letters={monogram(data.tournament.name)} photoUrl={data.tournament.photoUrl} size={40} /> : null}
+                  <Shield letters={monogram(data.tournament.name)} photoUrl={data.tournament.photoUrl} size={40} />
                   <View style={[styles.badge, { backgroundColor: data.tournament.status === 'completed' ? colors.up : colors.yellow }]}>
                     <T variant="tiny" color={data.tournament.status === 'completed' ? '#fff' : colors.ink}>
                       {data.tournament.status === 'completed' ? 'Finalizado' : 'En juego'}

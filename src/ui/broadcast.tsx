@@ -6,6 +6,7 @@ import { avatarByKey, branding } from '../../config/branding';
 import { colors, font } from './theme';
 import { T } from './text';
 import { toroPaths, toroTransform, toroViewBox } from './toro-data';
+import { Image } from 'expo-image';
 import { PhotoLayer } from './entity-image';
 
 export function tabBarSpace(bottomInset: number): number {
@@ -478,13 +479,26 @@ export function Sticker({
   );
 }
 
+// Logo de grupo o torneo: sin caja, borde ni fondo. Con foto se ve solo el logo recortado (webp con
+// transparencia, contain); sin foto, solo las iniciales.
 export function Shield({ letters, photoUrl, size = 52 }: { letters: string; photoUrl?: string | null; size?: number }) {
   return (
-    <View style={[styles.shield, size !== 52 ? { width: size, height: Math.round(size * 1.115) } : null]}>
-      <T variant="display" style={{ fontSize: Math.round(size * 0.31), color: '#fff' }}>
-        {letters}
-      </T>
-      <PhotoLayer uri={photoUrl} counterSkew="8deg" />
+    <View style={[styles.shield, { width: size, height: size }]}>
+      {photoUrl ? (
+        <Image
+          source={{ uri: photoUrl }}
+          recyclingKey={photoUrl}
+          style={StyleSheet.absoluteFill}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+          transition={180}
+          accessible={false}
+        />
+      ) : (
+        <T variant="display" style={{ fontSize: Math.round(size * 0.42), color: colors.yellow }}>
+          {letters}
+        </T>
+      )}
     </View>
   );
 }
@@ -567,15 +581,5 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   stickerLocked: { borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.28)' },
-  shield: {
-    width: 52,
-    height: 58,
-    backgroundColor: colors.blue,
-    borderWidth: 2,
-    borderColor: colors.yellow,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    transform: [{ skewX: '-8deg' }],
-  },
+  shield: { alignItems: 'center', justifyContent: 'center' },
 });
