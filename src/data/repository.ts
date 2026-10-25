@@ -1,4 +1,5 @@
 import type { Profile } from './types';
+import type { PhotoKind, PhotoPayload } from '../lib/photos';
 import type { ReportDraft } from '../domain/types';
 import type { Match } from '../domain/types';
 import type {
@@ -25,6 +26,8 @@ export type Repository = {
   demoAccounts(): Profile[];
   registerDemo(email: string): Promise<Profile>;
   resetDemo(): Promise<void>;
+  /** Sube una foto (ya comprimida) y la guarda en el jugador, grupo o torneo. Devuelve la URL pública versionada. */
+  uploadPhoto(kind: PhotoKind, targetId: string, photo: PhotoPayload): Promise<string>;
   friendsSnapshot(userId: string): Promise<FriendsSnapshot>;
   sendFriendRequest(me: string, username: string): Promise<void>;
   respondFriendRequest(me: string, friendshipId: string, accept: boolean): Promise<void>;

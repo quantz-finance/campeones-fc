@@ -15,6 +15,7 @@ import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { DetailSkeleton } from '../../../ui/skeleton';
+import { Avatar } from '../../../ui/avatar';
 
 type Choice = 'me' | 'them' | 'draw';
 
@@ -109,6 +110,7 @@ export default function MatchScreen() {
                   <T variant="display" style={styles.ghost}>
                     {tagOf(a?.displayName ?? 'LOC')}
                   </T>
+                  {a ? <View style={styles.face}><Avatar avatarKey={a.avatarKey} name={a.displayName} photoUrl={a.photoUrl} size={44} /></View> : null}
                   <View style={styles.nameTag}>
                     <T variant="title" style={{ fontSize: 16, color: colors.ink }}>
                       {firstName(a?.displayName ?? 'Local')}
@@ -123,6 +125,7 @@ export default function MatchScreen() {
                   <T variant="display" style={styles.ghost}>
                     {tagOf(b?.displayName ?? 'VIS')}
                   </T>
+                  {b ? <View style={[styles.face, styles.faceRight]}><Avatar avatarKey={b.avatarKey} name={b.displayName} photoUrl={b.photoUrl} size={44} /></View> : null}
                   <View style={[styles.nameTag, styles.nameRight]}>
                     <T variant="title" style={{ fontSize: 16, color: colors.ink }}>
                       {firstName(b?.displayName ?? 'Visita')}
@@ -405,6 +408,8 @@ function VoteRow({
 }
 
 const styles = StyleSheet.create({
+  face: { position: 'absolute', top: 10, left: 10, zIndex: 2 },
+  faceRight: { left: undefined, right: 10 },
   live: { backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 5 },
   pitch: { height: 168, flexDirection: 'row', overflow: 'hidden', position: 'relative' },
   half: { flex: 1, justifyContent: 'flex-end', padding: 10, overflow: 'hidden' },

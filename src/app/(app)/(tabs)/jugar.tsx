@@ -46,7 +46,7 @@ export default function Play() {
                     onPress={() => setOpponentId(friend.profile.id)}
                     style={[styles.choice, active && styles.on]}
                   >
-                    <Avatar avatarKey={friend.profile.avatarKey} size={40} />
+                    <Avatar avatarKey={friend.profile.avatarKey} photoUrl={friend.profile.photoUrl} size={40} />
                     <View style={styles.flex}>
                       <T variant="strong">{friend.profile.displayName}</T>
                       <T variant="tiny" color={colors.muted}>

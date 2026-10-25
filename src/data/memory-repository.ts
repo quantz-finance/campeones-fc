@@ -86,6 +86,9 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
     registerDemo(email) {
       return commit((world, at) => mutateRegisterDemo(world, email, at));
     },
+    async uploadPhoto() {
+      throw new Error('Las fotos necesitan una cuenta real (no el modo demostración local).');
+    },
     async resetDemo() {
       db = options.reset ? options.reset() : structuredClone(initial);
       options.persist?.(db);

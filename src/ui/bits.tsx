@@ -188,7 +188,7 @@ export function StreakLine({ record }: { record: SideRecord }) {
 export function PlayerLine({ profile, detail, onPress }: { profile: Profile; detail: string; onPress?: () => void }) {
   return (
     <Pressable style={styles.match} onPress={onPress} disabled={!onPress}>
-      <Avatar avatarKey={profile.avatarKey} name={profile.displayName} />
+      <Avatar avatarKey={profile.avatarKey} name={profile.displayName} photoUrl={profile.photoUrl} />
       <View style={styles.flex}>
         <T variant="strong">{profile.displayName}</T>
         <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>

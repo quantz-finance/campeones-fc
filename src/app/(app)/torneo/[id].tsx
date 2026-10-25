@@ -6,12 +6,14 @@ import { standings } from '../../../domain/stats';
 import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { SectionHead, Toro } from '../../../ui/broadcast';
+import { SectionHead, Shield, Toro } from '../../../ui/broadcast';
 import { Button, Gate } from '../../../ui/controls';
-import { firstName, scoreText } from '../../../ui/format';
+import { firstName, monogram, scoreText } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
+import { PhotoButton } from '../../../ui/photo-button';
+import { Avatar } from '../../../ui/avatar';
 
 export default function TournamentScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,13 +49,19 @@ export default function TournamentScreen() {
                 kicker={formatLabel}
                 back
                 right={
+                  <View style={styles.topRight}>
+                  {data.tournament.photoUrl ? <Shield letters={monogram(data.tournament.name)} photoUrl={data.tournament.photoUrl} size={40} /> : null}
                   <View style={[styles.badge, { backgroundColor: data.tournament.status === 'completed' ? colors.up : colors.yellow }]}>
                     <T variant="tiny" color={data.tournament.status === 'completed' ? '#fff' : colors.ink}>
                       {data.tournament.status === 'completed' ? 'Finalizado' : 'En juego'}
                     </T>
                   </View>
+                  </View>
                 }
               />
+              {data.tournament.createdBy === userId ? (
+                <PhotoButton kind="tournaments" targetId={data.tournament.id} label="Foto del torneo" />
+              ) : null}
               {data.tournament.status === 'completed' ? (
                 <View style={styles.champ}>
                   <View style={styles.cupBox}>
@@ -107,6 +115,12 @@ export default function TournamentScreen() {
                   {table.map((row, index) => (
                     <View key={row.playerId} style={styles.line}>
                       <T style={styles.place}>{index + 1}</T>
+                      <Avatar
+                        avatarKey={data.people[row.playerId]?.avatarKey ?? 'rayo'}
+                        name={data.people[row.playerId]?.displayName ?? 'Jugador'}
+                        photoUrl={data.people[row.playerId]?.photoUrl}
+                        size={26}
+                      />
                       <T style={styles.flex}>{firstName(data.people[row.playerId]?.displayName ?? 'Jugador')}</T>
                       <T variant="strong">{row.points} pts</T>
                     </View>
@@ -237,6 +251,7 @@ function topScorer(matches: Match[], people: Record<string, { displayName: strin
 }
 
 const styles = StyleSheet.create({
+  topRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   badge: { paddingHorizontal: 8, paddingVertical: 5 },
   champ: { flexDirection: 'row', minHeight: 150, overflow: 'hidden' },
   cupBox: { width: '36%', backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center', gap: 6, padding: 8 },

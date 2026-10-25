@@ -6,6 +6,7 @@ import { avatarByKey, branding } from '../../config/branding';
 import { colors, font } from './theme';
 import { T } from './text';
 import { toroPaths, toroTransform, toroViewBox } from './toro-data';
+import { PhotoLayer } from './entity-image';
 
 export function tabBarSpace(bottomInset: number): number {
   return 64 + Math.max(bottomInset, 10);
@@ -178,11 +179,13 @@ export function InitialsMark({
   avatarKey,
   size = 44,
   fontSize,
+  photoUrl,
 }: {
   name: string;
   avatarKey: string;
   size?: number;
   fontSize?: number;
+  photoUrl?: string | null;
 }) {
   const avatar = avatarByKey(avatarKey);
   const letters = name
@@ -220,6 +223,7 @@ export function InitialsMark({
       >
         {letters || '·'}
       </T>
+      <PhotoLayer uri={photoUrl} counterSkew={Platform.OS === 'web' ? undefined : '10deg'} />
     </View>
   );
 }
@@ -233,9 +237,13 @@ export function ScoreBar({
   onAction,
   onPress,
   note,
+  leftPhoto,
+  rightPhoto,
 }: {
   leftTag: string;
   rightTag: string;
+  leftPhoto?: string | null;
+  rightPhoto?: string | null;
   score: string;
   action?: string;
   actionTone?: 'yellow' | 'ghost';
@@ -247,7 +255,9 @@ export function ScoreBar({
     <View style={styles.scoreWrap}>
       <Pressable onPress={onPress} disabled={!onPress} style={styles.scoreRow}>
         <View style={[styles.scoreSide, { backgroundColor: colors.red }]}>
-          <T variant="display" style={[styles.scoreTag, { color: colors.redInk }]}>
+          <PhotoLayer uri={leftPhoto} counterSkew="8deg" />
+          {leftPhoto ? <View style={styles.scoreShade} /> : null}
+          <T variant="display" style={[styles.scoreTag, { color: leftPhoto ? '#fff' : colors.redInk }, leftPhoto ? styles.scoreTagOnPhoto : null]}>
             {leftTag}
           </T>
         </View>
@@ -257,7 +267,9 @@ export function ScoreBar({
           </T>
         </View>
         <View style={[styles.scoreSide, { backgroundColor: colors.blue }]}>
-          <T variant="display" style={styles.scoreTag}>
+          <PhotoLayer uri={rightPhoto} counterSkew="8deg" />
+          {rightPhoto ? <View style={styles.scoreShade} /> : null}
+          <T variant="display" style={[styles.scoreTag, rightPhoto ? styles.scoreTagOnPhoto : null]}>
             {rightTag}
           </T>
         </View>
@@ -466,12 +478,13 @@ export function Sticker({
   );
 }
 
-export function Shield({ letters }: { letters: string }) {
+export function Shield({ letters, photoUrl, size = 52 }: { letters: string; photoUrl?: string | null; size?: number }) {
   return (
-    <View style={styles.shield}>
-      <T variant="display" style={{ fontSize: 16, color: '#fff' }}>
+    <View style={[styles.shield, size !== 52 ? { width: size, height: Math.round(size * 1.115) } : null]}>
+      <T variant="display" style={{ fontSize: Math.round(size * 0.31), color: '#fff' }}>
         {letters}
       </T>
+      <PhotoLayer uri={photoUrl} counterSkew="8deg" />
     </View>
   );
 }
@@ -499,14 +512,17 @@ const styles = StyleSheet.create({
   skewShadow: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 0 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
   headLine: { flex: 1, height: 2, backgroundColor: 'rgba(255,255,255,0.28)' },
-  mark: { alignItems: 'center', justifyContent: 'center' },
+  mark: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   markClip: { clipPath: 'polygon(14% 0, 100% 0, 86% 100%, 0 100%)' } as object,
   scoreWrap: { gap: 0 },
+  scoreShade: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(8,11,19,0.35)' },
+  scoreTagOnPhoto: { textShadowColor: 'rgba(0,0,0,0.85)', textShadowRadius: 6, textShadowOffset: { width: 0, height: 1 } },
   scoreRow: { flexDirection: 'row', alignItems: 'stretch', minHeight: 58, gap: 0 },
   scoreSide: {
     width: 64,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     transform: [{ skewX: '-8deg' }],
   },
   scoreTag: { fontSize: 18, color: '#fff', transform: [{ skewX: '8deg' }] },
@@ -559,6 +575,7 @@ const styles = StyleSheet.create({
     borderColor: colors.yellow,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     transform: [{ skewX: '-8deg' }],
   },
 });

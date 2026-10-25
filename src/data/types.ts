@@ -12,6 +12,8 @@ export type Profile = {
   username: string;
   displayName: string;
   avatarKey: string;
+  /** Foto subida (Storage, ruta versionada). */
+  photoUrl?: string | null;
   /** Jugador de los datos de demo. */
   isDemo?: boolean;
   /** Modo prueba: ve los datos de demo (apagado por defecto). */
@@ -41,6 +43,7 @@ export type Group = {
   name: string;
   createdBy: string;
   createdAt: string;
+  photoUrl?: string | null;
 };
 
 export type GroupMember = {
@@ -61,6 +64,7 @@ export type Tournament = {
   winnerId: string | null;
   createdAt: string;
   playerIds: string[];
+  photoUrl?: string | null;
 };
 
 export type Achievement = {
@@ -105,6 +109,7 @@ export function toProfile(user: UserAccount): Profile {
     username: user.username,
     displayName: user.displayName,
     avatarKey: user.avatarKey,
+    photoUrl: user.photoUrl ?? null,
   };
 }
 

@@ -12,6 +12,7 @@ import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import type { Match } from '../../../domain/types';
 import { DetailSkeleton } from '../../../ui/skeleton';
+import { Avatar } from '../../../ui/avatar';
 
 export default function Versus() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,6 +53,7 @@ export default function Versus() {
               />
               <View style={styles.banner}>
                 <View style={[styles.half, { backgroundColor: colors.red, paddingLeft: 12 }]}>
+                  <Avatar avatarKey={data.you.avatarKey} name={data.you.displayName} photoUrl={data.you.photoUrl} size={48} />
                   <T variant="display" style={[styles.tag, { color: colors.redInk }]}>
                     {tagOf(data.you.displayName)}
                   </T>
@@ -80,6 +82,7 @@ export default function Versus() {
                   </T>
                 </View>
                 <View style={[styles.half, { backgroundColor: colors.blue, alignItems: 'flex-end', paddingRight: 12 }]}>
+                  <Avatar avatarKey={data.opponent.avatarKey} name={data.opponent.displayName} photoUrl={data.opponent.photoUrl} size={48} />
                   <T variant="display" style={styles.tag}>
                     {tagOf(data.opponent.displayName)}
                   </T>

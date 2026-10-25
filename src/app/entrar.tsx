@@ -162,7 +162,7 @@ export default function Login() {
             </T>
             {accounts.map((account) => (
               <Pressable key={account.id} style={styles.account} onPress={() => app.signInDemo(account.id)}>
-                <Avatar avatarKey={account.avatarKey} name={account.displayName} size={40} />
+                <Avatar avatarKey={account.avatarKey} name={account.displayName} photoUrl={account.photoUrl} size={40} />
                 <View style={styles.flex}>
                   <T variant="strong">{account.displayName}</T>
                   <T variant="tiny" color={colors.muted} style={styles.plain}>

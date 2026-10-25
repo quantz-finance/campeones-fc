@@ -28,7 +28,7 @@ const Row = memo(function Row({ row, index, me }: { row: RankRow; index: number;
         <T variant="title" color={index < 3 ? colors.gold : colors.muted} style={styles.place}>
           {index + 1}
         </T>
-        <Avatar avatarKey={row.profile.avatarKey} size={40} />
+        <Avatar avatarKey={row.profile.avatarKey} name={row.profile.displayName} photoUrl={row.profile.photoUrl} size={40} />
         <View style={styles.flex}>
           <T variant="strong">{row.profile.displayName}</T>
           <T variant="tiny" color={colors.muted}>

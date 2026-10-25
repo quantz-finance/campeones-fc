@@ -115,7 +115,7 @@ export default function Home() {
                     Partidos
                   </T>
                   <View style={styles.heroMark}>
-                    <InitialsMark name={home.profile.displayName} avatarKey={home.profile.avatarKey} size={78} fontSize={28} />
+                    <InitialsMark name={home.profile.displayName} avatarKey={home.profile.avatarKey} photoUrl={home.profile.photoUrl} size={78} fontSize={28} />
                   </View>
                 </View>
                 <View style={styles.heroRight}>
@@ -199,6 +199,8 @@ export default function Home() {
                     <ScoreBar
                       leftTag={tagOf(me?.displayName ?? 'Tú')}
                       rightTag={tagOf(other?.displayName ?? 'Rival')}
+                      leftPhoto={me?.photoUrl}
+                      rightPhoto={other?.photoUrl}
                       score={shown ?? 'VS'}
                       action={needs ? 'Confirmar' : 'Esperando'}
                       actionTone={needs ? 'yellow' : 'ghost'}

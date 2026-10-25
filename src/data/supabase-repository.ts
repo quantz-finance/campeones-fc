@@ -56,6 +56,7 @@ function mapUser(row: Row): UserAccount {
     username: asString(row.username),
     displayName: asString(row.display_name),
     avatarKey: asString(row.avatar_key || 'rayo'),
+    photoUrl: asNullable(row.photo_url),
     isDemo: row.is_demo === true,
     showDemo: row.show_demo === true,
     email: '',
@@ -137,6 +138,7 @@ async function pullWorld(userId: string): Promise<World> {
       name: asString(row.name),
       createdBy: asString(row.created_by),
       createdAt: asString(row.created_at),
+      photoUrl: asNullable(row.photo_url),
     }),
   );
   world.groupMembers = ((members.data ?? []) as Row[]).map(
@@ -159,6 +161,7 @@ async function pullWorld(userId: string): Promise<World> {
       winnerId: asNullable(row.winner_id),
       createdAt: asString(row.created_at),
       playerIds: Array.isArray(row.player_ids) ? row.player_ids.map(asString) : [],
+      photoUrl: asNullable(row.photo_url),
     }),
   );
   world.slots = ((slots.data ?? []) as Row[]).map(
@@ -236,6 +239,18 @@ export function createSupabaseRepository(): Repository {
       const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
       fail(error);
       return data ? mapUser(data as Row) : null;
+    },
+    async uploadPhoto(kind, targetId, photo) {
+      // La versión en la ruta rompe la caché: una foto nueva se ve al instante en todos lados.
+      const path = `${kind}/${targetId}/${Date.now().toString(36)}.${photo.ext}`;
+      const bucket = supabase.storage.from('photos');
+      const { error } = await bucket.upload(path, photo.body, { contentType: photo.type, cacheControl: '31536000', upsert: false });
+      fail(error);
+      const url = bucket.getPublicUrl(path).data.publicUrl;
+      const saved = await supabase.rpc('set_photo', { kind, target: targetId, url });
+      fail(saved.error);
+      notify();
+      return url;
     },
     async updateProfile(userId, patch) {
       const payload: Row = {};

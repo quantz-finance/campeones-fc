@@ -12,6 +12,7 @@ import { copyText, inviteUrl, openWhatsApp } from '../../../ui/share';
 import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
+import { PhotoButton } from '../../../ui/photo-button';
 
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -49,7 +50,10 @@ export default function GroupDetail() {
                 }
               />
               <View style={styles.identity}>
-                <Shield letters={monogram(data.group.name)} />
+                <Shield letters={monogram(data.group.name)} photoUrl={data.group.photoUrl} />
+                {data.yourRole === 'owner' || data.group.createdBy === userId ? (
+                  <PhotoButton kind="groups" targetId={data.group.id} label="Foto del grupo" />
+                ) : null}
               </View>
               <View style={styles.king}>
                 <View style={styles.kingLeft}>
@@ -94,7 +98,7 @@ export default function GroupDetail() {
                         {index + 1}
                       </T>
                       <View style={[styles.name, styles.player]}>
-                        <InitialsMark name={row.profile.displayName} avatarKey={row.profile.avatarKey} size={26} fontSize={11} />
+                        <InitialsMark name={row.profile.displayName} avatarKey={row.profile.avatarKey} photoUrl={row.profile.photoUrl} size={26} fontSize={11} />
                         <T numberOfLines={1} variant="strong">
                           {firstName(row.profile.displayName)}
                         </T>

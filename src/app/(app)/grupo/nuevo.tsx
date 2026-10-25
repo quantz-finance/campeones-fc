@@ -37,7 +37,7 @@ export default function NewGroup() {
                 const on = selected.includes(friend.profile.id);
                 return (
                   <Pressable key={friend.profile.id} style={[styles.row, on && styles.on]} onPress={() => toggle(friend.profile.id)}>
-                    <Avatar avatarKey={friend.profile.avatarKey} size={36} />
+                    <Avatar avatarKey={friend.profile.avatarKey} photoUrl={friend.profile.photoUrl} size={36} />
                     <T variant="medium">{friend.profile.displayName}</T>
                   </Pressable>
                 );

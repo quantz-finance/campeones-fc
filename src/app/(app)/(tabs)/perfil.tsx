@@ -14,6 +14,7 @@ import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { useDelayed } from '../../../ui/motion';
 import { CardsSkeleton } from '../../../ui/skeleton';
+import { PhotoButton } from '../../../ui/photo-button';
 
 const stickerMeta = {
   first_win: { title: 'Primera', icon: 'flash' as const, color: colors.yellow, tilt: '-6deg' },
@@ -71,12 +72,13 @@ export default function Profile() {
       </View>
       <View style={styles.card}>
         <View style={styles.photo}>
-          <InitialsMark name={displayName || profile.displayName} avatarKey={avatarKey} size={132} fontSize={48} />
+          <InitialsMark name={displayName || profile.displayName} avatarKey={avatarKey} photoUrl={profile.photoUrl} size={132} fontSize={48} />
         </View>
         <View style={styles.cardBody}>
           <T variant="tiny" color={colors.yellow}>
             Tu ficha
           </T>
+          <PhotoButton kind="users" targetId={profile.id} label={profile.photoUrl ? 'Cambiar foto' : 'Subir foto'} />
           <T variant="display" style={styles.name} numberOfLines={2}>
             {profile.displayName}
           </T>
