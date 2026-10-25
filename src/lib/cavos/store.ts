@@ -20,8 +20,9 @@ export type CavosBridged = {
   token: () => string | null;
 };
 
-type State = { wanted: boolean; bridged: CavosBridged | null };
-let state: State = { wanted: false, bridged: null };
+/** signedOut: tras "Cerrar sesión" no se re-entra solo con el estado viejo del kit; hace falta tocar "Entrar". */
+type State = { wanted: boolean; bridged: CavosBridged | null; signedOut: boolean };
+let state: State = { wanted: false, bridged: null, signedOut: false };
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
@@ -31,6 +32,11 @@ export const cavosStore = {
   want() {
     if (state.wanted) return;
     state = { ...state, wanted: true };
+    emit();
+  },
+  setSignedOut(v: boolean) {
+    if (state.signedOut === v) return;
+    state = { ...state, signedOut: v };
     emit();
   },
   setBridged(b: CavosBridged | null) {
