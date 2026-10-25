@@ -145,7 +145,7 @@ function confirmFixture(
 
 
 // Fotos del mundo demo en Storage: rostros fotorrealistas de personas inventadas (generados con IA, v2)
-// y escudos propios para grupos y torneos. Ver REGISTRO-PROMPTS.md.
+// y logos generados con IA para grupos y torneos (v2). Ver REGISTRO-PROMPTS.md.
 const DEMO_PHOTOS = 'https://ncduberxgrvgbkruhkvr.supabase.co/storage/v1/object/public/photos/demo';
 // Cada usuario local usa la foto de un perfil demo del mismo género.
 const DEMO_USER_PHOTOS: Record<string, string> = {
@@ -158,8 +158,13 @@ const DEMO_USER_PHOTOS: Record<string, string> = {
   user_nati: '54a6e865-cd32-5709-927c-a94f91d91b8e',
 };
 const DEMO_USER_FALLBACK = '0219793a-6bf8-50f1-b40f-515fa020a13f';
-const DEMO_GROUP_PHOTOS = ["055d71cd-9d97-531c-ba81-f37ad2ee447a", "1d9a2ea7-3f06-50de-bee6-b93d58337774"];
-const DEMO_CUP_PHOTOS = ["0f676ba8-6faf-5196-8b31-e4e3b1b051fa", "4de820ac-add1-55fd-8108-aa014ec3e14d", "5762d60b-df20-55bf-be44-6fbab9071953"];
+// Logos v2 (escudos con mascota para grupos, emblemas para torneos), elegidos por afinidad con el nombre.
+const DEMO_GROUP_PHOTOS = ['d6cb7c52-740a-5440-94df-e7f63bcb7446', '055d71cd-9d97-531c-ba81-f37ad2ee447a'];
+const DEMO_CUP_PHOTOS: Record<string, string> = {
+  'Copa del barrio': 'd99186d1-6797-5a58-88dd-e0171dcb7cca',
+  'Copa relámpago': '0f676ba8-6faf-5196-8b31-e4e3b1b051fa',
+};
+const DEMO_CUP_FALLBACK = '5762d60b-df20-55bf-be44-6fbab9071953';
 
 function withDemoPhotos(db: World): void {
   db.users.forEach((user) => {
@@ -167,10 +172,10 @@ function withDemoPhotos(db: World): void {
     user.photoUrl = `${DEMO_PHOTOS}/users/${id}-v2.webp`;
   });
   db.groups.forEach((group, i) => {
-    group.photoUrl = `${DEMO_PHOTOS}/groups/${DEMO_GROUP_PHOTOS[i % DEMO_GROUP_PHOTOS.length]}-v1.webp`;
+    group.photoUrl = `${DEMO_PHOTOS}/groups/${DEMO_GROUP_PHOTOS[i % DEMO_GROUP_PHOTOS.length]}-v2.webp`;
   });
-  db.tournaments.forEach((cup, i) => {
-    cup.photoUrl = `${DEMO_PHOTOS}/tournaments/${DEMO_CUP_PHOTOS[i % DEMO_CUP_PHOTOS.length]}-v1.webp`;
+  db.tournaments.forEach((cup) => {
+    cup.photoUrl = `${DEMO_PHOTOS}/tournaments/${DEMO_CUP_PHOTOS[cup.name] ?? DEMO_CUP_FALLBACK}-v2.webp`;
   });
 }
 
