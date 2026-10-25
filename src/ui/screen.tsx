@@ -14,17 +14,20 @@ export function Screen({
   tab = false,
   dock,
   footer,
+  footerHeight = 40,
 }: {
   children: ReactNode;
   scroll?: boolean;
   tab?: boolean;
   dock?: 'inicio' | 'grupos' | 'jugar' | 'torneos' | 'perfil';
   footer?: ReactNode;
+  /** Alto que ocupa el footer flotante, para que no tape el final del contenido. */
+  footerHeight?: number;
 }) {
   const insets = useSafeAreaInsets();
   const docked = tab || Boolean(dock);
   const footerReserve = !docked && footer ? 36 + Math.max(insets.bottom, 8) : 0;
-  const bottom = docked ? tabBarSpace(insets.bottom) + (footer ? 40 : 18) : Math.max(insets.bottom, 12) + 16;
+  const bottom = docked ? tabBarSpace(insets.bottom) + (footer ? footerHeight + 12 : 18) : Math.max(insets.bottom, 12) + 16;
   const body = <View style={styles.inner}>{children}</View>;
   return (
     <View style={styles.root}>
@@ -43,6 +46,7 @@ export function Screen({
         )}
         {footer ? (
           <View
+            pointerEvents="box-none"
             style={[
               styles.footer,
               docked ? { bottom: tabBarSpace(insets.bottom) + 2 } : { bottom: 0, height: footerReserve, justifyContent: 'center' },

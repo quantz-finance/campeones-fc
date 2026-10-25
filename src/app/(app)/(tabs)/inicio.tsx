@@ -3,9 +3,11 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { InitialsMark, QuickTile, ScoreBar, SectionHead, Ticker, Wordmark } from '../../../ui/broadcast';
+import { InitialsMark, QuickTile, ScoreBar, SectionHead, Wordmark } from '../../../ui/broadcast';
 import { Gate } from '../../../ui/controls';
 import { elo, firstName, formatWhen, pct, scoreText, streakLabel, tagOf } from '../../../ui/format';
+import { buildNews } from '../../../ui/news';
+import { NewsTicker, TICKER_SPACE } from '../../../ui/news-ticker';
 import { Screen } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
@@ -14,9 +16,29 @@ export default function Home() {
   const { repo, userId, version, mode } = useApp();
   const query = useQuery(() => repo.homeSnapshot(userId!), [repo, userId, version]);
   const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
+  const firstGroupId = groups.data?.[0]?.group.id ?? null;
+  const cups = useQuery(
+    async () => (firstGroupId ? (await repo.groupSnapshot(firstGroupId, userId!)).tournaments : []),
+    [repo, userId, version, firstGroupId],
+  );
+  const lead = groups.data?.find((item) => item.leader);
+  const news = buildNews({
+    me: userId ?? '',
+    recent: query.data?.recent ?? [],
+    people: query.data?.people ?? {},
+    actionCount: query.data?.actionMatches.length ?? 0,
+    streak: query.data?.record.currentStreak ?? { type: 'none', count: 0 },
+    leader: lead?.leader ? { groupName: lead.group.name, leaderName: firstName(lead.leader.displayName) } : null,
+    tournaments: (cups.data ?? []).map((cup) => ({
+      name: cup.name,
+      status: cup.status,
+      players: cup.playerIds.length,
+      winnerName: cup.winnerId ? (query.data?.people[cup.winnerId]?.displayName ?? null) : null,
+    })),
+  });
 
   return (
-    <Screen tab footer={query.data ? <Ticker text={tickerLine(query.data, userId!)} /> : undefined}>
+    <Screen tab footer={<NewsTicker items={news} />} footerHeight={TICKER_SPACE}>
       <Gate query={query}>
         {(home) => {
           const group = groups.data?.[0];
@@ -199,22 +221,6 @@ export default function Home() {
   );
 }
 
-function tickerLine(
-  home: {
-    recent: { playerAId: string; playerBId: string; goalsA: number | null; goalsB: number | null; isDraw: boolean; winnerId: string | null; confirmedAt: string | null }[];
-    people: Record<string, { displayName: string }>;
-  },
-  _me: string,
-): string {
-  const match = home.recent[0];
-  if (!match) return 'Todavía no hay un resultado confirmado';
-  const a = firstName(home.people[match.playerAId]?.displayName ?? 'Alguien');
-  const b = firstName(home.people[match.playerBId]?.displayName ?? 'alguien');
-  const score = match.goalsA != null && match.goalsB != null ? `${match.goalsA}-${match.goalsB}` : 'sin goles';
-  const winner = match.isDraw ? 'Empate' : `${firstName(home.people[match.winnerId ?? '']?.displayName ?? a)} se lo llevó`;
-  const when = match.confirmedAt ? formatWhen(match.confirmedAt) : '';
-  return `${a} ${score} ${b} · ${winner}${when ? ` · ${when}` : ''}`;
-}
 
 const styles = StyleSheet.create({
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

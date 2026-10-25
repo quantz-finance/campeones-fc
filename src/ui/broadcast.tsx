@@ -290,23 +290,6 @@ export function ScoreBar({
   );
 }
 
-export function Ticker({ text }: { text: string }) {
-  return (
-    <View style={styles.ticker}>
-      <SkewBlock color={colors.yellow} padH={8} padV={3} angle="-10deg">
-        <T variant="label" color={colors.ink} style={{ fontSize: 11 }}>
-          Última hora
-        </T>
-      </SkewBlock>
-      <View style={styles.tickerTrack}>
-        <T variant="label" numberOfLines={1} style={styles.tickerText}>
-          {text}
-        </T>
-      </View>
-    </View>
-  );
-}
-
 export function QuickTile({
   kicker,
   title,
@@ -537,19 +520,6 @@ const styles = StyleSheet.create({
     transform: [{ skewX: '-8deg' }],
   },
   note: { backgroundColor: '#04060a', paddingHorizontal: 10, paddingVertical: 6, marginTop: 0 },
-  ticker: {
-    height: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#04060a',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.08)',
-    overflow: 'hidden',
-    paddingRight: 8,
-  },
-  tickerTrack: { flex: 1, overflow: 'hidden' },
-  tickerText: { color: colors.text, fontSize: 13, fontFamily: font.strong },
   tile: { width: '48%', flexGrow: 1, minHeight: 92, padding: 12, justifyContent: 'space-between' },
   tileTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   stat: {
