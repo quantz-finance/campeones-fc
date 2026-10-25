@@ -6,6 +6,7 @@ import {
   mutateCreateMatch,
   mutateCreateTournament,
   mutateSubmit,
+  stampMissingRatings,
   syncAchievements,
 } from './mutate';
 import { branding } from '../../config/branding';
@@ -261,6 +262,10 @@ export function buildSeed(now = new Date()): World {
     new Date(now.getTime() - 15 * 60000),
   );
 
+  // Como recompute_ratings(): se repite todo desde 1200 en orden cronológico y cada partido
+  // confirmado guarda su rating previo y el cambio Elo (+16 / -16).
+  db.matches = db.matches.map(({ ratingABefore, ratingBBefore, ratingDeltaA, ratingDeltaB, ...match }) => match);
+  stampMissingRatings(db);
   for (const user of db.users) syncAchievements(db, user.id, now);
   return db;
 }

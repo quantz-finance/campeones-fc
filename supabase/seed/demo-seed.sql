@@ -3306,7 +3306,8 @@ insert into public.achievements (user_id, code, earned_at, ref_id) values
 ('bb99d211-05b3-5101-a46c-5ec5cd3de801', 'first_win', now() - interval '9417145 seconds', null),
 ('bb99d211-05b3-5101-a46c-5ec5cd3de801', 'streak_5', now() - interval '7274688 seconds', null);
 
--- Elo FIDE: repite todos los partidos confirmados en orden cronológico (misma lógica que la app).
+-- Elo FIDE: repite todos los partidos confirmados en orden cronológico (misma lógica que la app)
+-- y guarda en cada uno el rating previo y el cambio Elo (rating_*_before, rating_delta_*).
 select public.recompute_ratings();
 
 commit;

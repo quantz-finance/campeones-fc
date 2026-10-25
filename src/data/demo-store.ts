@@ -1,3 +1,4 @@
+import { stampMissingRatings } from './mutate';
 import { buildSeed } from './seed';
 import type { World } from './types';
 
@@ -16,7 +17,10 @@ export function loadDemoWorld(): World {
     return seed;
   }
   try {
-    return JSON.parse(raw) as World;
+    const world = JSON.parse(raw) as World;
+    // Demos guardadas antes de que la semilla trajera el cambio Elo de cada partido.
+    if (stampMissingRatings(world) > 0) localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(world));
+    return world;
   } catch {
     const seed = buildSeed();
     localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(seed));

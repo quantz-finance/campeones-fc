@@ -44,3 +44,27 @@ describe('datos de demostración', () => {
     expect(Object.keys(group.matrix)).toHaveLength(6);
   });
 });
+
+describe('semilla demo · Elo por partido', () => {
+  it('cada partido confirmado trae el cambio Elo, igual que recompute_ratings()', async () => {
+    const { buildSeed } = await import('./seed');
+    const { playElo, freshElo } = await import('../domain/elo');
+    const { byTime } = await import('../domain/types');
+    const world = buildSeed(new Date('2026-10-24T12:00:00Z'));
+    const confirmed = world.matches.filter((m) => m.status === 'confirmed').sort(byTime);
+    expect(confirmed.length).toBeGreaterThan(0);
+    const states: Record<string, ReturnType<typeof freshElo>> = {};
+    for (const m of confirmed) {
+      const a = states[m.playerAId] ?? freshElo();
+      const b = states[m.playerBId] ?? freshElo();
+      const scoreA = m.isDraw || !m.winnerId ? 0.5 : m.winnerId === m.playerAId ? 1 : 0;
+      const played = playElo(a, b, scoreA);
+      expect(m.ratingABefore).toBe(a.rating);
+      expect(m.ratingBBefore).toBe(b.rating);
+      expect(m.ratingDeltaA).toBe(played.deltaA);
+      expect(m.ratingDeltaB).toBe(played.deltaB);
+      states[m.playerAId] = played.a;
+      states[m.playerBId] = played.b;
+    }
+  });
+});

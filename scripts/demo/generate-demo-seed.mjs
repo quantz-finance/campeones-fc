@@ -3,7 +3,8 @@
 // Determinista (misma semilla => mismo SQL). Uso: node scripts/demo/generate-demo-seed.mjs
 // Las fechas son relativas a now() del momento en que se corre el SQL.
 // El Elo NO se escribe aquí: el SQL termina con public.recompute_ratings(), que repite todos los
-// partidos confirmados en orden con la misma lógica FIDE que usa la app.
+// partidos confirmados en orden con la misma lógica FIDE que usa la app y guarda en cada partido
+// el rating previo y el cambio Elo (rating_*_before, rating_delta_*), que la cinta muestra como +16 Elo.
 import { createHash } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -353,7 +354,8 @@ rows('public.match_reports', 'match_id, reporter_id, winner_id, is_draw, goals_a
 
 rows('public.achievements', 'user_id, code, earned_at, ref_id', achievements.map((a) => `('${P(a.p).id}', '${a.code}', ${A(a.t)}, ${a.ref ? `'${a.ref}'` : 'null'})`));
 
-out.push(`-- Elo FIDE: repite todos los partidos confirmados en orden cronológico (misma lógica que la app).
+out.push(`-- Elo FIDE: repite todos los partidos confirmados en orden cronológico (misma lógica que la app)
+-- y guarda en cada uno el rating previo y el cambio Elo (rating_*_before, rating_delta_*).
 select public.recompute_ratings();
 
 commit;

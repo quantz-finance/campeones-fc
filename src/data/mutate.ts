@@ -222,6 +222,41 @@ export function mutateDecline(db: World, matchId: string, userId: string, now: D
   return next;
 }
 
+/**
+ * Igual que public.recompute_ratings(): repite los partidos confirmados en orden y guarda en
+ * cada uno el rating previo y el cambio Elo de los dos jugadores si todavía no los tiene.
+ * Devuelve cuántos partidos completó.
+ */
+export function stampMissingRatings(db: World): number {
+  const missing = db.matches.filter(
+    (match) => match.status === 'confirmed' && match.confirmedAt && (match.ratingDeltaA == null || match.ratingDeltaB == null),
+  );
+  if (missing.length === 0) return 0;
+  const byMatch = new Map<string, { userId: string; rating: number; delta: number }[]>();
+  for (const row of replayRatings(db.matches).history) {
+    const list = byMatch.get(row.matchId) ?? [];
+    list.push(row);
+    byMatch.set(row.matchId, list);
+  }
+  let stamped = 0;
+  db.matches = db.matches.map((match) => {
+    if (!missing.includes(match)) return match;
+    const rows = byMatch.get(match.id) ?? [];
+    const a = rows.find((row) => row.userId === match.playerAId);
+    const b = rows.find((row) => row.userId === match.playerBId);
+    if (!a || !b) return match;
+    stamped += 1;
+    return {
+      ...match,
+      ratingABefore: a.rating - a.delta,
+      ratingBBefore: b.rating - b.delta,
+      ratingDeltaA: a.delta,
+      ratingDeltaB: b.delta,
+    };
+  });
+  return stamped;
+}
+
 /** Igual que el servidor: guarda el rating previo y el cambio Elo de cada jugador en el partido. */
 function stampRating(db: World, match: Match) {
   const history = replayRatings(db.matches).history.filter((row) => row.matchId === match.id);
