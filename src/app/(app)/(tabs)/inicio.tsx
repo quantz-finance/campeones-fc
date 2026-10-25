@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { InitialsMark, QuickTile, ScoreBar, SectionHead, Ticker, Wordmark } from '../../../ui/broadcast';
-import { HomeBanner } from '../../../ui/banner';
 import { Gate } from '../../../ui/controls';
 import { elo, firstName, formatWhen, pct, scoreText, streakLabel, tagOf } from '../../../ui/format';
 import { Screen } from '../../../ui/screen';
@@ -56,7 +55,6 @@ export default function Home() {
                   ) : null}
                 </Pressable>
               </View>
-              <HomeBanner />
               {mode === 'demo' ? (
                 <T variant="tiny" color={colors.faint} style={styles.plain}>
                   Modo demostración · los datos viven en este navegador
