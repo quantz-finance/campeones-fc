@@ -21,9 +21,8 @@ import {
 import { env, missingEnv } from './_lib/env';
 import { bearer, body, fail, HttpError, json } from './_lib/http';
 import { bindMessage, ProofError, verifyBindProof } from './_lib/proof';
-import { assertTokenOnlyAllowed, walletOutcome } from './_lib/loginPolicy';
+import { assertTokenOnlyAllowed, tokenOnceKey, walletOutcome } from './_lib/loginPolicy';
 import { assertRegisteredWallet } from './_lib/registry';
-import { createHash } from 'node:crypto';
 
 const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'CAVOS_JWT_ISSUERS', 'CAVOS_JWT_AUDIENCE', 'EXPO_PUBLIC_CAVOS_APP_ID'];
 
@@ -49,7 +48,7 @@ export default async function handler(req: any, res: any) {
     if (b.tokenOnly === true) {
       assertTokenOnlyAllowed({ enabled: env.tokenOnlyLogin(), iat: user.iat, nowS: Math.floor(Date.now() / 1000) });
       // Un solo uso por token: se registra su hash como nonce ya consumido.
-      const tokenNonce = `tok:${createHash('sha256').update(token).digest('hex')}`;
+      const tokenNonce = tokenOnceKey(token);
       if (!(await claimTokenOnce(user.iss, user.sub, tokenNonce))) {
         throw new HttpError(401, 'Tu sesión de Cavos ya se usó. Vuelve a entrar.', 'token_reused');
       }
