@@ -122,6 +122,8 @@ export function otpGuard(store: KV) {
       return otpHasLiveCode(store, email) ? 'skip' : otpWaitText(wait);
     },
     sent: (email: string) => otpRecordSent(store, email),
+    /** El código ya se usó: la próxima entrada pide uno nuevo (sin esperar). */
+    verified: (email: string) => writeOtp(store, email, {}),
     failed: (email: string, e: unknown) => otpRecordFailure(store, email, e instanceof Error ? e.message : String(e)),
     /** Segundos para el contador «Reenviar en N s» (mínimo 1 para que arranque). */
     countdown: (email: string) => Math.max(1, otpWait(store, email) || OTP_RESEND_S),

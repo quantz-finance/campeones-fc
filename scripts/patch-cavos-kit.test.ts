@@ -20,6 +20,7 @@ describe('parche del modal de @cavos/kit', () => {
       expect(src.split('globalThis.__cfcOtpGuard.countdown(email)').length).toBe(3);
       expect(src).not.toContain('setResendCountdown(60);');
       expect(src).toContain('revisa tu carpeta de Spam');
+      expect(src).toContain('if (globalThis.__cfcOtpGuard) globalThis.__cfcOtpGuard.verified(email);');
     }
   });
 

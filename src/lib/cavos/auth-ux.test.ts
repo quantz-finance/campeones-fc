@@ -63,6 +63,8 @@ describe('códigos por correo seguidos (429 de Cavos)', () => {
     g.sent('a@b.co');
     expect(g.before('a@b.co')).toBe('skip');
     expect(g.countdown('a@b.co')).toBeGreaterThan(55);
+    g.verified('a@b.co');
+    expect(g.before('a@b.co')).toBeNull();
     const s2 = mem();
     const g2 = otpGuard(s2);
     g2.failed('c@d.co', new Error('Too many attempts. Try again in a few minutes.'));

@@ -69,6 +69,13 @@ export const REQUIRED = [
     to: () => 'setResendCountdown(globalThis.__cfcOtpGuard ? globalThis.__cfcOtpGuard.countdown(email) : 60);',
   },
   {
+    // 6c) Código usado: se borra la pausa (un código sirve una sola vez; la próxima entrada pide uno nuevo).
+    name: 'otp-usado',
+    done: (s) => s.includes('__cfcOtpGuard.verified'),
+    re: /const id = await auth\.verifyOtp\(email, code\);/g,
+    to: (m) => `${m} if (globalThis.__cfcOtpGuard) globalThis.__cfcOtpGuard.verified(email);`,
+  },
+  {
     // 7) Los códigos de Cavos suelen caer en Spam.
     name: 'otp-spam',
     done: (s) => s.includes('__cfcSpamHint'),
