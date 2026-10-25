@@ -9,6 +9,9 @@ const list = (v: string | undefined) =>
 
 export type StellarNetwork = 'testnet' | 'mainnet';
 
+export const CAVOS_GOOGLE_CLIENT = '1074035053584-s7i7gv8mbki1gnlgnnhibt6lfknqm3nb.apps.googleusercontent.com';
+export const CAVOS_APPLE_CLIENT = 'com.cavosx.auth';
+
 export const env = {
   stellarNetwork(): StellarNetwork {
     return process.env.STELLAR_NETWORK === 'mainnet' ? 'mainnet' : 'testnet';
@@ -47,8 +50,10 @@ export const env = {
   /** appId de Cavos. aud se exige siempre: sin esto el servidor no acepta ningún token. */
   cavosAudiences: () => list(process.env.CAVOS_JWT_AUDIENCE),
   /** Cliente OAuth de Cavos, aceptado como aud SOLO en tokens emitidos por Google / Apple. */
-  googleAudiences: () => list(process.env.CAVOS_GOOGLE_AUDIENCE),
-  appleAudiences: () => list(process.env.CAVOS_APPLE_AUDIENCE),
+  // Clientes OAuth públicos de Cavos, confirmados en el client_id que devuelve cavos.xyz/api/oauth/v2/google|apple
+  // para nuestro appId. Sin ellos ningún login con Google/Apple pasa (aud). Se pueden sobrescribir por env.
+  googleAudiences: () => list(process.env.CAVOS_GOOGLE_AUDIENCE || CAVOS_GOOGLE_CLIENT),
+  appleAudiences: () => list(process.env.CAVOS_APPLE_AUDIENCE || CAVOS_APPLE_CLIENT),
   /** appId público de Cavos (el mismo del cliente). */
   cavosAppId: () => (process.env.CAVOS_APP_ID ?? process.env.EXPO_PUBLIC_CAVOS_APP_ID ?? '').trim(),
   /** Hosts del registro de billeteras, en orden (el vault usa vault.cavos.xyz). */
