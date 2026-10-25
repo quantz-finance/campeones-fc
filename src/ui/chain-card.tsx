@@ -1,5 +1,6 @@
 // Registro en Stellar de un partido confirmado: firmas de los dos jugadores y la transacción.
 import * as Linking from 'expo-linking';
+import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { explorerTxUrl } from '../domain/match-proof';
@@ -13,22 +14,23 @@ import { Banner, Button } from './controls';
 import { colors, space } from './theme';
 import { T } from './text';
 
-type ChainInfo = { status: string | null; tx: string | null; signers: string[] };
+type ChainInfo = { status: string | null; tx: string | null; backfill: boolean; signers: string[] };
 
 async function loadChain(matchId: string): Promise<ChainInfo> {
   const db = getSupabase();
   const [m, a] = await Promise.all([
-    db.from('matches').select('chain_status,chain_tx').eq('id', matchId).maybeSingle(),
+    db.from('matches').select('chain_status,chain_tx,chain_backfill').eq('id', matchId).maybeSingle(),
     db.from('match_attestations').select('user_id').eq('match_id', matchId),
   ]);
   return {
     status: (m.data?.chain_status as string | null) ?? null,
     tx: (m.data?.chain_tx as string | null) ?? null,
+    backfill: !!m.data?.chain_backfill,
     signers: ((a.data ?? []) as { user_id: string }[]).map((r) => r.user_id),
   };
 }
 
-export function ChainCard({ match, userId }: { match: Match; userId: string }) {
+export function ChainCard({ match, userId, canSign = true }: { match: Match; userId: string; canSign?: boolean }) {
   const [info, setInfo] = useState<ChainInfo | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,12 +51,12 @@ export function ChainCard({ match, userId }: { match: Match; userId: string }) {
   // Con las dos firmas y sin anclar todavía: pedir el anclaje (idempotente; el cron también lo hace).
   useEffect(() => {
     if (!info || nudged.current || info.status === 'anchored' || info.status === null) return;
-    if (info.signers.length < 2) return;
+    if (info.signers.length < 2 || !canSign) return;
     nudged.current = true;
     void requestAnchor(match.id)
       .catch(() => undefined)
       .finally(refresh);
-  }, [info, match.id, refresh]);
+  }, [info, match.id, refresh, canSign]);
 
   if (!info || info.status === null) return null;
   const signed = info.signers.includes(userId);
@@ -78,14 +80,21 @@ export function ChainCard({ match, userId }: { match: Match; userId: string }) {
         Registro en Stellar · {STELLAR_NETWORK === 'mainnet' ? 'red principal' : 'red de prueba'}
       </T>
       <T variant="tiny" color={colors.muted} style={styles.plain}>
-        Firmas: {info.signers.length} de 2
+        {info.backfill && info.signers.length === 0 ? 'Sin firma: partido anterior al registro en Stellar' : `Firmas: ${info.signers.length} de 2`}
       </T>
       {info.status === 'anchored' && info.tx ? (
-        <Pressable onPress={() => void Linking.openURL(explorerTxUrl(info.tx!, STELLAR_NETWORK))}>
-          <T variant="strong" color={colors.yellow}>
-            Resultado registrado. Ver la transacción
-          </T>
-        </Pressable>
+        <>
+          <Pressable onPress={() => router.push(`/verificar/${match.id}`)} accessibilityRole="link">
+            <T variant="strong" color={colors.yellow}>
+              ✓ Verificado en Stellar
+            </T>
+          </Pressable>
+          <Pressable onPress={() => void Linking.openURL(explorerTxUrl(info.tx!, STELLAR_NETWORK))} accessibilityRole="link">
+            <T variant="tiny" color={colors.muted} style={styles.plain}>
+              Ver la transacción en stellar.expert
+            </T>
+          </Pressable>
+        </>
       ) : info.status === 'failed' ? (
         <T color={colors.muted}>No pudimos registrarlo en Stellar. El equipo lo revisa; el marcador sí cuenta.</T>
       ) : (
@@ -95,7 +104,7 @@ export function ChainCard({ match, userId }: { match: Match; userId: string }) {
             : 'Cuando los dos firmen con su billetera, el resultado queda registrado en Stellar.'}
         </T>
       )}
-      {!signed && info.status !== 'anchored' && cavosConfigured() ? (
+      {canSign && !signed && info.status !== 'anchored' && cavosConfigured() ? (
         <Button label={busy ? 'Firmando…' : 'Firmar el resultado'} tone="ghost" disabled={busy} onPress={() => void sign()} />
       ) : null}
       {error ? <Banner tone="danger" title="No se firmó" body={error} /> : null}

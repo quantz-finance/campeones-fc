@@ -142,6 +142,11 @@ export function MatchRow({
               </T>
             ) : null}
             {` · ${formatWhen(match.confirmedAt ?? match.createdAt)}`}
+            {match.chainStatus === 'anchored' ? (
+              <T variant="tiny" color={colors.cyan} accessibilityLabel="Verificado en Stellar">
+                {' · ✓ Stellar'}
+              </T>
+            ) : null}
           </T>
         </View>
         <View style={styles.end}>

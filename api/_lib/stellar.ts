@@ -6,6 +6,8 @@ import { withRetry } from './retry';
 import { txWindowS } from './timebounds';
 
 export const DATA_KEY = 'cfc:last';
+/** Clave del acta diaria (también se sobrescribe). */
+export const DAILY_DATA_KEY = 'cfc:day';
 export const MAX_FEE_STROOPS = '1000';
 
 export type TxStatus = 'success' | 'failed' | 'missing';
@@ -13,7 +15,7 @@ export type TxStatus = 'success' | 'failed' | 'missing';
 export interface Chain {
   txStatus(hash: string): Promise<TxStatus>;
   ledgerCloseS(): Promise<number>;
-  buildAnchor(hashHex: string): Promise<{ tx: Transaction; hash: string; maxTime: number }>;
+  buildAnchor(hashHex: string, dataKey?: string): Promise<{ tx: Transaction; hash: string; maxTime: number }>;
   submit(tx: Transaction): Promise<{ hash: string }>;
 }
 
@@ -32,12 +34,13 @@ export function buildAnchorTx(p: {
   hashHex: string;
   passphrase: string;
   windowS: number;
+  dataKey?: string;
 }): Transaction {
   if (!/^[a-f0-9]{64}$/.test(p.hashHex)) throw new Error('hash inválido');
   const value = Buffer.from(p.hashHex, 'hex');
   return new TransactionBuilder(p.source as any, { fee: MAX_FEE_STROOPS, networkPassphrase: p.passphrase })
     .addMemo(Memo.hash(value))
-    .addOperation(Operation.manageData({ name: DATA_KEY, value }))
+    .addOperation(Operation.manageData({ name: p.dataKey ?? DATA_KEY, value }))
     .setTimeout(p.windowS)
     .build();
 }
@@ -59,11 +62,11 @@ export function horizonChain(): Chain {
       const r: any = await withRetry('Horizon ledger', () => server.ledgers().order('desc').limit(1).call());
       return Math.floor(Date.parse(r.records[0].closed_at) / 1000);
     },
-    async buildAnchor(hashHex) {
+    async buildAnchor(hashHex, dataKey) {
       const kp = Keypair.fromSecret(secret);
       if (env.platformPublic() && kp.publicKey() !== env.platformPublic()) throw new Error('PLATFORM_SECRET no corresponde a PLATFORM_PUBLIC');
       const account = await withRetry('Horizon account', () => server.loadAccount(kp.publicKey()));
-      const tx = buildAnchorTx({ source: account, hashHex, passphrase: env.passphrase(), windowS: txWindowS() });
+      const tx = buildAnchorTx({ source: account, hashHex, dataKey, passphrase: env.passphrase(), windowS: txWindowS() });
       tx.sign(kp);
       return { tx, hash: Buffer.from(tx.hash()).toString('hex'), maxTime: Number(tx.timeBounds?.maxTime ?? 0) };
     },

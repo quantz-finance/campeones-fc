@@ -2,6 +2,7 @@
 import { randomBytes } from 'node:crypto';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { AnchorStore, Attestation, MatchRow } from './anchor';
+import type { DailyRow, DailyStore, DayMatch } from './daily';
 import { env } from './env';
 import { HttpError } from './http';
 
@@ -28,7 +29,7 @@ const check = (error: { message: string } | null, what: string) => {
 };
 
 const MATCH_COLS =
-  'id,player_a_id,player_b_id,status,winner_id,is_draw,goals_a,goals_b,confirmed_at,chain_status,chain_hash,chain_tx,chain_max_time,chain_attempts';
+  'id,player_a_id,player_b_id,status,winner_id,is_draw,goals_a,goals_b,confirmed_at,chain_status,chain_hash,chain_tx,chain_max_time,chain_attempts,chain_backfill';
 
 export function supabaseAnchorStore(db: SupabaseClient = adminClient()): AnchorStore {
   return {
@@ -91,6 +92,26 @@ export function supabaseAnchorStore(db: SupabaseClient = adminClient()): AnchorS
       check(error, 'queue');
       return (data ?? []).map((r: any) => String(r.id));
     },
+    async queueBackfill(limit) {
+      const { data, error } = await db.rpc('queue_chain_backfill', { p_limit: limit });
+      check(error, 'queueBackfill');
+      return Number(data ?? 0);
+    },
+  };
+}
+
+/** Cuántos partidos confirmados faltan: sin encolar y en cola (pending/submitting). */
+export async function chainBacklog(db: SupabaseClient = adminClient()) {
+  const count = async (q: any, what: string) => {
+    const { count: n, error } = await q;
+    check(error, what);
+    return n ?? 0;
+  };
+  const base = () => db.from('matches').select('id', { count: 'exact', head: true }).eq('status', 'confirmed');
+  return {
+    unqueued: await count(base().is('chain_status', null), 'backlog.unqueued'),
+    queued: await count(base().in('chain_status', ['pending', 'submitting']), 'backlog.queued'),
+    failed: await count(base().eq('chain_status', 'failed'), 'backlog.failed'),
   };
 }
 
@@ -201,4 +222,92 @@ export async function supabaseUserFromToken(token: string): Promise<string> {
   const { data, error } = await adminClient().auth.getUser(token);
   if (error || !data.user) throw new HttpError(401, 'Tu sesión venció. Vuelve a entrar.', 'auth_invalid');
   return data.user.id;
+}
+
+// --- Acta diaria ---
+
+const DAILY_COLS = 'day,network,match_count,root,prev_hash,record_hash,record,match_ids,status,tx,max_time,attempts';
+const DAY_MATCH_COLS = 'id,player_a_id,player_b_id,winner_id,is_draw,goals_a,goals_b,confirmed_at';
+const staleOr = (staleBefore: Date) =>
+  `status.eq.pending,and(status.eq.submitting,claimed_at.lt.${staleBefore.toISOString()}),and(status.eq.submitting,claimed_at.is.null)`;
+
+export function supabaseDailyStore(db: SupabaseClient = adminClient()): DailyStore {
+  return {
+    async lastRecord() {
+      const { data, error } = await db.from('chain_daily_records').select(DAILY_COLS).order('day', { ascending: false }).limit(1).maybeSingle();
+      check(error, 'lastRecord');
+      return (data as DailyRow | null) ?? null;
+    },
+    async firstConfirmedAt() {
+      const { data, error } = await db
+        .from('matches')
+        .select('confirmed_at')
+        .eq('status', 'confirmed')
+        .not('confirmed_at', 'is', null)
+        .order('confirmed_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      check(error, 'firstConfirmedAt');
+      return (data?.confirmed_at as string | undefined) ?? null;
+    },
+    async dayMatches(from, to) {
+      const out: DayMatch[] = [];
+      for (let page = 0; ; page++) {
+        const { data, error } = await db
+          .from('matches')
+          .select(DAY_MATCH_COLS)
+          .eq('status', 'confirmed')
+          .gte('confirmed_at', from)
+          .lt('confirmed_at', to)
+          .order('confirmed_at', { ascending: true })
+          .order('id', { ascending: true })
+          .range(page * 1000, page * 1000 + 999);
+        check(error, 'dayMatches');
+        out.push(...((data ?? []) as DayMatch[]));
+        if (!data || data.length < 1000) return out;
+      }
+    },
+    async insertRecord(row) {
+      const { error } = await db.from('chain_daily_records').upsert(row, { onConflict: 'day', ignoreDuplicates: true });
+      check(error, 'insertRecord');
+    },
+    async queue(limit, staleBefore) {
+      const { data, error } = await db
+        .from('chain_daily_records')
+        .select('day')
+        .or(staleOr(staleBefore))
+        .order('day', { ascending: true })
+        .limit(limit);
+      check(error, 'daily.queue');
+      return (data ?? []).map((r: any) => String(r.day));
+    },
+    async claim(day, staleBefore) {
+      const { data, error } = await db
+        .from('chain_daily_records')
+        .update({ status: 'submitting', claimed_at: new Date().toISOString() })
+        .eq('day', day)
+        .or(staleOr(staleBefore))
+        .select(DAILY_COLS)
+        .maybeSingle();
+      check(error, 'daily.claim');
+      return (data as DailyRow | null) ?? null;
+    },
+    async savePrepared(day, p) {
+      const { error } = await db.from('chain_daily_records').update({ ...p, error: null }).eq('day', day).eq('status', 'submitting');
+      check(error, 'daily.savePrepared');
+    },
+    async markAnchored(day, tx) {
+      const { error } = await db
+        .from('chain_daily_records')
+        .update({ status: 'anchored', tx, anchored_at: new Date().toISOString(), error: null, claimed_at: null })
+        .eq('day', day);
+      check(error, 'daily.markAnchored');
+    },
+    async release(day, p) {
+      const patch: Record<string, unknown> = { status: p.status, error: p.error ? p.error.slice(0, 500) : null };
+      if (p.status !== 'submitting') patch.claimed_at = null;
+      const { error } = await db.from('chain_daily_records').update(patch).eq('day', day);
+      check(error, 'daily.release');
+    },
+  };
 }

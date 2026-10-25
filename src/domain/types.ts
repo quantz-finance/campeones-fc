@@ -27,6 +27,9 @@ export type Match = {
   ratingBBefore?: number | null;
   ratingDeltaA?: number | null;
   ratingDeltaB?: number | null;
+  /** Registro en Stellar (solo con Supabase): estado del anclaje y hash de la transacción. */
+  chainStatus?: 'pending' | 'submitting' | 'anchored' | 'failed' | null;
+  chainTx?: string | null;
 };
 
 export type MatchReport = {

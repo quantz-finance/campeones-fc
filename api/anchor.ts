@@ -1,10 +1,11 @@
 // POST /api/anchor  (Authorization: Bearer <access_token de Supabase>)
 //   { matchId, attestation?: { publicKey, signature } } -> guarda la firma y ancla si corresponde.
 // GET /api/anchor   (Authorization: Bearer <CRON_SECRET>, lo manda el cron de Vercel) -> barre la cola.
+// GET /api/anchor?backfill=N (mismo secreto) -> además encola N partidos viejos "sin firma" (scripts/chain/backfill.mjs).
 // Idempotente: se puede llamar cuantas veces sea; nunca hay dos tx vivas para el mismo partido.
 import { explorerTxUrl } from '../src/domain/match-proof';
 import { anchorMatch, recordAttestation, sweep } from './_lib/anchor';
-import { supabaseAnchorStore, supabaseUserFromToken } from './_lib/db';
+import { chainBacklog, supabaseAnchorStore, supabaseUserFromToken } from './_lib/db';
 import { env, missingEnv } from './_lib/env';
 import { bearer, body, fail, HttpError, json } from './_lib/http';
 import { horizonChain } from './_lib/stellar';
@@ -23,8 +24,12 @@ export default async function handler(req: any, res: any) {
       const secret = env.cronSecret();
       if (!secret || bearer(req) !== secret) throw new HttpError(401, 'no autorizado', 'unauthorized');
       if (missing.length) throw new HttpError(503, 'Falta configuración.', 'config_missing', { missing });
-      const results = await sweep(deps());
-      return json(res, 200, { ok: true, processed: Object.keys(results).length, results });
+      const d = deps();
+      const want = Number(req.query?.backfill ?? 0);
+      const queuedNow = Number.isFinite(want) && want > 0 ? await d.store.queueBackfill!(Math.min(Math.floor(want), 200)) : 0;
+      const results = await sweep(d, 40);
+      const backlog = await chainBacklog();
+      return json(res, 200, { ok: true, network: d.network, queuedNow, processed: Object.keys(results).length, results, backlog });
     }
     if (req.method !== 'POST') return json(res, 405, { error: 'method' });
     if (missing.length) throw new HttpError(503, 'El registro en Stellar todavía no está configurado.', 'config_missing', { missing });

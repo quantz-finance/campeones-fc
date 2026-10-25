@@ -301,8 +301,8 @@ export default function MatchScreen() {
                   }
                 />
               ) : null}
-              {mode === 'supabase' && snap.match.status === 'confirmed' && snap.youAre !== 'other' ? (
-                <ChainCard match={snap.match} userId={userId!} />
+              {mode === 'supabase' && snap.match.status === 'confirmed' ? (
+                <ChainCard match={snap.match} userId={userId!} canSign={snap.youAre !== 'other'} />
               ) : null}
               {snap.match.status === 'confirmed' && snap.youAre !== 'other' ? (
                 <Button

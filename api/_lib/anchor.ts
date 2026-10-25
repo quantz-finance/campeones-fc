@@ -32,6 +32,8 @@ export type MatchRow = {
   chain_tx: string | null;
   chain_max_time: number | null;
   chain_attempts: number;
+  /** Partido confirmado antes del registro en Stellar: se ancla sin esperar firmas ("sin firma"). */
+  chain_backfill?: boolean;
 };
 
 export type Attestation = { match_id: string; user_id: string; address: string; public_key: string; message: string; signature: string };
@@ -48,6 +50,8 @@ export interface AnchorStore {
   markAnchored(id: string, tx: string): Promise<void>;
   release(id: string, p: { status: 'pending' | 'submitting' | 'failed'; error: string | null }): Promise<void>;
   queue(limit: number, staleBefore: Date): Promise<string[]>;
+  /** Encola hasta `limit` partidos confirmados viejos como "sin firma". Devuelve cuántos. */
+  queueBackfill?(limit: number): Promise<number>;
 }
 
 export type AnchorResult =
@@ -121,7 +125,7 @@ export async function anchorMatch(
   if (m0.chain_status === 'failed') return { state: 'failed' };
 
   // Esperar las dos firmas hasta attestWaitS desde la confirmación; después se ancla con las que haya.
-  if (!m0.chain_tx) {
+  if (!m0.chain_tx && !m0.chain_backfill) {
     const { signatures } = await buildPayload(store, network, m0);
     const age = (now().getTime() - Date.parse(m0.confirmed_at)) / 1000;
     if (signatures < 2 && age < deps.attestWaitS) return { state: 'waiting_signatures' };
@@ -185,11 +189,14 @@ export async function anchorMatch(
 }
 
 /** Barrido del cron: procesa la cola en serie (una sola cuenta platform -> sin choques de secuencia). */
-export async function sweep(deps: Parameters<typeof anchorMatch>[0], limit = 20) {
+// Cada envío espera a que cierre un ledger (~5 s), así que se corta por tiempo para no pasar el maxDuration.
+export async function sweep(deps: Parameters<typeof anchorMatch>[0], limit = 20, budgetMs = 40_000) {
   const now = deps.now ?? (() => new Date());
+  const started = Date.now();
   const ids = await deps.store.queue(limit, new Date(now().getTime() - CLAIM_STALE_S * 1000));
   const out: Record<string, string> = {};
   for (const id of ids) {
+    if (Date.now() - started > budgetMs) break;
     const r = await anchorMatch(deps, id);
     out[id] = r.state;
   }

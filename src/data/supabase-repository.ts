@@ -80,6 +80,8 @@ function mapMatch(row: Row): Match {
     ratingBBefore: asNumber(row.rating_b_before),
     ratingDeltaA: asNumber(row.rating_delta_a),
     ratingDeltaB: asNumber(row.rating_delta_b),
+    chainStatus: asNullable(row.chain_status) as Match['chainStatus'],
+    chainTx: asNullable(row.chain_tx),
   };
 }
 
