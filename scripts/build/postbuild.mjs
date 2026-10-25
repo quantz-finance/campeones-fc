@@ -1,6 +1,6 @@
 // Post-export (vercel buildCommand), mismo enfoque que Meteorito (scripts/build/preload.mjs).
 // Los nombres llevan hash de contenido, por eso se buscan en dist/.
-// 1) Fuentes: <link rel=preload> de Anton y Archivo + @font-face con font-display: swap
+// 1) Fuentes: <link rel=preload> de Anton, Barlow y Archivo Etiqueta + @font-face con font-display: swap
 //    (se bajan en paralelo con el JS; expo-font las encuentra ya cargadas).
 // 2) __common diferido si el bundle inicial no lo necesita (si lo necesita, el HTML queda igual).
 // 3) Preconnect al origen de Supabase si EXPO_PUBLIC_SUPABASE_URL está en el build.
@@ -18,10 +18,9 @@ const fail = (m) => { console.error('[postbuild]', m); process.exit(1); };
 // 1) Fuentes: [familia que registra useFonts, regex del archivo, precargar]
 const FONTS = [
   ['Anton_400Regular', /\/Anton_400Regular\.[0-9a-f]+\.ttf$/, true],
-  ['Archivo_400Regular', /\/Archivo_400Regular\.[0-9a-f]+\.ttf$/, true],
-  ['Archivo_500Medium', /\/Archivo_500Medium\.[0-9a-f]+\.ttf$/, false],
-  ['Archivo_600SemiBold', /\/Archivo_600SemiBold\.[0-9a-f]+\.ttf$/, true],
-  ['Archivo_700Bold', /\/Archivo_700Bold\.[0-9a-f]+\.ttf$/, false],
+  ['Barlow_400Regular', /\/Barlow-Regular\.[0-9a-f]+\.ttf$/, true],
+  ['Barlow_500Medium', /\/Barlow-Medium\.[0-9a-f]+\.ttf$/, false],
+  ['Barlow_600SemiBold', /\/Barlow-SemiBold\.[0-9a-f]+\.ttf$/, true],
   ['ArchivoEtiqueta_600SemiBold', /\/ArchivoEtiqueta-SemiBold\.[0-9a-f]+\.ttf$/, false],
   ['ArchivoEtiqueta_700Bold', /\/ArchivoEtiqueta-Bold\.[0-9a-f]+\.ttf$/, false],
   ['ArchivoEtiqueta_800ExtraBold', /\/ArchivoEtiqueta-ExtraBold\.[0-9a-f]+\.ttf$/, true],
