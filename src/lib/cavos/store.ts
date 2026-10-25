@@ -8,6 +8,10 @@ export type CavosBridged = {
   isAuthenticated: boolean;
   address: string | null;
   email: string | null;
+  /** Estado de la billetera en ESTE navegador. needsApproval: la llave no está aquí (otro dispositivo). */
+  wallet: { ready: boolean; undeployed: boolean; needsApproval: boolean; hasPasskey: boolean; deploying: boolean };
+  /** Restaura la llave en este navegador con la passkey (necesita un toque de la persona). */
+  approveDevice: () => Promise<void>;
   error: string | null;
   openModal: () => void;
   logout: () => Promise<void>;

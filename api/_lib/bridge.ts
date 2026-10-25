@@ -36,11 +36,16 @@ async function createWithRetry(d: BridgeDeps, email: string, meta: Record<string
   }
 }
 
-export async function resolveUser(u: CavosUser, d: BridgeDeps): Promise<{ userId: string; linkedBy: 'existing' | 'new_user' | 'verified_email' }> {
+export async function resolveUser(
+  u: CavosUser,
+  d: BridgeDeps,
+  opts: { linkByEmail?: boolean } = {},
+): Promise<{ userId: string; linkedBy: 'existing' | 'new_user' | 'verified_email' }> {
   const existing = await d.identityUser(u.iss, u.sub);
   if (existing) return { userId: existing, linkedBy: 'existing' };
 
-  const linkable = canLinkByEmail(u);
+  // Sin prueba de billetera (entrada solo con token) nunca se liga por correo a una cuenta existente.
+  const linkable = canLinkByEmail(u) && opts.linkByEmail !== false;
   if (linkable) {
     const byEmail = await d.userByEmail(u.email!);
     if (byEmail) {

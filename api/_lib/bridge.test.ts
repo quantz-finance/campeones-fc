@@ -26,9 +26,20 @@ function fakeDeps(users: Record<string, string> = {}) {
   return { d, identities, created, users };
 }
 
-const u = (p: Partial<CavosUser>): CavosUser => ({ iss: 'https://cavos.app/firebase', sub: 's1', email: null, emailVerified: false, name: null, ...p });
+const u = (p: Partial<CavosUser>): CavosUser => ({ iss: 'https://cavos.app/firebase', sub: 's1', email: null, emailVerified: false, name: null, iat: null, ...p });
 
 describe('puente Cavos -> usuario de Supabase', () => {
+  it('entrada solo con token: nunca liga por correo a una cuenta existente (crea una aparte con correo interno)', async () => {
+    const f = fakeDeps({ 'ana@gmail.com': 'old-user' });
+    const r = await resolveUser(u({ iss: 'https://accounts.google.com', sub: 'g1', email: 'ana@gmail.com', emailVerified: true }), f.d, { linkByEmail: false });
+    expect(r.userId).not.toBe('old-user');
+    expect(r.linkedBy).toBe('new_user');
+    expect(f.created[0].email).toBe(syntheticEmail('https://accounts.google.com', 'g1'));
+    // La misma identidad vuelve a la misma cuenta, firmada o no.
+    const again = await resolveUser(u({ iss: 'https://accounts.google.com', sub: 'g1', email: 'ana@gmail.com', emailVerified: true }), f.d);
+    expect(again).toEqual({ userId: r.userId, linkedBy: 'existing' });
+  });
+
   it('liga a la cuenta existente SOLO con email_verified === true', async () => {
     const f = fakeDeps({ 'ana@gmail.com': 'old-user' });
     const r = await resolveUser(u({ email: 'ana@gmail.com', emailVerified: true }), f.d);

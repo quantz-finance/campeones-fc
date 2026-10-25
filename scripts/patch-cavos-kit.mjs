@@ -6,11 +6,12 @@
 //     maxLength 1, así que el autofill recortaba el código. Ahora el código entero se reparte (globalThis.__cfcOtpFill)
 //     y la 1.ª casilla acepta el largo completo.
 //  3) Copy del flujo por correo y de los botones en español (tuteo). Opcional: si un texto cambió, solo se avisa.
-// Falla fuerte si 1) o 2) ya no calzan (el kit cambió): hay que revisar el parche antes de subir de versión.
+//  4) logout() ya no borra la llave del dispositivo (ver REQUIRED 'conservar-llave').
+// Falla fuerte si 1), 2) o 4) ya no calzan (el kit cambió): hay que revisar el parche antes de subir de versión.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-export const PATCH_MARK = '/* campeones-patch:cavos-kit 0.4.4 v1 */';
+export const PATCH_MARK = '/* campeones-patch:cavos-kit 0.4.4 v2 */';
 
 export const REQUIRED = [
   {
@@ -26,6 +27,14 @@ export const REQUIRED = [
       'const __all = normalizeEmailCode(raw); const __fill = globalThis.__cfcOtpFill ? globalThis.__cfcOtpFill(otpCode, i, __all, EMAIL_CODE_LENGTH) : null; if (__fill) { setOtpCode(__fill.code); otpBoxRefs.current[__fill.focus]?.focus(); return; } const digit = __all.slice(-1);',
   },
   { name: 'maxlength', re: /maxLength: 1,/g, to: () => 'maxLength: i === 0 ? EMAIL_CODE_LENGTH : 1,' },
+  {
+    // 4) logout() borraba la llave de la billetera de ESTE navegador (vault.forget). Sin passkey ni respaldo, la
+    //    billetera quedaba huérfana: al volver a entrar, "this device is not an authorized signer". Con
+    //    globalThis.__cfcKeepDeviceKey la llave se queda; salir de Cavos sigue borrando la identidad y el token.
+    name: 'conservar-llave',
+    re: /(VaultClient\.attach\(\{ appId: config\.appId, \.\.\.typeof vault === "object" \? vault : \{\} \}\)\.forget\(identity\.userId, config\.appSalt\)\.catch\(\(\) => void 0\);)/g,
+    to: (_m, call) => `if (!globalThis.__cfcKeepDeviceKey) ${call}`,
+  },
 ];
 
 const COPY = [
@@ -57,6 +66,7 @@ const COPY = [
 /** Devuelve el fuente parchado. Idempotente; lanza si falta un punto requerido. */
 export function patchKitSource(src) {
   if (src.includes(PATCH_MARK)) return { out: src, applied: [], missingCopy: [] };
+  if (src.startsWith('/* campeones-patch:')) throw new Error('patch-cavos-kit: el kit tiene un parche viejo; reinstala @cavos/kit (rm -rf node_modules/@cavos/kit && npm i).');
   let out = src;
   const applied = [];
   for (const r of REQUIRED) {
