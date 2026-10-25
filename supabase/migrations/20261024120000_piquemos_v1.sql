@@ -1007,7 +1007,7 @@ begin
   previous := row.status;
   insert into public.match_reports (match_id, reporter_id, winner_id, is_draw, goals_a, goals_b, updated_at)
   values (row.id, me, winner_id, is_draw, goals_a, goals_b, now())
-  on conflict (match_id, reporter_id) do update
+  on conflict on constraint match_reports_pkey do update
     set winner_id = excluded.winner_id,
         is_draw = excluded.is_draw,
         goals_a = excluded.goals_a,

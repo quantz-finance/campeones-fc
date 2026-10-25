@@ -57,8 +57,6 @@ export default function Login() {
     }
   }, [bridged?.error]);
 
-  if (app.ready && app.userId) return <Redirect href="/inicio" />;
-
   function openCavos() {
     setError(null);
     if (!bridged || bridged.isLoading) {
@@ -76,6 +74,9 @@ export default function Login() {
     setPhase('idle');
     if (!bridged.isAuthenticated) bridged.openModal();
   }, [phase, bridged]);
+
+  // Después de todos los hooks: un return temprano antes de un hook rompe el orden (error #300 de React).
+  if (app.ready && app.userId) return <Redirect href="/inicio" />;
 
   const busy = phase !== 'idle';
   const label =
