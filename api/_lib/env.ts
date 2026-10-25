@@ -54,6 +54,8 @@ export const env = {
   /** Hosts del registro de billeteras, en orden (el vault usa vault.cavos.xyz). */
   cavosApiUrl: () => process.env.CAVOS_REGISTRY_URLS ?? 'https://vault.cavos.xyz,https://cavos.xyz',
   cavosEnvironment: (): 'development' | 'production' => (process.env.CAVOS_ENVIRONMENT === 'development' ? 'development' : 'production'),
+  /** required (por defecto): sin respuesta del registro de Cavos no hay sesión. best_effort: solo si Cavos no responde. */
+  registryCheck: (): 'required' | 'best_effort' => (process.env.CAVOS_REGISTRY_CHECK === 'best_effort' ? 'best_effort' : 'required'),
   cronSecret: () => process.env.CRON_SECRET ?? '',
   /** Horas que se espera la firma de los dos jugadores antes de anclar con las que haya. */
   attestWaitHours(): number {

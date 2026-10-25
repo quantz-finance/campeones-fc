@@ -5,7 +5,7 @@ import { branding } from '../../config/branding';
 import { track } from '../lib/analytics';
 import { authErrorText } from '../lib/cavos/auth-ux';
 import { cavosConfigured, cavosSupported } from '../lib/cavos/config';
-import { exchangeCavosSession, type WalletLink } from '../lib/cavos/session';
+import { exchangeCavosSession } from '../lib/cavos/session';
 import { cavosStore, useCavosState } from '../lib/cavos/store';
 import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
@@ -22,7 +22,6 @@ export default function Login() {
   const { bridged } = useCavosState();
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [wallet, setWallet] = useState<WalletLink | null>(null);
   const exchanging = useRef(false);
   const configured = app.mode === 'supabase' && cavosConfigured();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
@@ -40,7 +39,6 @@ export default function Login() {
     setPhase('session');
     exchangeCavosSession(bridged)
       .then((w) => {
-        setWallet(w);
         track('sign_in', { method: 'cavos', wallet: w.status });
       })
       .catch((cause) => {
@@ -59,7 +57,7 @@ export default function Login() {
     }
   }, [bridged?.error]);
 
-  if (app.ready && app.userId && wallet?.status !== 'other_wallet') return <Redirect href="/inicio" />;
+  if (app.ready && app.userId) return <Redirect href="/inicio" />;
 
   function openCavos() {
     setError(null);
@@ -147,14 +145,6 @@ export default function Login() {
         />
       )}
 
-      {wallet?.status === 'other_wallet' ? (
-        <Banner
-          tone="warn"
-          title="Tu cuenta ya tiene otra billetera"
-          body="Entraste con un método distinto al de la primera vez. Tu marcador está a salvo, pero para firmar resultados entra con el mismo método que usaste antes."
-        />
-      ) : null}
-      {wallet?.status === 'other_wallet' ? <Button label="Seguir al inicio" tone="ghost" onPress={() => setWallet(null)} /> : null}
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
     </Screen>
   );

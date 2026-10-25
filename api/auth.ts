@@ -49,12 +49,20 @@ export default async function handler(req: any, res: any) {
       const code = e instanceof ProofError ? e.code : 'proof_invalid';
       throw new HttpError(401, 'No pudimos comprobar tu billetera. Vuelve a entrar con Cavos.', code);
     }
-    await assertRegisteredWallet(
-      { baseUrl: env.cavosApiUrl(), appId: env.cavosAppId(), network: env.stellarNetwork(), environment: env.cavosEnvironment() },
-      token,
-      user.sub,
-      proof.address,
-    );
+    try {
+      await assertRegisteredWallet(
+        { baseUrl: env.cavosApiUrl(), appId: env.cavosAppId(), network: env.stellarNetwork(), environment: env.cavosEnvironment() },
+        token,
+        user.sub,
+        proof.address,
+      );
+    } catch (e) {
+      // Solo si Cavos no responde (desafío de Cloudflare, caída) y se pidió explícitamente best_effort.
+      // Un desajuste de billetera o un token rechazado nunca se deja pasar.
+      const unreachable = e instanceof HttpError && (e.code === 'registry_error' || e.code === 'registry_unreachable');
+      if (!(unreachable && env.registryCheck() === 'best_effort')) throw e;
+      console.warn('[auth] registro de Cavos no disponible; sigo con la billetera ligada (best_effort)');
+    }
     if (!(await consumeNonce(user.iss, user.sub, proof.nonce))) {
       throw new HttpError(401, 'El código de entrada venció. Vuelve a intentarlo.', 'nonce_invalid');
     }
@@ -62,6 +70,11 @@ export default async function handler(req: any, res: any) {
     const { userId, linkedBy } = await resolveUser(user, { identityUser, userByEmail, createAuthUser, linkIdentity });
     const wallet = await bindWallet(userId, proof.address, env.stellarNetwork());
     if (wallet === 'address_taken') throw new HttpError(409, 'Esa billetera ya está ligada a otra cuenta.', 'address_taken');
+    // La cuenta ya tiene otra billetera: no se acuña sesión. Así un token de Cavos de otra app
+    // (aud compartido) nunca abre una cuenta existente sin su billetera.
+    if (wallet === 'other_wallet') {
+      throw new HttpError(409, 'Tu cuenta usa otra billetera de Cavos. Entra con el mismo método que usaste la primera vez.', 'other_wallet');
+    }
     await touchIdentity(user.iss, user.sub);
     const email = await userEmail(userId);
     if (!email) throw new Error('usuario sin correo');

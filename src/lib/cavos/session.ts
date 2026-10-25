@@ -7,7 +7,7 @@ import { RELOGIN } from './auth-ux';
 import { STELLAR_NETWORK } from './config';
 import { cavosStore, waitForCavos, type CavosBridged } from './store';
 
-export type WalletLink = { status: 'bound' | 'same' | 'other_wallet'; address: string };
+export type WalletLink = { status: 'bound' | 'same'; address: string };
 
 type SessionResponse = {
   session: { access_token: string; refresh_token: string };
