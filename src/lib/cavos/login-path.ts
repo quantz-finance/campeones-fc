@@ -8,3 +8,14 @@ export function loginPath(w: CavosBridged['wallet']): 'sign' | 'approve' | 'toke
   if (w.needsApproval) return w.hasPasskey ? 'approve' : 'token';
   return null;
 }
+
+/** ¿El token de Cavos (JWT) ya venció o vence en menos de `skewS`? Malformado = vencido. Solo lee `exp`, no verifica. */
+export function tokenExpired(token: string, nowS = Math.floor(Date.now() / 1000), skewS = 30): boolean {
+  try {
+    const part = token.split('.')[1] ?? '';
+    const json = JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof json.exp !== 'number' || json.exp - skewS <= nowS;
+  } catch {
+    return true;
+  }
+}

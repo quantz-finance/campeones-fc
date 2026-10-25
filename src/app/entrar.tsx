@@ -5,7 +5,7 @@ import { branding } from '../../config/branding';
 import { track } from '../lib/analytics';
 import { authErrorText } from '../lib/cavos/auth-ux';
 import { cavosConfigured, cavosSupported } from '../lib/cavos/config';
-import { DeviceApprovalNeeded, exchangeCavosSession, loginPath } from '../lib/cavos/session';
+import { DeviceApprovalNeeded, exchangeCavosSession, loginPath, NoDeviceKey } from '../lib/cavos/session';
 import { cavosStore, useCavosState } from '../lib/cavos/store';
 import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
@@ -15,7 +15,7 @@ import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
 
-type Phase = 'idle' | 'opening' | 'session' | 'approve';
+type Phase = 'idle' | 'opening' | 'session' | 'approve' | 'nokey';
 
 export default function Login() {
   const app = useApp();
@@ -39,7 +39,7 @@ export default function Login() {
     if (!bridged.token()) return;
     // Esperar a que el kit sepa si la llave de la billetera está en este navegador.
     const path = loginPath(bridged.wallet);
-    if (path === null || (path === 'approve' && phase === 'approve')) return;
+    if (path === null || (path === 'approve' && phase === 'approve') || phase === 'nokey') return;
     exchanging.current = true;
     setPhase('session');
     exchangeCavosSession(bridged)
@@ -49,6 +49,10 @@ export default function Login() {
       .catch((cause) => {
         if (cause instanceof DeviceApprovalNeeded) {
           setPhase('approve');
+          return;
+        }
+        if (cause instanceof NoDeviceKey) {
+          setPhase('nokey');
           return;
         }
         setError(cause instanceof Error ? authErrorText(cause.message) : 'No se pudo entrar.');
@@ -179,6 +183,15 @@ export default function Login() {
                 body="Tu billetera de Cavos se creó en otro dispositivo. Usa tu passkey para traerla a este."
               />
               <Button label="Confirmar con mi passkey" onPress={approveDevice} />
+              <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
+            </>
+          ) : phase === 'nokey' ? (
+            <>
+              <Banner
+                tone="warn"
+                title="Tu billetera está en otro dispositivo"
+                body="Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta."
+              />
               <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
             </>
           ) : (

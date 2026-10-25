@@ -2,7 +2,7 @@
 // - Lista CERRADA de issuers (CAVOS_JWT_ISSUERS + CAVOS_EXTRA_ISSUER opcional).
 // - aud obligatorio: el appId de Cavos (CAVOS_JWT_AUDIENCE). Sin appId no se acepta ningún token.
 // - Tokens de Google/Apple/enclave: además del appId, solo el aud configurado para ESE issuer (opt-in).
-//   Esos aud son compartidos entre apps de Cavos; /api/auth exige además la billetera registrada (registry.ts).
+//   Esos aud son compartidos entre apps de Cavos; /api/auth exige además la firma de la billetera ligada (loginPolicy.ts).
 // - Sin ventana de gracia: el token solo se usa una vez, al entrar, para acuñar la sesión de Supabase.
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
 import { env } from './env';

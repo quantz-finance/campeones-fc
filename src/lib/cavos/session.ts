@@ -5,18 +5,25 @@ import { ApiError, apiPost } from '../api';
 import { getSupabase } from '../supabase';
 import { RELOGIN } from './auth-ux';
 import { STELLAR_NETWORK } from './config';
-import { loginPath } from './login-path';
+import { loginPath, tokenExpired } from './login-path';
 import { cavosStore, waitForCavos, type CavosBridged } from './store';
 
-export type WalletLink =
-  | { status: 'bound' | 'same' | 'other_wallet'; address: string }
-  /** Entró sin la llave de la billetera en este navegador: no puede firmar resultados aquí. */
-  | { status: 'not_on_device'; address: null };
+export type WalletLink = { status: 'bound' | 'same'; address: string };
 
 /** La billetera existe pero su llave no está en este navegador y hay passkey: falta "Confirma que eres tú". */
 export class DeviceApprovalNeeded extends Error {
   constructor() {
     super('Confirma que eres tú con tu passkey para usar tu billetera en este dispositivo.');
+  }
+}
+
+/**
+ * La llave de la billetera no está en este navegador y no hay passkey para traerla. Sin la firma de la billetera
+ * el servidor no abre sesión (el token de Cavos solo no basta: su aud es compartido entre apps de Cavos).
+ */
+export class NoDeviceKey extends Error {
+  constructor() {
+    super('Este navegador no tiene tu billetera de Cavos. Entra desde el dispositivo donde creaste tu cuenta.');
   }
 }
 
@@ -34,18 +41,15 @@ async function finish(r: SessionResponse): Promise<WalletLink> {
   return r.wallet;
 }
 
-/** Entrada solo con el token: el servidor la acepta con guardas (ver api/_lib/loginPolicy.ts). */
-async function tokenOnly(token: string): Promise<WalletLink> {
-  return finish(await apiPost<SessionResponse>('/api/auth', token, { step: 'session', tokenOnly: true }));
-}
-
 /** Cambia el login de Cavos (token ~1 h) por una sesión de Supabase que se renueva sola. */
 export async function exchangeCavosSession(b: CavosBridged): Promise<WalletLink> {
   const token = b.token();
   if (!token || !b.address) throw new ApiError(RELOGIN, 401, 'auth_missing');
+  // El kit guarda el token en sessionStorage y no lo renueva (~1 h): uno vencido nunca pasa en el servidor.
+  if (tokenExpired(token)) throw new ApiError(RELOGIN, 401, 'session_expired');
   const path = loginPath(b.wallet);
   if (path === 'approve') throw new DeviceApprovalNeeded();
-  if (path === 'token') return tokenOnly(token);
+  if (path === 'token') throw new NoDeviceKey();
   const { nonce, message } = await apiPost<{ nonce: string; message: string }>('/api/auth', token, { step: 'nonce' });
   let sig;
   try {
@@ -54,7 +58,7 @@ export async function exchangeCavosSession(b: CavosBridged): Promise<WalletLink>
     // La llave no está en este navegador aunque el estado dijera otra cosa.
     if ((e as any)?.code === 'not_signer') {
       if (b.wallet.hasPasskey) throw new DeviceApprovalNeeded();
-      return tokenOnly(token);
+      throw new NoDeviceKey();
     }
     throw e;
   }

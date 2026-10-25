@@ -16,6 +16,10 @@ describe('parche del modal de @cavos/kit', () => {
       expect(src).toContain('if (!globalThis.__cfcKeepDeviceKey) VaultClient.attach(');
       expect(src).toMatch(/PRF is unsupported|prf\|not supported/);
       expect(src).toContain('globalThis.__cfcPasskeySkip = true; finishSecureStep(); return;');
+      expect(src).toContain('if (__b === "skip") return; if (__b) throw new Error(__b); try { await auth.sendOtp(email); }');
+      expect(src.split('globalThis.__cfcOtpGuard.countdown(email)').length).toBe(3);
+      expect(src).not.toContain('setResendCountdown(60);');
+      expect(src).toContain('revisa tu carpeta de Spam');
     }
   });
 

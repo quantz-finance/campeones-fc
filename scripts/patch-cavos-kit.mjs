@@ -8,11 +8,14 @@
 //  3) Copy del flujo por correo y de los botones en español (tuteo). Opcional: si un texto cambió, solo se avisa.
 //  4) logout() ya no borra la llave del dispositivo (ver REQUIRED 'conservar-llave').
 //  5) Sin PRF, la passkey de respaldo se salta en vez de trabar el login (REQUIRED 'passkey-sin-prf').
-// Falla fuerte si 1), 2), 4) o 5) ya no calzan (el kit cambió): hay que revisar el parche antes de subir de versión.
+//  6) Pausa entre códigos por correo que sobrevive a cerrar el modal o recargar (globalThis.__cfcOtpGuard, ver
+//     src/lib/cavos/auth-ux.ts): si hay un código vigente no se pide otro, y el contador arranca con lo que falta.
+//  7) «Revisa tu carpeta de Spam» en la pantalla del código.
+// Falla fuerte si 1), 2), 4), 5), 6) o 7) ya no calzan (el kit cambió): hay que revisar el parche antes de subir de versión.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-export const PATCH_MARK = '/* campeones-patch:cavos-kit 0.4.4 v3 */';
+export const PATCH_MARK = '/* campeones-patch:cavos-kit 0.4.4 v4 */';
 
 export const REQUIRED = [
   {
@@ -48,6 +51,29 @@ export const REQUIRED = [
     re: /(\} catch \(e\) \{\n\s*)setPkError\(e instanceof Error \? e\.message : "We couldn't set up your passkey\. Try again\."\);/g,
     to: (_m, head) =>
       `${head}const __m = e instanceof Error ? e.message : ""; if (/prf|not supported|unsupported|NotSupportedError/i.test(__m)) { globalThis.__cfcPasskeySkip = true; finishSecureStep(); return; } setPkError(globalThis.__cfcAuthError ? globalThis.__cfcAuthError(__m || "passkey") : (__m || "We couldn't set up your passkey. Try again."));`,
+  },
+  {
+    // 6a) Antes de pedir el código: respetar la pausa guardada; después: registrar envío o 429.
+    name: 'otp-pausa',
+    done: (s) => s.includes('__cfcOtpGuard; const __b'),
+    re: /await auth\.sendOtp\(email\);/g,
+    to: () =>
+      `const __g = globalThis.__cfcOtpGuard; const __b = __g ? __g.before(email) : null; if (__b === "skip") return; if (__b) throw new Error(__b); try { await auth.sendOtp(email); } catch (__e) { if (__g) __g.failed(email, __e); throw __e; } if (__g) __g.sent(email);`,
+  },
+  {
+    // 6b) El contador «Reenviar en N s» arranca con lo que falta de la pausa (no siempre 60).
+    name: 'otp-contador',
+    count: 2,
+    done: (s) => s.includes('__cfcOtpGuard.countdown'),
+    re: /setResendCountdown\(60\);/g,
+    to: () => 'setResendCountdown(globalThis.__cfcOtpGuard ? globalThis.__cfcOtpGuard.countdown(email) : 60);',
+  },
+  {
+    // 7) Los códigos de Cavos suelen caer en Spam.
+    name: 'otp-spam',
+    done: (s) => s.includes('__cfcSpamHint'),
+    re: /(children: email \}\),\n\s*)"\."/g,
+    to: (_m, head) => `${head}".", /* __cfcSpamHint */ " Si no llega en un minuto, revisa tu carpeta de Spam o Correo no deseado."`,
   },
 ];
 
@@ -87,7 +113,8 @@ export function patchKitSource(src) {
     if (r.done && r.done(out)) continue;
     r.re.lastIndex = 0;
     const hits = out.match(r.re)?.length ?? 0;
-    if (hits !== 1) throw new Error(`patch-cavos-kit: "${r.name}" calzó ${hits} veces (esperaba 1). ¿Cambió @cavos/kit?`);
+    const want = r.count ?? 1;
+    if (hits !== want) throw new Error(`patch-cavos-kit: "${r.name}" calzó ${hits} veces (esperaba ${want}). ¿Cambió @cavos/kit?`);
     r.re.lastIndex = 0;
     out = out.replace(r.re, r.to);
     applied.push(r.name);

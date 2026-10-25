@@ -3,7 +3,7 @@ import '../polyfills';
 import { CavosProvider, useCavos } from '@cavos/kit/react';
 import { useEffect, useRef } from 'react';
 import { colors } from '../../ui/theme';
-import { authErrorText, otpFill } from './auth-ux';
+import { authErrorText, otpFill, otpGuard } from './auth-ux';
 import { APP_SALT, CAVOS_APP_ID, CAVOS_ENVIRONMENT, CAVOS_RP_ID, CAVOS_SOCIAL_RECOVERY, STELLAR_NETWORK } from './config';
 import { cavosStore, type CavosBridged } from './store';
 
@@ -13,6 +13,12 @@ if (typeof window !== 'undefined') {
   (globalThis as any).__cfcOtpFill = otpFill;
   // Salir de Cavos no borra la llave de la billetera de este navegador (si no, la billetera queda huérfana).
   (globalThis as any).__cfcKeepDeviceKey = true;
+  // Pausa persistente entre códigos por correo (evita los 429 de Cavos al cerrar y reabrir el modal).
+  try {
+    (globalThis as any).__cfcOtpGuard = otpGuard(window.localStorage);
+  } catch {
+    /* sin localStorage: queda solo el contador del modal */
+  }
 }
 
 const TOKEN_KEY = `cavos-kit:token:${CAVOS_APP_ID}`;

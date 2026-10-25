@@ -56,18 +56,6 @@ export const env = {
   appleAudiences: () => list(process.env.CAVOS_APPLE_AUDIENCE || CAVOS_APPLE_CLIENT),
   /** appId público de Cavos (el mismo del cliente). */
   cavosAppId: () => (process.env.CAVOS_APP_ID ?? process.env.EXPO_PUBLIC_CAVOS_APP_ID ?? '').trim(),
-  /** Hosts del registro de billeteras, en orden (el vault usa vault.cavos.xyz). */
-  cavosApiUrl: () => process.env.CAVOS_REGISTRY_URLS ?? 'https://vault.cavos.xyz,https://cavos.xyz',
-  cavosEnvironment: (): 'development' | 'production' => (process.env.CAVOS_ENVIRONMENT === 'development' ? 'development' : 'production'),
-  /** required (por defecto): sin respuesta del registro de Cavos no hay sesión. best_effort: solo si Cavos no responde. */
-  registryCheck: (): 'required' | 'best_effort' => (process.env.CAVOS_REGISTRY_CHECK === 'best_effort' ? 'best_effort' : 'required'),
-  /**
-   * Entrada solo con el token de Cavos cuando ESTE dispositivo no tiene la llave de la billetera (otro navegador,
-   * billetera sin passkey). Apagado por defecto: con el aud compartido de Cavos y el registro inaccesible, otra app
-   * de Cavos podría reusar un token. Con "allow" se acepta con guardas (token fresco, de un solo uso, sin ligar por
-   * correo, sin ligar billetera). Ver api/_lib/loginPolicy.ts.
-   */
-  tokenOnlyLogin: (): boolean => process.env.CAVOS_TOKEN_ONLY_LOGIN === 'allow',
   cronSecret: () => process.env.CRON_SECRET ?? '',
   /** Horas que se espera la firma de los dos jugadores antes de anclar con las que haya. */
   attestWaitHours(): number {
