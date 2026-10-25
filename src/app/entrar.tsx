@@ -35,6 +35,8 @@ export default function Login() {
   useEffect(() => {
     if (!configured || app.userId || !bridged || bridged.isLoading) return;
     if (!bridged.isAuthenticated || !bridged.address || exchanging.current || error || signedOut) return;
+    // Estado del kit a medio cambiar (p. ej. justo después de salir): sin token todavía no hay nada que cambiar.
+    if (!bridged.token()) return;
     // Esperar a que el kit sepa si la llave de la billetera está en este navegador.
     const path = loginPath(bridged.wallet);
     if (path === null || (path === 'approve' && phase === 'approve')) return;
