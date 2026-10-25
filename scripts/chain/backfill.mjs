@@ -16,11 +16,16 @@ if (!secret) {
   process.exit(2);
 }
 
+// Un 5xx (p. ej. 504 si un lote tarda de más) no es fatal: lo que quedó a medias se retoma solo.
 async function call(path) {
-  const r = await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${secret}` } });
-  const body = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(`${path}: HTTP ${r.status} ${body.code ?? ''}`);
-  return body;
+  for (let fails = 0; ; fails++) {
+    const r = await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${secret}` } }).catch((e) => ({ ok: false, status: 0, json: async () => ({ code: String(e) }) }));
+    const body = await r.json().catch(() => ({}));
+    if (r.ok) return body;
+    if ((r.status !== 0 && r.status < 500) || fails >= 5) throw new Error(`${path}: HTTP ${r.status} ${body.code ?? ''}`);
+    console.log(`  ${path}: HTTP ${r.status}, reintento en ${15 * (fails + 1)} s`);
+    await new Promise((s) => setTimeout(s, 15_000 * (fails + 1)));
+  }
 }
 
 const tally = (results) =>

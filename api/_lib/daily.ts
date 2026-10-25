@@ -152,7 +152,7 @@ export async function anchorDay(deps: { store: DailyStore; chain: Chain; now?: (
 /** Cron nocturno: arma lo que falte y ancla en orden, cortando por tiempo. */
 export async function runDaily(
   deps: { store: DailyStore; chain: Chain; network: ChainNetwork; now?: () => Date },
-  budgetMs = 40_000,
+  budgetMs = 30_000,
 ) {
   const started = Date.now();
   const built = await buildMissingDays(deps);

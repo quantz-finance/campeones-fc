@@ -190,7 +190,7 @@ export async function anchorMatch(
 
 /** Barrido del cron: procesa la cola en serie (una sola cuenta platform -> sin choques de secuencia). */
 // Cada envío espera a que cierre un ledger (~5 s), así que se corta por tiempo para no pasar el maxDuration.
-export async function sweep(deps: Parameters<typeof anchorMatch>[0], limit = 20, budgetMs = 40_000) {
+export async function sweep(deps: Parameters<typeof anchorMatch>[0], limit = 20, budgetMs = 30_000) {
   const now = deps.now ?? (() => new Date());
   const started = Date.now();
   const ids = await deps.store.queue(limit, new Date(now().getTime() - CLAIM_STALE_S * 1000));
