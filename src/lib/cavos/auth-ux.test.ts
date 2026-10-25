@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { authErrorText, EMAIL_UNSUPPORTED, GENERIC, OTP_INVALID, otpFill, RELOGIN } from './auth-ux';
+import { authErrorText, EMAIL_UNSUPPORTED, GENERIC, OTP_INVALID, otpFill, PASSKEY, RELOGIN } from './auth-ux';
 
 describe('textos del login Cavos', () => {
   it('nunca muestra errores técnicos crudos', () => {
@@ -15,5 +15,12 @@ describe('textos del login Cavos', () => {
     expect(otpFill('ab', 2, '12cd34e', 9)).toEqual({ code: 'ab12cd34e', focus: 8 });
     expect(otpFill('', 0, 'ab12cd34ezz', 9)?.code).toBe('ab12cd34e');
     expect(otpFill('a', 0, 'ab', 9)).toBeNull();
+  });
+});
+
+describe('passkey sin PRF', () => {
+  it('el error crudo del kit nunca llega tal cual', () => {
+    expect(authErrorText('kit/passkey-prf: this authenticator did not return a PRF result — PRF is unsupported here')).toBe(PASSKEY);
+    expect(authErrorText('NotAllowedError: The operation either timed out or was not allowed.')).toBe(PASSKEY);
   });
 });

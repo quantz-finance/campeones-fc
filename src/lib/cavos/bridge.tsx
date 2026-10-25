@@ -4,7 +4,7 @@ import { CavosProvider, useCavos } from '@cavos/kit/react';
 import { useEffect, useRef } from 'react';
 import { colors } from '../../ui/theme';
 import { authErrorText, otpFill } from './auth-ux';
-import { APP_SALT, CAVOS_APP_ID, CAVOS_ENVIRONMENT, CAVOS_RP_ID, CAVOS_SECURE_STEP, CAVOS_SOCIAL_RECOVERY, STELLAR_NETWORK } from './config';
+import { APP_SALT, CAVOS_APP_ID, CAVOS_ENVIRONMENT, CAVOS_RP_ID, CAVOS_SOCIAL_RECOVERY, STELLAR_NETWORK } from './config';
 import { cavosStore, type CavosBridged } from './store';
 
 // Modal del kit (parche en scripts/patch-cavos-kit.mjs): errores en español y autofill del código.
@@ -113,7 +113,7 @@ export default function CavosBridge() {
         persistSession: true,
         socialRecovery: CAVOS_SOCIAL_RECOVERY,
       }}
-      modal={{ appName: 'Campeones FC', providers: ['google', 'apple', 'email'], primaryColor: colors.red, theme: 'dark', secureStep: CAVOS_SECURE_STEP }}
+      modal={{ appName: 'Campeones FC', providers: ['google', 'apple', 'email'], primaryColor: colors.red, theme: 'dark', secureStep: 'optional' }}
     >
       <Bridge />
     </CavosProvider>
