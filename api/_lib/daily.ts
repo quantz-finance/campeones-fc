@@ -66,9 +66,9 @@ export async function buildMissingDays(
     day = nextDay(last.day);
     prev = last.record_hash;
   } else {
-    const first = await store.firstConfirmedAt();
-    if (!first) return [];
-    day = dayOf(first);
+    // Sin historial: la cadena arranca ayer (no se crean registros de días pasados).
+    const nowMs = (deps.now ?? (() => new Date()))().getTime();
+    day = dayOf(new Date(nowMs - 86_400_000).toISOString());
     prev = null;
   }
   const built: string[] = [];

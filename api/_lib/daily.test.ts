@@ -88,10 +88,17 @@ describe('acta diaria', () => {
     m(3, '2026-10-25T07:00:00.000Z'), // 25 oct 01:00 CR
   ];
   const now = () => new Date('2026-10-25T08:00:00.000Z'); // 25 oct 02:00 CR
+  const now24 = () => new Date('2026-10-24T08:00:00.000Z'); // 24 oct 02:00 CR
+
+  it('sin historial arranca ayer: no crea actas de días pasados', async () => {
+    const { store } = memory(matches);
+    expect(await buildMissingDays({ store, network: 'testnet', now })).toEqual(['2026-10-24']);
+  });
 
   it('arma los días cerrados en orden, encadenados, y no el día en curso', async () => {
     const { store, rows } = memory(matches);
-    expect(await buildMissingDays({ store, network: 'testnet', now })).toEqual(['2026-10-23', '2026-10-24']);
+    expect(await buildMissingDays({ store, network: 'testnet', now: now24 })).toEqual(['2026-10-23']);
+    expect(await buildMissingDays({ store, network: 'testnet', now })).toEqual(['2026-10-24']);
     expect(rows[0].match_ids).toEqual([uid(1), uid(2)]);
     const digests = [matches[1], matches[0]].map((x) => resultDigest(toResult({ ...x, status: 'confirmed' } as MatchRow)));
     expect(rows[0].root).toBe(merkleRoot(digests));
@@ -105,8 +112,10 @@ describe('acta diaria', () => {
   it('ancla cada acta una vez con memo hash y manageData cfc:day', async () => {
     const { store, rows } = memory(matches);
     const chain = fakeChain();
+    const first = await runDaily({ store, chain, network: 'testnet', now: now24 });
+    expect(first.results).toEqual({ '2026-10-23': 'anchored' });
     const out = await runDaily({ store, chain, network: 'testnet', now });
-    expect(out.results).toEqual({ '2026-10-23': 'anchored', '2026-10-24': 'anchored' });
+    expect(out.results).toEqual({ '2026-10-24': 'anchored' });
     expect(chain.submitted).toHaveLength(2);
     const tx = chain.submitted[0];
     expect(Buffer.from(tx.memo.value as Buffer).toString('hex')).toBe(rows[0].record_hash);
