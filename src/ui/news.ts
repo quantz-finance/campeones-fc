@@ -3,7 +3,7 @@ import type { Streak } from '../domain/stats';
 import { firstName } from './format';
 
 /**
- * Titulares de la cinta de noticias del inicio. El comentarista narra: nada de
+ * Titulares de la cinta de noticias del inicio. La cinta narra: nada de
  * testimonios, apuestas, dinero ni marcas ajenas. La única etiqueta permitida en
  * la cinta es "EN VIVO" (la pone el componente, no estas líneas).
  */

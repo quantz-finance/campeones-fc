@@ -3,7 +3,6 @@ import {
   AccessibilityInfo,
   Animated,
   Easing,
-  Image,
   Platform,
   StyleSheet,
   View,
@@ -13,18 +12,10 @@ import { Toro } from './broadcast';
 import { colors } from './theme';
 import { T } from './text';
 
-const anchor = require('../../assets/banners/comentarista-recorte.webp');
-
-/** Alto de la cinta (sin contar al comentarista, que sobresale hacia arriba). */
+/** Alto de la cinta de noticias. */
 export const TICKER_BAR = 27;
-/** Alto y ancho del recorte del comentarista (figura sin fondo, 157x144 a 2x). */
-export const TICKER_ANCHOR = 70;
-const ANCHOR_W = Math.round((TICKER_ANCHOR * 157) / 144);
-const ANCHOR_BOTTOM = 2;
-/** Cuánto sube el comentarista por encima de la cinta. */
-export const TICKER_RISE = TICKER_ANCHOR + ANCHOR_BOTTOM - TICKER_BAR;
-/** Espacio total que ocupa la cinta con el comentarista. */
-export const TICKER_SPACE = TICKER_BAR + TICKER_RISE;
+/** Espacio total que ocupa la cinta. */
+export const TICKER_SPACE = TICKER_BAR;
 
 const SPEED = 40; // px por segundo, ritmo de cinta de tele
 const ROTATE_MS = 6000;
@@ -63,8 +54,7 @@ function Items({ items }: { items: string[] }) {
 }
 
 /**
- * Cinta de noticias tipo tele, fija abajo del inicio: el comentarista sentado de
- * frente (recorte sin fondo) sobre la cinta y los titulares corriendo de derecha a izquierda.
+ * Cinta de noticias tipo tele, fija abajo del inicio: los titulares corriendo de derecha a izquierda.
  */
 export function NewsTicker({ items }: { items: string[] }) {
   const reduce = useReduceMotion();
@@ -136,16 +126,6 @@ export function NewsTicker({ items }: { items: string[] }) {
           )}
         </View>
       </View>
-      <View style={styles.anchor} pointerEvents="none">
-        <Image
-          source={anchor}
-          style={styles.anchorImage}
-          resizeMode="contain"
-          accessible
-          accessibilityRole="image"
-          accessibilityLabel="Comentarista de Campeones FC"
-        />
-      </View>
     </View>
   );
 }
@@ -159,7 +139,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.blue,
     borderTopWidth: 2,
     borderTopColor: colors.red,
-    paddingLeft: ANCHOR_W + 10,
+    paddingLeft: 8,
     overflow: 'hidden',
   },
   chip: {
@@ -181,13 +161,4 @@ const styles = StyleSheet.create({
   itemText: { fontSize: 11, lineHeight: 14, letterSpacing: 0.8, color: colors.text, flexShrink: 0 },
   sep: { marginHorizontal: 9, opacity: 0.95 },
   staticRow: { paddingRight: 8 },
-  anchor: {
-    position: 'absolute',
-    left: 6,
-    bottom: ANCHOR_BOTTOM,
-    width: ANCHOR_W,
-    height: TICKER_ANCHOR,
-    zIndex: 3,
-  },
-  anchorImage: { width: '100%', height: '100%' },
 });
