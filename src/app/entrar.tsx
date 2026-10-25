@@ -19,7 +19,7 @@ type Phase = 'idle' | 'opening' | 'session' | 'approve';
 
 export default function Login() {
   const app = useApp();
-  const { bridged } = useCavosState();
+  const { bridged, signedOut } = useCavosState();
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
   const exchanging = useRef(false);
@@ -34,7 +34,7 @@ export default function Login() {
   // Cavos ya entró (modal o vuelta de OAuth) y todavía no hay sesión: cambiarla por una de Supabase.
   useEffect(() => {
     if (!configured || app.userId || !bridged || bridged.isLoading) return;
-    if (!bridged.isAuthenticated || !bridged.address || exchanging.current || error) return;
+    if (!bridged.isAuthenticated || !bridged.address || exchanging.current || error || signedOut) return;
     // Esperar a que el kit sepa si la llave de la billetera está en este navegador.
     const path = loginPath(bridged.wallet);
     if (path === null || (path === 'approve' && phase === 'approve')) return;
@@ -55,7 +55,7 @@ export default function Login() {
       .finally(() => {
         exchanging.current = false;
       });
-  }, [configured, app.userId, bridged, error, phase]);
+  }, [configured, app.userId, bridged, error, phase, signedOut]);
 
   async function approveDevice() {
     if (!bridged) return;
@@ -87,6 +87,14 @@ export default function Login() {
 
   function openCavos() {
     setError(null);
+    if (signedOut) {
+      // Después de "Cerrar sesión": empezar de cero con el modal (el estado del kit puede estar viejo).
+      cavosStore.setSignedOut(false);
+      if (bridged?.isAuthenticated) {
+        void otherAccount();
+        return;
+      }
+    }
     if (!bridged || bridged.isLoading) {
       setPhase('opening');
       cavosStore.want();

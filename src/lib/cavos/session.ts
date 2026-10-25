@@ -114,6 +114,7 @@ export async function requestAnchor(matchId: string): Promise<AnchorResponse> {
 }
 
 export async function cavosLogout() {
+  cavosStore.setSignedOut(true);
   const b = cavosStore.get().bridged;
   if (b) await b.logout().catch(() => undefined);
 }
