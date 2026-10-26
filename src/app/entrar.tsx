@@ -195,7 +195,10 @@ export default function Login() {
               <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
             </>
           ) : (
-            <Button label={label} disabled={busy} onPress={openCavos} />
+            <>
+              <Button label={label} disabled={busy} onPress={openCavos} />
+              <SpamHint />
+            </>
           )}
           <T color={colors.muted}>
             Entra con Google, Apple o tu correo. Al entrar recibes tu billetera en Stellar y cada resultado que confirmen los dos queda registrado ahí.
@@ -218,7 +221,24 @@ export default function Login() {
   );
 }
 
+/** Los códigos de Cavos suelen caer en Spam (Gmail): avisarlo fuera del modal. */
+function SpamHint() {
+  return (
+    <View style={styles.hint} accessibilityRole="text">
+      <T style={styles.hintText} color={colors.muted}>
+        ¿No te llega el código? Revisa tu carpeta de Spam o Promociones. Llega de{' '}
+        <T style={styles.hintText} variant="medium" color={colors.accent}>
+          no-reply@cavos.xyz
+        </T>
+        .
+      </T>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  hint: { borderLeftWidth: 2, borderLeftColor: colors.accent, paddingLeft: space.sm },
+  hintText: { fontSize: 14, lineHeight: 20 },
   hero: { gap: space.md, paddingTop: space.lg },
   stripe: { flexDirection: 'row', height: 4 },
   bit: { flex: 1 },
