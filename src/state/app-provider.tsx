@@ -212,7 +212,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       async signOut() {
         if (mode === 'supabase') {
           await cavosLogout();
-          await getSupabase().auth.signOut();
+          // Solo este dispositivo: cerrar sesión aquí no saca al usuario de su otro teléfono o de la app instalada.
+          await getSupabase().auth.signOut({ scope: 'local' });
         }
         writeDemoSession(null);
         setUserId(null);

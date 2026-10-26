@@ -4,9 +4,10 @@ import type { Match } from '../../domain/types';
 import { ApiError, apiPost } from '../api';
 import { getSupabase } from '../supabase';
 import { RELOGIN } from './auth-ux';
-import { STELLAR_NETWORK } from './config';
+import { CAVOS_APP_ID, STELLAR_NETWORK } from './config';
 import { loginPath, tokenExpired } from './login-path';
 import { cavosStore, waitForCavos, type CavosBridged } from './store';
+import { clearCavosToken } from './token-persist';
 
 export type WalletLink = { status: 'bound' | 'same'; address: string };
 
@@ -119,6 +120,7 @@ export async function requestAnchor(matchId: string): Promise<AnchorResponse> {
 
 export async function cavosLogout() {
   cavosStore.setSignedOut(true);
+  clearCavosToken(CAVOS_APP_ID);
   const b = cavosStore.get().bridged;
   if (b) await b.logout().catch(() => undefined);
 }

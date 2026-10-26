@@ -36,8 +36,8 @@ export default function MatchScreen() {
   const prefilled = useRef<string | null>(null);
   useEffect(() => {
     const snap = query.data;
-    const report = snap?.opponentReport;
-    if (!snap || snap.youAre === 'other' || !report || snap.yourReport) return;
+    const report = snap?.yourReport ?? snap?.opponentReport;
+    if (!snap || snap.youAre === 'other' || !report) return;
     const key = `${snap.match.id}:${report.updatedAt}`;
     if (prefilled.current === key) return;
     prefilled.current = key;
@@ -52,18 +52,21 @@ export default function MatchScreen() {
     }
   }, [query.data]);
 
+  // Con marcador, el ganador sale de los goles (antes eran dos controles sueltos y el servidor rechazaba
+  // "El marcador no coincide con el ganador" cuando se movían los goles sin tocar el nombre).
+  const shown: Choice = withGoals ? (mine > theirs ? 'me' : mine < theirs ? 'them' : 'draw') : choice;
   const draft = useMemo(() => {
     const snap = query.data;
     if (!snap || snap.youAre === 'other') return null;
     const meId = snap.youAre === 'a' ? snap.match.playerAId : snap.match.playerBId;
     const themId = snap.youAre === 'a' ? snap.match.playerBId : snap.match.playerAId;
-    const isDraw = choice === 'draw';
-    const winnerId = isDraw ? null : choice === 'me' ? meId : themId;
+    const isDraw = shown === 'draw';
+    const winnerId = isDraw ? null : shown === 'me' ? meId : themId;
     if (!withGoals) return { isDraw, winnerId, goalsA: null, goalsB: null } satisfies ReportDraft;
     const goalsA = snap.youAre === 'a' ? mine : theirs;
     const goalsB = snap.youAre === 'a' ? theirs : mine;
     return { isDraw, winnerId, goalsA, goalsB } satisfies ReportDraft;
-  }, [choice, mine, query.data, theirs, withGoals]);
+  }, [shown, mine, query.data, theirs, withGoals]);
 
   function pick(next: Choice) {
     setChoice(next);
@@ -127,14 +130,15 @@ export default function MatchScreen() {
           const rightGoals = snap.youAre === 'b' ? mine : theirs;
           const locked = scoreText(snap.match.goalsA, snap.match.goalsB);
           const scoreLabel = snap.match.status === 'confirmed' && locked ? locked.replace('–', ' : ') : withGoals && voting ? `${leftGoals} : ${rightGoals}` : 'VS';
-          const cta =
-            withGoals && draft && draft.goalsA != null && draft.goalsB != null
-              ? `${snap.yourReport ? 'Actualizar a' : theirReport ? 'Enviar' : 'Registrar'} ${draft.goalsA}-${draft.goalsB}`
-              : snap.yourReport
-                ? 'Actualizar mi voto'
-                : theirReport
-                  ? 'Enviar mi versión'
-                  : 'Registrar resultado';
+          const cta = snap.yourReport ? 'Actualizar mi resultado' : theirReport ? 'Enviar mi versión' : 'Registrar resultado';
+          const tieBlocked = shown === 'draw' && !snap.allowDraw;
+          const summary = draft
+            ? draft.goalsA != null && draft.goalsB != null
+              ? `${firstName(a?.displayName ?? 'Local')} ${draft.goalsA} – ${draft.goalsB} ${firstName(b?.displayName ?? 'Visita')}`
+              : draft.isDraw
+                ? 'Empate'
+                : `Ganó ${firstName(snap.people[draft.winnerId ?? '']?.displayName ?? 'alguien')}`
+            : '';
           return (
             <>
               <Top
@@ -311,9 +315,9 @@ export default function MatchScreen() {
                     </T>
                   </SkewBlock>
                   <View style={styles.choices}>
-                    <ChoiceButton label={firstName(you.displayName)} active={choice === 'me'} onPress={() => pick('me')} />
-                    {snap.allowDraw ? <ChoiceButton label="Empate" active={choice === 'draw'} onPress={() => pick('draw')} /> : null}
-                    <ChoiceButton label={firstName(them.displayName)} active={choice === 'them'} onPress={() => pick('them')} />
+                    <ChoiceButton label={firstName(you.displayName)} active={shown === 'me'} onPress={() => pick('me')} />
+                    {snap.allowDraw ? <ChoiceButton label="Empate" active={shown === 'draw'} onPress={() => pick('draw')} /> : null}
+                    <ChoiceButton label={firstName(them.displayName)} active={shown === 'them'} onPress={() => pick('them')} />
                   </View>
                   <Pressable onPress={() => setWithGoals((value) => !value)}>
                     <T variant="label" color={colors.yellow}>
@@ -351,17 +355,24 @@ export default function MatchScreen() {
                   </View>
                   <T color={colors.muted}>Si coinciden, el marcador queda cerrado y el Elo se mueve.</T>
                   <Pressable
-                    onPress={() => pick(choice === 'them' ? 'me' : 'them')}
+                    onPress={() => pick(shown === 'them' ? 'me' : 'them')}
                    
                   >
                     <T variant="label" color={colors.cyan}>
                       ¿No coincide? Reportar diferencia
                     </T>
                   </Pressable>
+                  {tieBlocked ? (
+                    <T color={colors.danger}>En eliminación no hay empate: ajusta el marcador para que gane uno.</T>
+                  ) : (
+                    <T variant="strong">
+                      {snap.yourReport ? 'Vas a cambiar tu resultado a' : 'Vas a registrar'}: {summary}
+                    </T>
+                  )}
                   <Button
                     label={busy ? 'Enviando…' : cta}
                     pending={busy}
-                    disabled={!draft}
+                    disabled={!draft || tieBlocked}
                     onPress={() =>
                       void run(async () => {
                         if (!draft) return;

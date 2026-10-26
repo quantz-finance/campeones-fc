@@ -6,6 +6,10 @@ import { colors } from '../../ui/theme';
 import { authErrorText, otpFill, otpGuard } from './auth-ux';
 import { APP_SALT, CAVOS_APP_ID, CAVOS_ENVIRONMENT, CAVOS_RP_ID, CAVOS_SOCIAL_RECOVERY, STELLAR_NETWORK } from './config';
 import { cavosStore, type CavosBridged } from './store';
+import { clearCavosToken, currentCavosToken, persistCavosToken, rehydrateCavosToken } from './token-persist';
+
+// ANTES de montar CavosProvider: reponer el token guardado (iOS borra sessionStorage al cerrar la app).
+if (typeof window !== 'undefined') rehydrateCavosToken(CAVOS_APP_ID);
 
 // Modal del kit (parche en scripts/patch-cavos-kit.mjs): errores en español y autofill del código.
 if (typeof window !== 'undefined') {
@@ -21,7 +25,6 @@ if (typeof window !== 'undefined') {
   }
 }
 
-const TOKEN_KEY = `cavos-kit:token:${CAVOS_APP_ID}`;
 
 function b64(u: Uint8Array) {
   let s = '';
@@ -67,6 +70,7 @@ function Bridge() {
         ref.current.openModal();
       },
       logout: async () => {
+        clearCavosToken(CAVOS_APP_ID);
         ref.current.logout();
       },
       signMessage: async (m) => {
@@ -93,13 +97,7 @@ function Bridge() {
           throw err;
         }
       },
-      token: () => {
-        try {
-          return window.sessionStorage.getItem(TOKEN_KEY);
-        } catch {
-          return null;
-        }
-      },
+      token: () => currentCavosToken(CAVOS_APP_ID),
     };
     cavosStore.setBridged(value);
   }, [
@@ -114,6 +112,10 @@ function Bridge() {
     c.walletStatus?.hasPasskey,
     c.walletStatus?.isDeploying,
   ]);
+  // Tras cada login/re-login el kit deja un token nuevo en sessionStorage: guardarlo para la próxima apertura.
+  useEffect(() => {
+    if (c.isAuthenticated) persistCavosToken(CAVOS_APP_ID);
+  }, [c.isAuthenticated, c.address]);
   useEffect(() => () => cavosStore.setBridged(null), []);
   return null;
 }

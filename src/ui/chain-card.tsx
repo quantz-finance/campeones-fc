@@ -71,7 +71,12 @@ export function ChainCard({ match, userId, canSign = true }: { match: Match; use
     try {
       await signResult(match);
     } catch (e) {
-      setError(authErrorText(e instanceof Error ? e.message : String(e)));
+      const raw = e instanceof Error ? e.message : String(e);
+      setError(
+        /no corresponde a tu billetera/i.test(raw)
+          ? 'La billetera abierta en Cavos no es la de esta cuenta. Entra a Cavos con la misma cuenta con la que juegas y vuelve a firmar.'
+          : authErrorText(raw),
+      );
     } finally {
       setBusy(false);
       refresh();
@@ -109,9 +114,14 @@ export function ChainCard({ match, userId, canSign = true }: { match: Match; use
         </T>
       )}
       {canSign && !signed && info.status !== 'anchored' && cavosConfigured() ? (
-        <Button label={busy ? 'Firmando…' : 'Firmar el resultado'} tone="ghost" disabled={busy} onPress={() => void sign()} />
+        <>
+          <T variant="tiny" color={colors.muted} style={styles.plain}>
+            Opcional: el resultado ya cuenta para el ranking. Tu firma solo lo sella en Stellar.
+          </T>
+          <Button label={busy ? 'Firmando…' : 'Firmar el resultado (opcional)'} tone="ghost" disabled={busy} onPress={() => void sign()} />
+        </>
       ) : null}
-      {error ? <Banner tone="danger" title="No se firmó" body={error} /> : null}
+      {error ? <Banner tone="danger" title="No se firmó (el resultado sigue confirmado)" body={error} /> : null}
     </View>
   );
 }
