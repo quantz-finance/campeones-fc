@@ -81,6 +81,7 @@ function Bridge() {
           console.error('[cavos] signMessage', e);
           const raw = e instanceof Error ? e.message : String(e);
           const err = new Error(authErrorText(raw));
+          (err as any).raw = raw;
           if (/not an authorized signer/i.test(raw)) (err as any).code = 'not_signer';
           throw err;
         }
@@ -93,6 +94,7 @@ function Bridge() {
           console.error('[cavos] signXdr', e);
           const raw = e instanceof Error ? e.message : String(e);
           const err = new Error(authErrorText(raw));
+          (err as any).raw = raw;
           if (/not an authorized signer/i.test(raw)) (err as any).code = 'not_signer';
           throw err;
         }
@@ -116,6 +118,15 @@ function Bridge() {
   useEffect(() => {
     if (c.isAuthenticated) persistCavosToken(CAVOS_APP_ID);
   }, [c.isAuthenticated, c.address]);
+  // Al volver a la app: guardar el token más nuevo que tenga el kit (sessionStorage puede borrarse al cerrar).
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const onVis = () => {
+      if (c.isAuthenticated) persistCavosToken(CAVOS_APP_ID);
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [c.isAuthenticated]);
   useEffect(() => () => cavosStore.setBridged(null), []);
   return null;
 }

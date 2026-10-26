@@ -101,15 +101,48 @@ export async function accessToken(): Promise<string> {
   return data.session.access_token;
 }
 
+/** Error de la billetera que se arregla volviendo a entrar a Cavos (token vencido, llave no cargada, sin sesión). */
+export function needsCavosLogin(e: unknown): boolean {
+  const raw = `${(e as any)?.raw ?? ''} ${(e as any)?.message ?? ''}`;
+  return (e as any)?.code === 'not_signer' || /no login token|registry|\b401\b|unauthori[sz]ed|not logged in|not an authorized signer|sesión de cavos/i.test(raw);
+}
+
+const ready = (x: CavosBridged) => !x.isLoading && x.isAuthenticated && !!x.address;
+
+/** Abre el login de Cavos aquí mismo y espera a que la billetera quede lista (sin salir de la pantalla). */
+async function reconnectCavos(b: CavosBridged, force: boolean): Promise<CavosBridged> {
+  if (b.isAuthenticated && b.address && b.wallet.needsApproval && b.wallet.hasPasskey) {
+    await b.approveDevice();
+    return waitForCavos(ready, 60_000);
+  }
+  // Sesión a medias (identidad guardada sin llave usable): salir del kit y volver a entrar con la misma cuenta.
+  // La llave del dispositivo no se borra (__cfcKeepDeviceKey), así que es la misma billetera.
+  if (force || b.isAuthenticated) await b.logout().catch(() => undefined);
+  cavosStore.setSignedOut(false);
+  const fresh = await waitForCavos((x) => !x.isLoading, 15_000).catch(() => b);
+  fresh.openModal();
+  return waitForCavos(ready, 5 * 60_000);
+}
+
+/**
+ * Corre una firma con la billetera de Cavos. Si la sesión de Cavos se perdió (al cerrar la app, token vencido),
+ * abre el login de Cavos en la misma pantalla y, al volver, reintenta la firma sola. Nunca saca de la app.
+ */
+export async function withCavosSigner<T>(fn: (b: CavosBridged) => Promise<T>): Promise<T> {
+  let b = await waitForCavos((x) => !x.isLoading, 45_000);
+  if (!ready(b)) b = await reconnectCavos(b, false);
+  try {
+    return await fn(b);
+  } catch (e) {
+    if (!needsCavosLogin(e)) throw e;
+    return fn(await reconnectCavos(cavosStore.get().bridged ?? b, true));
+  }
+}
+
 /** Firma el resultado confirmado con la billetera Cavos y pide anclarlo. Abre el login de Cavos si hace falta. */
 export async function signResult(m: Match): Promise<AnchorResponse> {
   const token = await accessToken();
-  let b = await waitForCavos((x) => !x.isLoading, 45_000);
-  if (!b.isAuthenticated || !b.address) {
-    b.openModal();
-    b = await waitForCavos((x) => x.isAuthenticated && !!x.address, 5 * 60_000);
-  }
-  const sig = await b.signMessage(attestationMessage(confirmedResult(m), STELLAR_NETWORK));
+  const sig = await withCavosSigner((b) => b.signMessage(attestationMessage(confirmedResult(m), STELLAR_NETWORK)));
   return apiPost<AnchorResponse>('/api/anchor', token, { matchId: m.id, attestation: sig });
 }
 

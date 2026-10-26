@@ -1,6 +1,6 @@
 // Cliente de la apuesta por partido (Trustless Work, SOLO testnet). La UI llama estas funciones; el servidor decide.
 import { apiPost } from '../api';
-import { accessToken } from '../cavos/session';
+import { accessToken, withCavosSigner } from '../cavos/session';
 import { cavosStore, waitForCavos } from '../cavos/store';
 import { explorerTxUrl } from '../../domain/match-proof';
 import { getSupabase } from '../supabase';
@@ -38,13 +38,7 @@ export async function loadStake(matchId: string): Promise<StakeRow | null> {
 
 /** Firma con la billetera Cavos (abre el login si hace falta). Sin XLM: el servidor paga el fee. */
 async function signXdr(x: string) {
-  cavosStore.want();
-  let b = await waitForCavos((s) => !s.isLoading, 45_000);
-  if (!b.isAuthenticated || !b.address) {
-    b.openModal();
-    b = await waitForCavos((s) => s.isAuthenticated && !!s.address, 5 * 60_000);
-  }
-  return b.signXdr(x);
+  return withCavosSigner((b) => b.signXdr(x));
 }
 const call = async <T>(action: string, extra: Record<string, unknown> = {}) => apiPost<T>('/api/stake', await accessToken(), { action, ...extra });
 
