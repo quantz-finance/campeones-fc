@@ -2,7 +2,9 @@ import { hideDemo, joinDemo } from './demo-filter';
 import { trophyCatalog } from '../content/trophies';
 import { DomainError } from '../domain/errors';
 import type { Match, MatchReport, ReportDraft, Slot } from '../domain/types';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabase } from '../lib/supabase';
+import type { Notice } from './notices';
 import {
   projectFriends,
   projectGroup,
@@ -211,19 +213,51 @@ export function createSupabaseRepository(): Repository {
     generation += 1;
     for (const listener of listeners) listener();
   };
-  const channel = supabase
-    .channel('campeones-fc')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, notify)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'match_reports' }, notify)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'friendships' }, notify)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'tournaments' }, notify)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_slots' }, notify)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'achievements' }, notify)
-    .subscribe();
+  // Realtime por usuario: se (re)conecta con la sesión ya puesta, y al reconectar se vuelve a leer todo
+  // (los eventos que pasaron con la pestaña dormida o sin red no llegan solos).
+  let channel: RealtimeChannel | null = null;
+  let channelUser: string | null = null;
+  let retry: ReturnType<typeof setTimeout> | null = null;
+  function connect(userId: string) {
+    if (channel && channelUser === userId) return;
+    if (channel) void supabase.removeChannel(channel);
+    channelUser = userId;
+    let joined = false;
+    const watch = (table: string, filter?: string) =>
+      ({ event: '*', schema: 'public', table, ...(filter ? { filter } : {}) }) as const;
+    const next = supabase
+      .channel(`cfc-${userId}-${Date.now().toString(36)}`)
+      .on('postgres_changes', watch('matches'), notify)
+      .on('postgres_changes', watch('match_reports'), notify)
+      .on('postgres_changes', watch('friendships'), notify)
+      .on('postgres_changes', watch('tournaments'), notify)
+      .on('postgres_changes', watch('tournament_slots'), notify)
+      .on('postgres_changes', watch('achievements'), notify)
+      .on('postgres_changes', watch('notifications', `user_id=eq.${userId}`), notify);
+    channel = next;
+    next.subscribe((status) => {
+      if (channel !== next) return;
+      if (status === 'SUBSCRIBED') {
+        if (joined) notify();
+        joined = true;
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        if (retry) return;
+        retry = setTimeout(() => {
+          retry = null;
+          if (channel !== next || !channelUser) return;
+          channel = null;
+          void supabase.removeChannel(next);
+          connect(channelUser);
+          notify();
+        }, 4000);
+      }
+    });
+  }
 
   // Un solo pull por cambio: inicio, grupos y perfil piden snapshots a la vez y comparten el mismo mundo.
   let cache: { userId: string; gen: number; world: Promise<World> } | null = null;
   async function worldFor(userId: string) {
+    connect(userId);
     if (cache && cache.userId === userId && cache.gen === generation) return cache.world;
     const entry = { userId, gen: generation, world: pullWorld(userId) };
     cache = entry;
@@ -405,11 +439,46 @@ export function createSupabaseRepository(): Repository {
       if (count > 0) notify();
       return count;
     },
+    async notices(me) {
+      connect(me);
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('id, kind, actor_id, match_id, created_at, read_at')
+        .eq('user_id', me)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      fail(error);
+      const rows = (data ?? []) as Row[];
+      const actorIds = [...new Set(rows.map((row) => asNullable(row.actor_id)).filter((id): id is string => Boolean(id)))];
+      const names = new Map<string, string>();
+      if (actorIds.length) {
+        const people = await supabase.from('profiles').select('id, display_name').in('id', actorIds);
+        fail(people.error);
+        for (const row of (people.data ?? []) as Row[]) names.set(asString(row.id), asString(row.display_name));
+      }
+      return rows.map(
+        (row): Notice => ({
+          id: asString(row.id),
+          kind: asString(row.kind) as Notice['kind'],
+          actorId: asNullable(row.actor_id),
+          actorName: names.get(asString(row.actor_id)) ?? 'Tu rival',
+          matchId: asNullable(row.match_id),
+          createdAt: asString(row.created_at),
+          readAt: asNullable(row.read_at),
+        }),
+      );
+    },
+    async markNoticesRead(_me, ids) {
+      const { error } = await supabase.rpc('mark_notifications_read', { ids: ids?.length ? ids : null });
+      fail(error);
+    },
+    invalidate() {
+      notify();
+    },
     subscribe(listener) {
       listeners.add(listener);
       return () => {
         listeners.delete(listener);
-        if (listeners.size === 0) void supabase.removeChannel(channel);
       };
     },
   };

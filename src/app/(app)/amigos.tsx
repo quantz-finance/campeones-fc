@@ -42,7 +42,7 @@ export default function Friends() {
         {(data) => (
           <>
             <SectionHead title="Invita con un enlace" />
-            <T color={colors.muted}>Sirve para WhatsApp o donde se hablen. Quien lo abra queda como tu amigo.</T>
+            <T color={colors.muted}>Sirve para WhatsApp o donde se hablen. Quien lo abra queda como tu amigo, y te avisamos aquí apenas entre.</T>
             <Button
               label="Copiar enlace"
               tone="ghost"

@@ -1,4 +1,5 @@
 import type { Profile } from './types';
+import type { Notice } from './notices';
 import type { PhotoKind, PhotoPayload } from '../lib/photos';
 import type { ReportDraft } from '../domain/types';
 import type { Match } from '../domain/types';
@@ -56,5 +57,11 @@ export type Repository = {
   reopenSlot(slotId: string, me: string): Promise<Match>;
   trophies(me: string): Promise<TrophyView[]>;
   expireStale(): Promise<number>;
+  /** Últimos avisos del usuario (amistad, retos, resultados). */
+  notices(me: string): Promise<Notice[]>;
+  /** Marca como leídos (todos si no hay ids). */
+  markNoticesRead(me: string, ids?: string[]): Promise<void>;
+  /** Descarta la caché y avisa a las pantallas (al volver a la app, o como respaldo de Realtime). */
+  invalidate(): void;
   subscribe(listener: () => void): () => void;
 };

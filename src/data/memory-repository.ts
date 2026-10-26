@@ -185,6 +185,13 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
       if (count > 0) notify();
       return count;
     },
+    async notices() {
+      return [];
+    },
+    async markNoticesRead() {},
+    invalidate() {
+      notify();
+    },
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

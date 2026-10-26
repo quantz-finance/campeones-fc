@@ -16,7 +16,7 @@ import { Pop, Rise } from '../../../ui/motion';
 import { HomeSkeleton } from '../../../ui/skeleton';
 
 export default function Home() {
-  const { repo, userId, version, mode, profile } = useApp();
+  const { repo, userId, version, mode, profile, unread } = useApp();
   const modeNow = appModeOf(profile, mode !== 'supabase');
   const query = useQuery(() => repo.homeSnapshot(userId!), [repo, userId, version]);
   const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
@@ -70,20 +70,18 @@ export default function Home() {
                   </View>
                 </View>
                 <Pressable
-                 
-                  accessibilityLabel="Pendientes"
-                  onPress={() => {
-                    const next = home.actionMatches[0];
-                    if (next) router.push(`/partido/${next.id}`);
-                  }}
+                  accessibilityLabel={`Avisos${unread + home.actionMatches.length ? `, ${unread + home.actionMatches.length} pendientes` : ''}`}
+                  onPress={() => router.push('/avisos')}
                   style={styles.bell}
                 >
-                  <Ionicons name="notifications-outline" size={20} color="#fff" />
-                  {home.actionMatches.length > 0 ? (
+                  <Ionicons name={unread ? 'notifications' : 'notifications-outline'} size={20} color="#fff" />
+                  {unread + home.actionMatches.length > 0 ? (
                     <View style={styles.badge}>
-                      <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
-                        {home.actionMatches.length}
-                      </T>
+                      <Pop value={unread + home.actionMatches.length}>
+                        <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
+                          {Math.min(unread + home.actionMatches.length, 99)}
+                        </T>
+                      </Pop>
                     </View>
                   ) : null}
                 </Pressable>

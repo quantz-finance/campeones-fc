@@ -232,6 +232,16 @@ export default function MatchScreen() {
                   />
                 </View>
               ) : null}
+              {snap.match.status === 'in_progress' && !snap.yourReport && snap.opponentReport && snap.youAre !== 'other' ? (
+                <Banner
+                  tone="accent"
+                  title="Te toca confirmar"
+                  body={`${firstName(them?.displayName ?? 'Tu rival')} ya registró el resultado. Si estás de acuerdo, elige lo mismo.`}
+                />
+              ) : null}
+              {snap.match.status === 'in_progress' && !snap.yourReport && !snap.opponentReport && snap.youAre !== 'other' ? (
+                <Banner tone="accent" title="Partido en juego" body="Al terminar, cualquiera registra el resultado y el otro lo confirma." />
+              ) : null}
               {voting && you && them ? (
                 <View style={styles.block}>
                   <SkewBlock color="#fff" padH={10} padV={4}>
@@ -304,7 +314,10 @@ export default function MatchScreen() {
                 </View>
               ) : null}
               {snap.match.status === 'in_progress' && snap.yourReport && !snap.opponentReport ? (
-                <Banner title="Falta el voto de tu rival" body="El resultado no cuenta hasta que los dos digan lo mismo." />
+                <Banner
+                  title={`Esperando que ${firstName(them?.displayName ?? 'tu rival')} confirme`}
+                  body="Ya registraste tu resultado. Te avisamos cuando lo confirme; no cuenta hasta que los dos digan lo mismo."
+                />
               ) : null}
               {snap.canReopen && snap.slotId ? (
                 <Button

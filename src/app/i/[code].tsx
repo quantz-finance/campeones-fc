@@ -26,7 +26,7 @@ export default function InviteScreen() {
       .redeemInvite(userId, value)
       .then((result) => {
         if (!active) return;
-        setMessage(result === 'already' ? 'Ya eran amigos. El pique sigue abierto.' : 'Listo. Ya son amigos.');
+        setMessage(result === 'already' ? 'Ya eran amigos. El pique sigue abierto.' : 'Listo. Ya son amigos, y ya le avisamos que entraste.');
       })
       .catch((cause: unknown) => {
         if (!active) return;
