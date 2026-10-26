@@ -44,8 +44,10 @@ export default function Notices() {
                       : `Esperando que ${name} acepte`
                     : match.status === 'disputed'
                       ? `En disputa con ${name} · revisa tu voto`
-                      : yours
-                        ? `Te toca registrar o confirmar el resultado con ${name}`
+                      : snap.toConfirm.includes(match.id)
+                        ? `${name} registró el resultado · te toca confirmar`
+                        : yours
+                        ? `En juego con ${name} · registra el resultado al terminar`
                         : `Esperando que ${name} confirme el resultado`;
                 return (
                   <Rise key={match.id} index={index}>

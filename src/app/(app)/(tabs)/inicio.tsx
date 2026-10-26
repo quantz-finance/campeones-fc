@@ -194,9 +194,11 @@ export default function Home() {
                         : `Esperando a ${firstName(other?.displayName ?? 'tu rival')} · lo propusiste ${formatWhen(match.createdAt)}`
                       : match.status === 'disputed'
                         ? 'En disputa · nadie suma hasta que coincidan'
-                        : needs
-                          ? `Te toca votar · ${formatWhen(match.createdAt)}`
-                          : `Falta ${firstName(other?.displayName ?? 'tu rival')} · ${formatWhen(match.createdAt)}`;
+                        : home.toConfirm.includes(match.id)
+                          ? `Te toca confirmar · ${firstName(other?.displayName ?? 'tu rival')} ya registró el resultado`
+                          : needs
+                            ? `En juego · registra el resultado al terminar · ${formatWhen(match.createdAt)}`
+                            : `Esperando que ${firstName(other?.displayName ?? 'tu rival')} confirme · ${formatWhen(match.createdAt)}`;
                   return (
                     <Rise key={match.id} index={index + 1}>
                     <ScoreBar
@@ -205,7 +207,7 @@ export default function Home() {
                       leftPhoto={me?.photoUrl}
                       rightPhoto={other?.photoUrl}
                       score={shown ?? 'VS'}
-                      action={needs ? 'Confirmar' : 'Esperando'}
+                      action={match.status === 'pending_accept' ? (needs ? 'Aceptar' : 'Esperando') : home.toConfirm.includes(match.id) ? 'Confirmar' : needs ? 'Registrar' : 'Esperando'}
                       actionTone={needs ? 'yellow' : 'ghost'}
                       onPress={() => router.push(`/partido/${match.id}`)}
                       note={note}

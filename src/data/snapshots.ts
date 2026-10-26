@@ -10,6 +10,8 @@ export type HomeSnapshot = {
   record: SideRecord;
   actionMatches: Match[];
   waitingMatches: Match[];
+  /** Partidos donde el rival ya registró el resultado y te toca confirmar. */
+  toConfirm: string[];
   recent: Match[];
   trophies: Achievement[];
   people: People;

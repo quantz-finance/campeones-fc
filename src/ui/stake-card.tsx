@@ -5,13 +5,14 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { Match } from '../domain/types';
 import { authErrorText } from '../lib/cavos/auth-ux';
 import {
-  acceptStake, declineStake, depositStake, loadStake, netPot, payoutUrl, settleStake, units, type StakeRow, type StakeStatus,
+  acceptStake, declineStake, depositStake, ensureWalletReady, loadStake, netPot, payoutUrl, settleStake, units, type StakeRow, type StakeStatus,
 } from '../lib/payments/stake';
 import { SkewBlock } from './broadcast';
 import { Pill } from './bits';
 import { Banner, Button } from './controls';
 import { firstName } from './format';
 import { colors, space } from './theme';
+import { useApp } from '../state/app-provider';
 import { T } from './text';
 
 const CHIP: Record<StakeStatus, { label: string; tone: 'accent' | 'warn' | 'danger' | 'draw' | 'muted' | 'gold' | 'up' }> = {
@@ -33,11 +34,12 @@ export function StakeCard({ match, userId, youAre, names }: { match: Match; user
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const nudged = useRef(false);
+  const { version } = useApp();
 
   const refresh = useCallback(() => {
     void loadStake(match.id).then(setStake).catch(() => setStake(null));
   }, [match.id]);
-  useEffect(refresh, [refresh, match.status]);
+  useEffect(refresh, [refresh, match.status, version]);
 
   // Mientras algo se mueve on-chain, refrescar cada 5 s.
   useEffect(() => {
@@ -56,6 +58,8 @@ export function StakeCard({ match, userId, youAre, names }: { match: Match; user
   }, [stake, match.status, match.id, youAre, refresh]);
 
   if (!stake) return null;
+  // Propuesta que nadie aceptó y el partido ya cerró: no hubo apuesta, nada que mostrar.
+  if (stake.status === 'proposed' && !['pending_accept', 'in_progress'].includes(match.status)) return null;
   const amount = units(stake.stake_stroops);
   const mine = youAre === 'a' ? stake.funded_a_tx : youAre === 'b' ? stake.funded_b_tx : null;
   const deposits = (stake.funded_a_tx ? 1 : 0) + (stake.funded_b_tx ? 1 : 0);
@@ -92,13 +96,27 @@ export function StakeCard({ match, userId, youAre, names }: { match: Match; user
 
       {stake.status === 'proposed' && youAre !== 'other' && stake.proposed_by !== userId ? (
         <>
-          <T color={colors.text}>Cada uno bloquea {amount} USDC de prueba. El que gane se lleva el pozo ({netPot(amount)} USDC neto).</T>
+          <T color={colors.text}>
+            {firstName(names[stake.proposed_by] ?? 'Tu rival')} propone apostar {amount} USDC de prueba cada uno. El que gane se lleva el pozo ({netPot(amount)} USDC neto).
+          </T>
+          <T variant="tiny" color={colors.muted} style={styles.plain}>
+            Es opcional: puedes jugar el partido sin apostar.
+          </T>
           <Button label={busy === 'accept' ? 'Preparando la custodia…' : 'Aceptar apuesta'} disabled={!!busy} onPress={() => void run('accept', () => acceptStake(match.id))} />
           <Button label="Jugar sin apuesta" tone="ghost" disabled={!!busy} onPress={() => void run('decline', () => declineStake(match.id))} />
         </>
       ) : null}
       {stake.status === 'proposed' && stake.proposed_by === userId ? (
-        <T color={colors.muted}>Esperando que tu rival acepte la apuesta.</T>
+        <>
+          <T color={colors.muted}>Esperando que tu rival acepte la apuesta. El partido se juega igual aunque no la acepte.</T>
+          <Button
+            label={busy === 'wallet' ? 'Preparando tu billetera…' : 'Preparar mi billetera'}
+            tone="ghost"
+            disabled={!!busy}
+            onPress={() => void run('wallet', () => ensureWalletReady())}
+          />
+          <Button label="Quitar la apuesta" tone="ghost" disabled={!!busy} onPress={() => void run('decline', () => declineStake(match.id))} />
+        </>
       ) : null}
       {stake.status === 'deploying' ? <T color={colors.muted}>Creando la custodia en Stellar…</T> : null}
 
@@ -141,7 +159,7 @@ export function StakeCard({ match, userId, youAre, names }: { match: Match; user
       {stake.status === 'failed' ? (
         <T color={colors.muted}>El pago no salió todavía. Lo reintentamos solos; los fondos siguen en custodia.</T>
       ) : null}
-      {error ? <Banner tone="danger" title="No se pudo" body={error} /> : null}
+      {error ? <Banner tone="danger" title="La apuesta no se pudo" body={`${error} El partido sigue: pueden jugarlo sin apuesta.`} /> : null}
     </View>
   );
 }

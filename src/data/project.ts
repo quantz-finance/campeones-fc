@@ -70,6 +70,14 @@ export function projectHome(db: World, userId: string): HomeSnapshot {
     record,
     actionMatches: live.filter((match) => needsYou(db, match, userId)),
     waitingMatches: live.filter((match) => !needsYou(db, match, userId)),
+    toConfirm: live
+      .filter(
+        (match) =>
+          match.status === 'in_progress' &&
+          db.reports.some((report) => report.matchId === match.id && report.reporterId !== userId) &&
+          !db.reports.some((report) => report.matchId === match.id && report.reporterId === userId),
+      )
+      .map((match) => match.id),
     recent: own
       .filter((match) => match.status === 'confirmed')
       .slice()

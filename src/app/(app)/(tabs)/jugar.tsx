@@ -6,10 +6,11 @@ import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { Avatar } from '../../../ui/avatar';
 import { Banner, Button, Gate } from '../../../ui/controls';
+import { humanError } from '../../../ui/errors';
 import { Panel, Screen, Top } from '../../../ui/screen';
 import { colors, radius, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
-import { DEFAULT_STAKE, netPot, proposeStake, STAKE_OPTIONS, stakesEnabled } from '../../../lib/payments/stake';
+import { ensureWalletReady, netPot, proposeStake, STAKE_OPTIONS, stakesEnabled } from '../../../lib/payments/stake';
 
 export default function Play() {
   const { repo, userId, version, mode, profile } = useApp();
@@ -19,7 +20,7 @@ export default function Play() {
   const [groupId, setGroupId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [stake, setStake] = useState<number>(stakesEnabled() ? DEFAULT_STAKE : 0);
+  const [stake, setStake] = useState<number>(0);
   const stakesOn = stakesEnabled() && mode === 'supabase' && profile?.showDemo !== true;
 
   return (
@@ -118,10 +119,16 @@ export default function Play() {
             .then((match) => {
               track('match_created', { grouped: Boolean(groupId) });
               // La apuesta no bloquea el partido: si falla, se juega sin apuesta y se avisa en la pantalla del partido.
-              const proposed = stakesOn && stake > 0 ? proposeStake(match.id, stake).catch(() => undefined) : Promise.resolve();
+              // Apuesta opcional: se propone y, en segundo plano, se prepara tu billetera para que el rival pueda aceptarla.
+              const proposed =
+                stakesOn && stake > 0
+                  ? proposeStake(match.id, stake)
+                      .then(() => void ensureWalletReady().catch(() => undefined))
+                      .catch(() => undefined)
+                  : Promise.resolve();
               return proposed.then(() => router.push(`/partido/${match.id}`));
             })
-            .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'No se pudo crear.'))
+            .catch((cause: unknown) => setError(humanError(cause)))
             .finally(() => setBusy(false));
         }}
       />

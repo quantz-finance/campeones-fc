@@ -233,6 +233,7 @@ export function createSupabaseRepository(): Repository {
       .on('postgres_changes', watch('tournaments'), notify)
       .on('postgres_changes', watch('tournament_slots'), notify)
       .on('postgres_changes', watch('achievements'), notify)
+      .on('postgres_changes', watch('match_stakes'), notify)
       .on('postgres_changes', watch('notifications', `user_id=eq.${userId}`), notify);
     channel = next;
     next.subscribe((status) => {

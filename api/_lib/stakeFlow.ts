@@ -76,7 +76,17 @@ export async function accept(userId: string, matchId: string) {
   if (s.status !== 'proposed') return { status: s.status, contractId: s.contract_id };
   const [A, B] = await Promise.all([wallet(m.player_a_id), wallet(m.player_b_id)]);
   for (const addr of [A, B]) {
-    if ((await walletState(addr)) !== 'ready') throw new HttpError(409, 'Los dos jugadores necesitan activar USDC de prueba en su billetera.', 'trustline_missing', { address: addr });
+    if ((await walletState(addr)) !== 'ready') {
+      const mine = addr === (m.player_a_id === userId ? A : B);
+      throw new HttpError(
+        409,
+        mine
+          ? 'Tu billetera todavía no tiene USDC de prueba activado. Vuelve a tocar «Aceptar apuesta» para activarla, o jueguen sin apuesta.'
+          : 'Tu rival todavía no activó su billetera para apostar. Pídele que abra el partido y toque «Preparar mi billetera», o jueguen sin apuesta.',
+        'trustline_missing',
+        { address: addr, mine },
+      );
+    }
   }
   // El receiver (platform) sin trustline USDC -> TW responde 400 crudo: cortarlo antes con un error claro.
   if ((await walletState(tw.stakeRoles().receiver)) !== 'ready') throw new HttpError(503, 'La cuenta de la plataforma no está lista para USDC.', 'receiver_not_ready');
