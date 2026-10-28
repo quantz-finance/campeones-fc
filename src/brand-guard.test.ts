@@ -63,10 +63,8 @@ describe('marca', () => {
     expect(branding.tagline).toContain('cada partido');
   });
 
-  it('deja las redes como placeholder hasta tener la cuenta real', () => {
-    expect(branding.social.instagram).toContain('REPLACE_WITH_REAL_INSTAGRAM_HANDLE');
-    expect(branding.social.x).toContain('REPLACE_WITH_REAL_X_HANDLE');
-    expect(branding.social.instagram.startsWith('https://')).toBe(true);
-    expect(branding.social.x.startsWith('https://')).toBe(true);
+  it('apunta a las cuentas reales de Instagram y X', () => {
+    expect(branding.social.instagram).toBe('https://instagram.com/campeones.app');
+    expect(branding.social.x).toBe('https://x.com/campeonesapp');
   });
 });
