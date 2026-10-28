@@ -34,6 +34,15 @@ export async function shareInvite(code: string) {
   await Share.share({ message });
 }
 
+/** Abre una URL afuera: pestaña nueva en web, navegador del sistema en el teléfono. */
+export function openExternal(url: string) {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    window.open(url, '_blank', 'noopener,noreferrer');
+    return;
+  }
+  void Linking.openURL(url);
+}
+
 export function openWhatsApp(code: string) {
   const url = `https://wa.me/?text=${encodeURIComponent(inviteMessage(code))}`;
   void Linking.openURL(url);

@@ -1,5 +1,4 @@
-import { router } from 'expo-router';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
@@ -12,8 +11,10 @@ import { Screen } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { AI_PHOTO_NOTE, appModeOf, modeChip } from '../../../lib/app-mode';
-import { Pop, Rise } from '../../../ui/motion';
+import { CountRoll, Pop, Rise } from '../../../ui/motion';
 import { HomeSkeleton } from '../../../ui/skeleton';
+import { push } from '../../../ui/nav';
+import { SportPress } from '../../../ui/press';
 
 export default function Home() {
   const { repo, userId, version, mode, profile, unread } = useApp();
@@ -69,9 +70,9 @@ export default function Home() {
                     </T>
                   </View>
                 </View>
-                <Pressable
+                <SportPress
                   accessibilityLabel={`Avisos${unread + home.actionMatches.length ? `, ${unread + home.actionMatches.length} pendientes` : ''}`}
-                  onPress={() => router.push('/avisos')}
+                  onPress={() => push('/avisos')}
                   style={styles.bell}
                 >
                   <Ionicons name={unread ? 'notifications' : 'notifications-outline'} size={20} color="#fff" />
@@ -84,7 +85,7 @@ export default function Home() {
                       </Pop>
                     </View>
                   ) : null}
-                </Pressable>
+                </SportPress>
               </View>
               {mode === 'demo' ? (
                 <T variant="tiny" color={colors.faint} style={styles.plain}>
@@ -97,7 +98,7 @@ export default function Home() {
                 </T>
               ) : null}
               <Rise index={0}>
-              <Pressable style={styles.hero} onPress={() => router.push('/perfil')}>
+              <SportPress style={styles.hero} onPress={() => push('/perfil')}>
                 <View style={styles.heroLeft}>
                   <View
                     style={[
@@ -111,9 +112,13 @@ export default function Home() {
                     ]}
                     pointerEvents="none"
                   />
-                  <T variant="display" style={styles.bigNum}>
-                    {played}
-                  </T>
+                  <CountRoll value={played} format={(n) => String(Math.round(n))}>
+                    {(shown) => (
+                      <T variant="display" style={styles.bigNum}>
+                        {shown}
+                      </T>
+                    )}
+                  </CountRoll>
                   <T variant="label" color={colors.redInk} style={{ fontSize: 12 }}>
                     Partidos
                   </T>
@@ -136,9 +141,13 @@ export default function Home() {
                     </View>
                     <View style={styles.eloNum}>
                       <Pop value={home.rating}>
-                        <T variant="display" style={{ fontSize: 28, color: colors.ink, fontStyle: 'italic' }}>
-                          {elo(home.rating)}
-                        </T>
+                        <CountRoll value={home.rating} format={(n) => elo(Math.round(n))}>
+                          {(shown) => (
+                            <T variant="display" style={{ fontSize: 28, color: colors.ink, fontStyle: 'italic' }}>
+                              {shown}
+                            </T>
+                          )}
+                        </CountRoll>
                       </Pop>
                     </View>
                   </View>
@@ -170,11 +179,11 @@ export default function Home() {
                     </T>
                   </View>
                 </View>
-              </Pressable>
+              </SportPress>
               </Rise>
               <SectionHead title={`Por confirmar · ${pending.length}`} action="Ver todos" onAction={() => {
                 const next = pending[0];
-                if (next) router.push(`/partido/${next.id}`);
+                if (next) push(`/partido/${next.id}`);
               }} />
               {pending.length === 0 ? (
                 <T color={colors.muted}>No tienes nada pendiente. Cuando alguien te rete, aparece aquí.</T>
@@ -209,7 +218,7 @@ export default function Home() {
                       score={shown ?? 'VS'}
                       action={match.status === 'pending_accept' ? (needs ? 'Aceptar' : 'Esperando') : home.toConfirm.includes(match.id) ? 'Confirmar' : needs ? 'Registrar' : 'Esperando'}
                       actionTone={needs ? 'yellow' : 'ghost'}
-                      onPress={() => router.push(`/partido/${match.id}`)}
+                      onPress={() => push(`/partido/${match.id}`)}
                       note={note}
                     />
                     </Rise>
@@ -218,23 +227,23 @@ export default function Home() {
               )}
               <SectionHead title="Accesos rápidos" />
               <Rise index={4} style={styles.grid}>
-                <QuickTile kicker="Nuevo partido" title="Registrar" color={colors.yellow} ink={colors.ink} icon="add" onPress={() => router.push('/jugar')} />
+                <QuickTile kicker="Nuevo partido" title="Registrar" color={colors.yellow} ink={colors.ink} icon="add" onPress={() => push('/jugar')} />
                 <QuickTile
                   kicker="Cara a cara"
                   title="Versus"
                   color={colors.red}
                   ink={colors.redInk}
                   icon="git-compare"
-                  onPress={() => (rivalId ? router.push(`/versus/${rivalId}`) : router.push('/amigos'))}
+                  onPress={() => (rivalId ? push(`/versus/${rivalId}`) : push('/amigos'))}
                 />
                 <QuickTile
                   kicker={group?.group.name ?? 'Tu grupo'}
                   title="Tabla"
                   color={colors.blue}
                   icon="stats-chart"
-                  onPress={() => (group ? router.push(`/grupo/${group.group.id}`) : router.push('/grupos'))}
+                  onPress={() => (group ? push(`/grupo/${group.group.id}`) : push('/grupos'))}
                 />
-                <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="bracket" onPress={() => router.push('/torneos')} />
+                <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="bracket" onPress={() => push('/torneos')} />
               </Rise>
             </>
           );
@@ -249,7 +258,7 @@ const styles = StyleSheet.create({
   brandLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   modeChip: { paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: colors.yellow, transform: [{ skewX: '-8deg' }] },
   modeChipFake: { backgroundColor: colors.yellow },
-  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 62 },
   bell: {
     width: 42,
     height: 42,

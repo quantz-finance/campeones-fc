@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { track } from '../../../lib/analytics';
@@ -9,6 +8,7 @@ import { Banner, Button, Field, Gate } from '../../../ui/controls';
 import { Panel, Screen, Top } from '../../../ui/screen';
 import { colors, radius, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
+import { replace } from '../../../ui/nav';
 
 export default function NewGroup() {
   const { repo, userId, version } = useApp();
@@ -57,7 +57,7 @@ export default function NewGroup() {
             .createGroup(userId!, name, selected)
             .then((group) => {
               track('group_created');
-              router.replace(`/grupo/${group.id}`);
+              replace(`/grupo/${group.id}`);
             })
             .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'No se pudo crear.'))
             .finally(() => setBusy(false));

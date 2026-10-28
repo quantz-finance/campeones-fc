@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, type Href } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { type Href } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, font } from './theme';
 import { T } from './text';
 import { BrandIcon, tabBarSpace, type BrandIconName } from './broadcast';
+import { navigate } from './nav';
+import { SportPress } from './press';
 
 const items: { name: string; label: string; icon: BrandIconName; plus?: boolean }[] = [
   { name: 'inicio', label: 'Inicio', icon: 'home' },
@@ -36,9 +38,8 @@ function Bar({
         const on = active === item.name;
         if (item.plus) {
           return (
-            <Pressable
+            <SportPress
               key={item.name}
-             
               accessibilityLabel={item.label}
               accessibilityState={{ selected: on }}
               onPress={() => onPress(item.name)}
@@ -51,13 +52,12 @@ function Bar({
               <T variant="label" color="#fff" style={styles.caption}>
                 {item.label}
               </T>
-            </Pressable>
+            </SportPress>
           );
         }
         return (
-          <Pressable
+          <SportPress
             key={item.name}
-           
             accessibilityLabel={item.label}
             accessibilityState={{ selected: on }}
             onPress={() => onPress(item.name)}
@@ -68,7 +68,7 @@ function Bar({
             <T variant="label" color={on ? '#fff' : colors.faint} style={styles.caption}>
               {item.label}
             </T>
-          </Pressable>
+          </SportPress>
         );
       })}
     </View>
@@ -94,7 +94,10 @@ export function TabReplica({ active }: { active: 'inicio' | 'grupos' | 'jugar' |
       height={tabBarSpace(insets.bottom)}
       inset={insets.bottom}
       active={active}
-      onPress={(name) => router.navigate(`/${name}` as Href)}
+      onPress={(name) => {
+        if (name === active) return;
+        navigate(`/${name}` as Href);
+      }}
     />
   );
 }

@@ -1,6 +1,5 @@
 // Aviso flotante (arriba) cuando llega algo nuevo: amigo que entró por tu enlace, reto, resultado por confirmar…
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { noticeCopy } from '../data/notices';
@@ -8,6 +7,7 @@ import { useApp } from '../state/app-provider';
 import { Rise } from './motion';
 import { T } from './text';
 import { colors } from './theme';
+import { push } from './nav';
 
 type Toast = { id: string; noticeId?: string; title: string; body?: string; href?: string; tone?: 'accent' | 'danger'; more: number };
 
@@ -58,7 +58,7 @@ export function NoticeToast() {
           onPress={() => {
             if (toast.noticeId) markNoticesRead([toast.noticeId]);
             setToast(null);
-            if (toast.href) router.push(toast.href as never);
+            if (toast.href) push(toast.href as never);
           }}
         >
           <Ionicons name={danger ? 'alert-circle' : 'notifications'} size={20} color={danger ? colors.danger : colors.accent} />

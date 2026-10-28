@@ -6,6 +6,7 @@ import { Banner, Button } from '../../ui/controls';
 import { Screen, Top } from '../../ui/screen';
 import { T } from '../../ui/text';
 import { colors } from '../../ui/theme';
+import { replace } from '../../ui/nav';
 
 export default function InviteScreen() {
   const { code } = useLocalSearchParams<{ code: string }>();
@@ -43,7 +44,7 @@ export default function InviteScreen() {
       {message ? <Banner tone="accent" title={message} /> : null}
       {error ? <Banner tone="danger" title="Ese enlace no sirvió" body={error} /> : null}
       {!message && !error ? <T color={colors.muted}>Estamos uniendo las cuentas…</T> : null}
-      {userId ? <Button label="Ir a tus amigos" onPress={() => router.replace('/amigos')} /> : null}
+      {userId ? <Button label="Ir a tus amigos" onPress={() => replace('/amigos')} /> : null}
     </Screen>
   );
 }

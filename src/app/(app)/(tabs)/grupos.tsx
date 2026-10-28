@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
@@ -9,6 +8,7 @@ import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { Rise } from '../../../ui/motion';
+import { push } from '../../../ui/nav';
 
 export default function Groups() {
   const { repo, userId, version } = useApp();
@@ -16,19 +16,19 @@ export default function Groups() {
 
   return (
     <Screen tab>
-      <Top title="Grupos" kicker="La junta" right={<Button label="Crear" onPress={() => router.push('/grupo/nuevo')} />} />
+      <Top title="Grupos" kicker="La junta" right={<Button label="Crear" onPress={() => push('/grupo/nuevo')} />} />
       <Gate query={query}>
         {(groups) =>
           groups.length === 0 ? (
             <Empty
               title="Arma tu junta"
               body="Un grupo tiene tabla, ranking y torneos. Solo entran tus amigos."
-              action={<Button label="Crear grupo" onPress={() => router.push('/grupo/nuevo')} />}
+              action={<Button label="Crear grupo" onPress={() => push('/grupo/nuevo')} />}
             />
           ) : (
             groups.map((item, index) => (
               <Rise key={item.group.id} index={index}>
-              <Pressable style={styles.card} onPress={() => router.push(`/grupo/${item.group.id}`)}>
+              <Pressable style={styles.card} onPress={() => push(`/grupo/${item.group.id}`)}>
                 <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} />
                 <View style={styles.flex}>
                   <T variant="title" style={{ fontStyle: 'italic' }} numberOfLines={1}>

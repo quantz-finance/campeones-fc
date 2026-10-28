@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { APP_MODES, appModeOf } from '../../../lib/app-mode';
@@ -15,6 +14,7 @@ import { T } from '../../../ui/text';
 import { useDelayed } from '../../../ui/motion';
 import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
+import { push } from '../../../ui/nav';
 
 const stickerMeta = {
   first_win: { title: 'Primera', icon: 'flash' as const, color: colors.yellow, tilt: '-6deg' },
@@ -63,7 +63,7 @@ export default function Profile() {
             Ficha del jugador
           </T>
         </View>
-        <Pressable accessibilityLabel="Compartir ficha" style={styles.iconBtn} onPress={() => router.push('/estadisticas')}>
+        <Pressable accessibilityLabel="Compartir ficha" style={styles.iconBtn} onPress={() => push('/estadisticas')}>
           <Ionicons name="share-outline" size={18} color="#fff" />
         </Pressable>
         <Pressable accessibilityLabel="Editar ficha" style={styles.iconBtn} onPress={() => setEditing((value) => !value)}>
@@ -119,7 +119,7 @@ export default function Profile() {
               <View style={styles.track}>
                 <View style={{ width: `${Math.round(data.record.winRate * 100)}%`, backgroundColor: colors.yellow, height: 8 }} />
               </View>
-              <SectionHead title="Estadísticas" action="Todas" onAction={() => router.push('/estadisticas')} />
+              <SectionHead title="Estadísticas" action="Todas" onAction={() => push('/estadisticas')} />
               <View style={styles.grid}>
                 <StatCell value={String(data.record.played)} label="Partidos" />
                 <StatCell value={pct(data.record.winRate)} label="Victorias" accent />
@@ -147,7 +147,7 @@ export default function Profile() {
               </View>
               <View style={styles.rivals}>
                 {data.bestRival ? (
-                  <Pressable style={[styles.rival, { borderLeftColor: colors.blue }]} onPress={() => router.push(`/versus/${data.bestRival!.profile.id}`)}>
+                  <Pressable style={[styles.rival, { borderLeftColor: colors.blue }]} onPress={() => push(`/versus/${data.bestRival!.profile.id}`)}>
                     <T variant="tiny" color={colors.blue}>
                       Tu cliente
                     </T>
@@ -157,7 +157,7 @@ export default function Profile() {
                   </Pressable>
                 ) : null}
                 {data.worstRival && data.worstRival.profile.id !== data.bestRival?.profile.id ? (
-                  <Pressable style={[styles.rival, { borderLeftColor: colors.red }]} onPress={() => router.push(`/versus/${data.worstRival!.profile.id}`)}>
+                  <Pressable style={[styles.rival, { borderLeftColor: colors.red }]} onPress={() => push(`/versus/${data.worstRival!.profile.id}`)}>
                     <T variant="tiny" color={colors.red}>
                       Bestia negra
                     </T>
@@ -258,9 +258,9 @@ export default function Profile() {
         </T>
       </View>
       <View style={styles.links}>
-        <Button label="Amigos" tone="ghost" onPress={() => router.push('/amigos')} />
-        <Button label="Ranking" tone="ghost" onPress={() => router.push('/ranking')} />
-        <Button label="Trofeos" tone="ghost" onPress={() => router.push('/trofeos')} />
+        <Button label="Amigos" tone="ghost" onPress={() => push('/amigos')} />
+        <Button label="Ranking" tone="ghost" onPress={() => push('/ranking')} />
+        <Button label="Trofeos" tone="ghost" onPress={() => push('/trofeos')} />
       </View>
       {app.mode === 'demo' ? <Button label="Restablecer datos de demostración" tone="ghost" onPress={() => void app.repo.resetDemo()} /> : null}
       <Button label="Cerrar sesión" tone="danger" onPress={() => void app.signOut()} />

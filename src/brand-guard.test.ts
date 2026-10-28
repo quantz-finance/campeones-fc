@@ -62,4 +62,9 @@ describe('marca', () => {
     expect(branding.company).toBe('Quantz');
     expect(branding.tagline).toContain('cada partido');
   });
+
+  it('apunta a las cuentas reales de Instagram y X', () => {
+    expect(branding.social.instagram).toBe('https://instagram.com/campeones.app');
+    expect(branding.social.x).toBe('https://x.com/campeonesapp');
+  });
 });

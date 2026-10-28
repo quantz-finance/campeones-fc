@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { noticeCopy } from '../../data/notices';
@@ -13,6 +12,7 @@ import { Screen, Top } from '../../ui/screen';
 import { ListSkeleton } from '../../ui/skeleton';
 import { T } from '../../ui/text';
 import { colors } from '../../ui/theme';
+import { push } from '../../ui/nav';
 
 export default function Notices() {
   const { repo, userId, version, notices, markNoticesRead } = useApp();
@@ -57,7 +57,7 @@ export default function Notices() {
                       title={status}
                       body={formatWhen(match.createdAt)}
                       strong={yours}
-                      onPress={() => router.push(`/partido/${match.id}`)}
+                      onPress={() => push(`/partido/${match.id}`)}
                     />
                   </Rise>
                 );
@@ -77,7 +77,7 @@ export default function Notices() {
                         title={copy.title}
                         body={`${copy.body} · ${formatWhen(notice.createdAt)}`}
                         strong={fresh}
-                        onPress={() => router.push(copy.href as never)}
+                        onPress={() => push(copy.href as never)}
                       />
                     </Rise>
                   );

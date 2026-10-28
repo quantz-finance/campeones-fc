@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { track } from '../../../lib/analytics';
@@ -17,6 +17,7 @@ import { T } from '../../../ui/text';
 import { DetailSkeleton } from '../../../ui/skeleton';
 import { Avatar } from '../../../ui/avatar';
 import { humanError } from '../../../ui/errors';
+import { push, replace } from '../../../ui/nav';
 
 type Choice = 'me' | 'them' | 'draw';
 
@@ -398,7 +399,7 @@ export default function MatchScreen() {
                   onPress={() =>
                     void run(async () => {
                       const next = await repo.reopenSlot(snap.slotId!, userId!);
-                      router.replace(`/partido/${next.id}`);
+                      replace(`/partido/${next.id}`);
                     })
                   }
                 />
@@ -410,7 +411,7 @@ export default function MatchScreen() {
                 <Button
                   label="Ver el versus"
                   tone="ghost"
-                  onPress={() => router.push(`/versus/${snap.youAre === 'a' ? snap.match.playerBId : snap.match.playerAId}`)}
+                  onPress={() => push(`/versus/${snap.youAre === 'a' ? snap.match.playerBId : snap.match.playerAId}`)}
                 />
               ) : null}
               {error ? <Banner tone="danger" title="No se guardó" body={error} /> : null}

@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { track } from '../../../lib/analytics';
@@ -8,6 +8,7 @@ import { Banner, Button, Chip, Field, Gate } from '../../../ui/controls';
 import { Panel, Screen, Top } from '../../../ui/screen';
 import { colors, radius, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
+import { replace } from '../../../ui/nav';
 
 export default function NewTournament() {
   const { grupo } = useLocalSearchParams<{ grupo: string }>();
@@ -77,7 +78,7 @@ export default function NewTournament() {
             })
             .then((tournament) => {
               track('tournament_created', { format });
-              router.replace(`/torneo/${tournament.id}`);
+              replace(`/torneo/${tournament.id}`);
             })
             .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'No se pudo crear.'))
             .finally(() => setBusy(false));

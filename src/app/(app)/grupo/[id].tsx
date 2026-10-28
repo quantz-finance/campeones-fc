@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { Match } from '../../../domain/types';
@@ -13,6 +13,7 @@ import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { PhotoButton } from '../../../ui/photo-button';
+import { push } from '../../../ui/nav';
 
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -165,12 +166,12 @@ export default function GroupDetail() {
               ) : (
                 data.recent.map((match) => <MatchRow key={match.id} match={match} me={userId!} people={data.people} />)
               )}
-              <SectionHead title="Torneos" action="Crear" onAction={() => router.push(`/torneo/nuevo?grupo=${data.group.id}`)} />
+              <SectionHead title="Torneos" action="Crear" onAction={() => push(`/torneo/nuevo?grupo=${data.group.id}`)} />
               {data.tournaments.length === 0 ? (
                 <T color={colors.muted}>Puedes armar una eliminación de 4, 8 o 16, o una liga de todos contra todos.</T>
               ) : (
                 data.tournaments.map((tournament) => (
-                  <Pressable key={tournament.id} style={styles.tour} onPress={() => router.push(`/torneo/${tournament.id}`)}>
+                  <Pressable key={tournament.id} style={styles.tour} onPress={() => push(`/torneo/${tournament.id}`)}>
                     <BracketIcon size={18} color={colors.yellow} />
                     <View style={styles.flex}>
                       <T variant="strong">{tournament.name}</T>
@@ -182,7 +183,7 @@ export default function GroupDetail() {
                   </Pressable>
                 ))
               )}
-              <Button label="Registrar un partido del grupo" onPress={() => router.push('/jugar')} />
+              <Button label="Registrar un partido del grupo" onPress={() => push('/jugar')} />
             </>
           );
         }}

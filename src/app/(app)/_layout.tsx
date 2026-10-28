@@ -10,7 +10,7 @@ export default function AppStack() {
   if (!userId) return <Redirect href="/entrar" />;
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <Stack screenOptions={{ headerShown: false, animation: 'fade', animationDuration: 180, contentStyle: { backgroundColor: colors.bg } }} />
+      <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: colors.bg } }} />
       <NoticeToast />
     </View>
   );

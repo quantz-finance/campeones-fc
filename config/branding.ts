@@ -25,6 +25,11 @@ export const branding = {
     'Lleva el marcador de tus partidos con amigos: series, grupos, torneos y trofeos.',
   locale: 'es-CR',
   lang: 'es',
+  /** Cuentas oficiales. Instagram: campeones.app. X: campeonesapp. */
+  social: {
+    instagram: 'https://instagram.com/campeones.app',
+    x: 'https://x.com/campeonesapp',
+  },
   colors: {
     bg: '#080B13',
     ink: '#0A0D14',

@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
 import { BroadcastTabs } from '../../../ui/tabs';
 import { colors } from '../../../ui/theme';
+import { transit } from '../../../ui/nav';
 
 export default function TabLayout() {
   return (
@@ -10,13 +11,15 @@ export default function TabLayout() {
           state={props.state}
           onNavigate={(name) => {
             const route = props.state.routes.find((item) => item.name === name);
-            if (route) props.navigateToTab(route.key);
+            const current = props.state.routes[props.state.index];
+            if (!route || route.key === current?.key) return;
+            transit(() => props.navigateToTab(route.key));
           }}
         />
       )}
       screenOptions={{
         headerShown: false,
-        animation: 'fade',
+        animation: 'none',
         sceneStyle: { backgroundColor: colors.bg },
         tabBarStyle: {
           position: 'absolute',

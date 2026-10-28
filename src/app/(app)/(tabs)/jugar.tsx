@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { track } from '../../../lib/analytics';
@@ -11,6 +10,7 @@ import { Panel, Screen, Top } from '../../../ui/screen';
 import { colors, radius, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { ensureWalletReady, netPot, proposeStake, STAKE_OPTIONS, stakesEnabled } from '../../../lib/payments/stake';
+import { push } from '../../../ui/nav';
 
 export default function Play() {
   const { repo, userId, version, mode, profile } = useApp();
@@ -36,7 +36,7 @@ export default function Play() {
             {data.friends.length === 0 ? (
               <>
                 <T color={colors.muted}>Primero invita a un amigo.</T>
-                <Button label="Ir a amigos" tone="ghost" onPress={() => router.push('/amigos')} />
+                <Button label="Ir a amigos" tone="ghost" onPress={() => push('/amigos')} />
               </>
             ) : (
               data.friends.map((friend) => {
@@ -126,7 +126,7 @@ export default function Play() {
                       .then(() => void ensureWalletReady().catch(() => undefined))
                       .catch(() => undefined)
                   : Promise.resolve();
-              return proposed.then(() => router.push(`/partido/${match.id}`));
+              return proposed.then(() => push(`/partido/${match.id}`));
             })
             .catch((cause: unknown) => setError(humanError(cause)))
             .finally(() => setBusy(false));
