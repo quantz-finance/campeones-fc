@@ -173,25 +173,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!repo || !userId) return;
     const code = readPendingInvite();
     if (!code) return;
+    let alive = true;
+    let finished = false;
     writePendingInvite(null);
     void repo
       .redeemInvite(userId, code)
-      .then((result) =>
+      .then((result) => {
+        if (!alive) return;
+        finished = true;
         setFlash({
           id: `invite-${code}`,
           title: result === 'already' ? 'Ya eran amigos' : 'Listo, ya son amigos',
           body: 'Ya aparecen en la lista del otro. Rétalo desde Amigos.',
           href: '/amigos',
-        }),
-      )
-      .catch((cause: unknown) =>
+        });
+      })
+      .catch((cause: unknown) => {
+        if (!alive) return;
+        finished = true;
         setFlash({
           id: `invite-${code}`,
           title: 'El enlace de invitación no sirvió',
           body: cause instanceof Error ? cause.message : 'Pide uno nuevo.',
           tone: 'danger',
-        }),
-      );
+        });
+      });
+    // Si el efecto se cancela antes de avisar (Strict Mode), el código sigue guardado para el siguiente intento.
+    return () => {
+      alive = false;
+      if (!finished && readPendingInvite() == null) writePendingInvite(code);
+    };
   }, [repo, userId]);
 
   const value = useMemo<AppValue | null>(() => {
