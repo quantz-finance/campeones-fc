@@ -9,6 +9,7 @@ Eso lo hace propio del proyecto: no hay samples de terceros, no hay una pista co
 - **Clic**: un golpe corto (onda cuadrada + seno) al pulsar botones, pestañas y fichas.
 - **Barrido**: ruido filtrado que sube de tono cuando una pantalla sale y entra la siguiente.
 - **Confirmación**: dos notas (un intervalo de tercera) al reactivar el sonido.
+- **Golpe de entrada**: un impacto con acorde, una sola vez, en el primer toque de la portada (antes de entrar).
 - **Música de fondo**: un loop rítmico de estadio (bombo, caja, charles, bajo y un acorde corto) más un rumor grave muy bajo. Arranca solo después del primer gesto, porque el navegador no deja sonar nada solo.
 
 ## Volumen

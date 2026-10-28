@@ -39,6 +39,7 @@ class AudioEngine {
   private stepIndex = 0;
   private unlocked = false;
   private watching = false;
+  private introPlayed = false;
 
   isMuted() {
     return this.muted;
@@ -120,6 +121,32 @@ class AudioEngine {
     const now = ctx.currentTime;
     this.tone(ctx, 523.25, now, 0.12, 'triangle', 0.18);
     this.tone(ctx, 659.25, now + 0.07, 0.16, 'triangle', 0.16);
+  }
+
+  /** Golpe de entrada. Una sola vez, y solo después de un gesto. */
+  intro() {
+    this.unlock();
+    if (this.introPlayed || this.muted) return;
+    this.introPlayed = true;
+    const ctx = this.live();
+    if (!ctx || !this.sfx || !this.noise) return;
+    const now = ctx.currentTime;
+    const source = ctx.createBufferSource();
+    source.buffer = this.noise;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(180, now);
+    filter.frequency.exponentialRampToValueAtTime(1400, now + 0.12);
+    const gain = envGain(ctx, now, 0.55, 0.18);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfx);
+    source.start(now);
+    source.stop(now + 0.2);
+    this.tone(ctx, 98, now, 0.22, 'sine', 0.45);
+    this.tone(ctx, 523.25, now + 0.05, 0.28, 'sawtooth', 0.12);
+    this.tone(ctx, 659.25, now + 0.07, 0.32, 'sawtooth', 0.1);
+    this.tone(ctx, 783.99, now + 0.09, 0.36, 'triangle', 0.12);
   }
 
   private live(): AudioContext | null {
@@ -299,6 +326,10 @@ export function playWhoosh() {
 
 export function playConfirm() {
   audio.confirm();
+}
+
+export function playIntro() {
+  audio.intro();
 }
 
 export function toggleMuted() {

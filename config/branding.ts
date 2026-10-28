@@ -25,6 +25,14 @@ export const branding = {
     'Lleva el marcador de tus partidos con amigos: series, grupos, torneos y trofeos.',
   locale: 'es-CR',
   lang: 'es',
+  /**
+   * Redes sociales. PLACEHOLDER: el repo no tiene cuentas reales de Instagram ni de X.
+   * Sustituye cada URL por la cuenta verdadera. No inventar un handle.
+   */
+  social: {
+    instagram: 'https://instagram.com/REPLACE_WITH_REAL_INSTAGRAM_HANDLE',
+    x: 'https://x.com/REPLACE_WITH_REAL_X_HANDLE',
+  },
   colors: {
     bg: '#080B13',
     ink: '#0A0D14',

@@ -67,15 +67,23 @@ export function useDelayed(on: boolean, ms = 150): boolean {
   return shown;
 }
 
-type Variant = 'item' | 'header';
+type Variant = 'item' | 'header' | 'logo';
 
 const travel = {
-  item: { enterX: -46, enterY: 14, exitX: 128 },
-  header: { enterX: -78, enterY: 0, exitX: 160 },
+  item: { enterX: -46, enterY: 14, exitX: 128, enterScale: 0.96 },
+  header: { enterX: -78, enterY: 0, exitX: 160, enterScale: 0.94 },
+  logo: { enterX: 0, enterY: 36, exitX: 150, enterScale: 0.62 },
 } as const;
 
 function enterFrames(variant: Variant) {
   const move = travel[variant];
+  if (variant === 'logo') {
+    return {
+      '0%': { opacity: 0, transform: [{ translateY: move.enterY }, { skewX: '-18deg' }, { scale: move.enterScale }] },
+      '58%': { opacity: 1, transform: [{ translateY: -8 }, { skewX: '6deg' }, { scale: 1.08 }] },
+      '100%': { opacity: 1, transform: [{ translateY: 0 }, { skewX: '0deg' }, { scale: 1 }] },
+    };
+  }
   return {
     '0%': { opacity: 0, transform: [{ translateX: move.enterX }, { translateY: move.enterY }, { skewX: '-14deg' }, { scale: 0.96 }] },
     '68%': { opacity: 1, transform: [{ translateX: 8 }, { translateY: 0 }, { skewX: '3deg' }, { scale: 1.015 }] },
@@ -126,7 +134,7 @@ export function BroadcastView({
   children,
 }: {
   index?: number;
-  variant?: Variant;
+  variant?: 'item' | 'header' | 'logo';
   replay?: number;
   style?: StyleProp<ViewStyle>;
   children: ReactNode;
@@ -181,9 +189,13 @@ export function BroadcastView({
   });
   const translateY = v.interpolate({
     inputRange: [0, 1],
-    outputRange: mode === 'exit' ? [0, 0] : [move.enterY, 0],
+    outputRange: mode === 'exit' ? [0, variant === 'logo' ? -24 : 0] : [move.enterY, 0],
   });
-  return <Animated.View style={[style, { opacity, transform: [{ translateX }, { translateY }] }]}>{children}</Animated.View>;
+  const scale = v.interpolate({
+    inputRange: [0, 1],
+    outputRange: mode === 'exit' ? [1, 0.92] : [move.enterScale, 1],
+  });
+  return <Animated.View style={[style, { opacity, transform: [{ translateX }, { translateY }, { scale }] }]}>{children}</Animated.View>;
 }
 
 /** Entra con golpe de transmisión. `index` escalona hasta el ítem 7. */
