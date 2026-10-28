@@ -11,6 +11,7 @@ import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
 import { Affiliation, Wordmark } from '../ui/broadcast';
 import { Banner, Button } from '../ui/controls';
+import { transit } from '../ui/nav';
 import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
@@ -161,7 +162,7 @@ export default function Login() {
               Cuentas de ejemplo
             </T>
             {accounts.map((account) => (
-              <Pressable key={account.id} style={styles.account} onPress={() => app.signInDemo(account.id)}>
+              <Pressable key={account.id} style={styles.account} onPress={() => transit(() => app.signInDemo(account.id))}>
                 <Avatar avatarKey={account.avatarKey} name={account.displayName} photoUrl={account.photoUrl} size={40} />
                 <View style={styles.flex}>
                   <T variant="strong">{account.displayName}</T>
@@ -232,7 +233,7 @@ function SpamHint() {
 
 const styles = StyleSheet.create({
   hintText: { fontSize: 14, lineHeight: 20 },
-  hero: { gap: space.md, paddingTop: space.lg },
+  hero: { gap: space.md, paddingTop: space.lg, paddingRight: 62 },
   stripe: { flexDirection: 'row', height: 4 },
   bit: { flex: 1 },
   list: { gap: space.sm },

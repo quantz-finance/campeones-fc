@@ -1,6 +1,5 @@
 // Registro en Stellar de un partido confirmado: firmas de los dos jugadores y la transacción.
 import * as Linking from 'expo-linking';
-import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { explorerTxUrl } from '../domain/match-proof';
@@ -13,6 +12,7 @@ import { getSupabase } from '../lib/supabase';
 import { Banner, Button } from './controls';
 import { colors, space } from './theme';
 import { T } from './text';
+import { push } from './nav';
 
 type ChainInfo = { status: string | null; tx: string | null; backfill: boolean; signers: string[] };
 
@@ -93,7 +93,7 @@ export function ChainCard({ match, userId, canSign = true }: { match: Match; use
       </T>
       {info.status === 'anchored' && info.tx ? (
         <>
-          <Pressable onPress={() => router.push(`/verificar/${match.id}`)} accessibilityRole="link">
+          <Pressable onPress={() => push(`/verificar/${match.id}`)} accessibilityRole="link">
             <T variant="strong" color={colors.yellow}>
               ✓ Verificado en Stellar
             </T>

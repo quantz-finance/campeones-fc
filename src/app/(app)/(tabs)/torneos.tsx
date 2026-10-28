@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
@@ -8,6 +7,7 @@ import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { monogram } from '../../../ui/format';
+import { push } from '../../../ui/nav';
 
 export default function TournamentsTab() {
   const { repo, userId, version } = useApp();
@@ -35,11 +35,11 @@ export default function TournamentsTab() {
             <Empty
               title="Todavía no hay copas"
               body="Ármala dentro de un grupo: eliminación de 4, 8 o 16, o una liga de todos contra todos."
-              action={<Button label="Ver grupos" onPress={() => router.push('/grupos')} />}
+              action={<Button label="Ver grupos" onPress={() => push('/grupos')} />}
             />
           ) : (
             list.map((item) => (
-              <Pressable key={item.id} style={styles.card} onPress={() => router.push(`/torneo/${item.id}`)}>
+              <Pressable key={item.id} style={styles.card} onPress={() => push(`/torneo/${item.id}`)}>
                 <Shield letters={monogram(item.name)} photoUrl={item.photoUrl} size={44} />
                 <View style={styles.flex}>
                   <T variant="title" style={{ fontStyle: 'italic' }} numberOfLines={1}>

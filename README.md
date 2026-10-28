@@ -64,6 +64,10 @@ Flujo corto:
 
 Si el navegador ya tenía datos viejos, en Perfil puedes restablecer la demostración.
 
+## Movimiento y sonido
+
+Las pantallas entran como un gráfico de transmisión (piezas sesgadas, en escalera) y salen hacia un lado al pulsar, antes de que aparezca la siguiente. El sonido es sintetizado en el navegador: no hay archivos de audio. El interruptor **SONIDO / MUTE** queda arriba a la derecha y recuerda la preferencia. Detalle y licencia en `docs/AUDIO.md`.
+
 ## Tests
 
 ```bash

@@ -1,8 +1,7 @@
-import { router } from 'expo-router';
 import { memo, useCallback } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import type { RankingSnapshot } from '../../data/snapshots';
-import { Pop, Rise } from '../../ui/motion';
+import { CountRoll, Pop, Rise } from '../../ui/motion';
 import { ListSkeleton } from '../../ui/skeleton';
 import { rules } from '../../domain/rules';
 import { AI_PHOTO_NOTE, appModeOf } from '../../lib/app-mode';
@@ -14,6 +13,7 @@ import { elo, pct } from '../../ui/format';
 import { Screen, Top } from '../../ui/screen';
 import { colors, radius, space } from '../../ui/theme';
 import { T } from '../../ui/text';
+import { push } from '../../ui/nav';
 
 type RankRow = RankingSnapshot['rows'][number];
 
@@ -23,7 +23,7 @@ const Row = memo(function Row({ row, index, me }: { row: RankRow; index: number;
       <Pressable
         style={[styles.row, me && styles.you]}
         onPress={() => {
-          if (!me) router.push(`/versus/${row.playerId}`);
+          if (!me) push(`/versus/${row.playerId}`);
         }}
       >
         <T variant="title" color={index < 3 ? colors.gold : colors.muted} style={styles.place}>
@@ -37,7 +37,9 @@ const Row = memo(function Row({ row, index, me }: { row: RankRow; index: number;
           </T>
         </View>
         <Pop value={row.rating}>
-          <T variant="title">{elo(row.rating)}</T>
+          <CountRoll value={row.rating} format={(n) => elo(Math.round(n))}>
+            {(shown) => <T variant="title">{shown}</T>}
+          </CountRoll>
         </Pop>
       </Pressable>
     </Rise>

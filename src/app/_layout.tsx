@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider, useAppMaybe } from '../state/app-provider';
 import { colors } from '../ui/theme';
+import { TransitionHost } from '../ui/transition';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -27,8 +28,10 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       <AppProvider>
-        <BootSplash />
-        <Stack screenOptions={{ headerShown: false, animation: 'fade', animationDuration: 180, contentStyle: { backgroundColor: colors.bg } }} />
+        <TransitionHost>
+          <BootSplash />
+          <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: colors.bg } }} />
+        </TransitionHost>
       </AppProvider>
     </SafeAreaProvider>
   );

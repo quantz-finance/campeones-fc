@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { track } from '../../lib/analytics';
@@ -13,6 +12,7 @@ import { Screen, Top } from '../../ui/screen';
 import { colors } from '../../ui/theme';
 import { T } from '../../ui/text';
 import { ListSkeleton } from '../../ui/skeleton';
+import { push } from '../../ui/nav';
 
 export default function Friends() {
   const { repo, userId, version } = useApp();
@@ -154,7 +154,7 @@ export default function Friends() {
                   key={friend.profile.id}
                   profile={friend.profile}
                   detail={recordLine(friend.record)}
-                  onPress={() => router.push(`/versus/${friend.profile.id}`)}
+                  onPress={() => push(`/versus/${friend.profile.id}`)}
                 />
               ))
             )}

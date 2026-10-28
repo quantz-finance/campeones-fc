@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useApp } from '../../state/app-provider';
 import { useQuery } from '../../state/use-query';
 import { PlayerLine, RecordStrip, Spark, StreakLine } from '../../ui/bits';
@@ -8,6 +7,7 @@ import { Panel, Screen, Top } from '../../ui/screen';
 import { colors } from '../../ui/theme';
 import { T } from '../../ui/text';
 import { ListSkeleton } from '../../ui/skeleton';
+import { push } from '../../ui/nav';
 
 export default function Stats() {
   const { repo, userId, version } = useApp();
@@ -63,7 +63,7 @@ export default function Stats() {
                 <PlayerLine
                   profile={data.bestRival.profile}
                   detail={`Mejor rival · ${recordLine(data.bestRival.record)}`}
-                  onPress={() => router.push(`/versus/${data.bestRival!.profile.id}`)}
+                  onPress={() => push(`/versus/${data.bestRival!.profile.id}`)}
                 />
               ) : (
                 <T color={colors.muted}>Juega con alguien para saber contra quién te va mejor.</T>
@@ -72,7 +72,7 @@ export default function Stats() {
                 <PlayerLine
                   profile={data.worstRival.profile}
                   detail={`Peor rival · ${recordLine(data.worstRival.record)}`}
-                  onPress={() => router.push(`/versus/${data.worstRival!.profile.id}`)}
+                  onPress={() => push(`/versus/${data.worstRival!.profile.id}`)}
                 />
               ) : null}
             </Panel>
@@ -86,7 +86,7 @@ export default function Stats() {
                     key={row.profile.id}
                     profile={row.profile}
                     detail={`${recordLine(row.record)} · DG ${signed(row.record.goalDiff)}`}
-                    onPress={() => router.push(`/versus/${row.profile.id}`)}
+                    onPress={() => push(`/versus/${row.profile.id}`)}
                   />
                 ))
               )}

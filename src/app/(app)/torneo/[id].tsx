@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { roundLabel } from '../../../domain/bracket';
@@ -14,6 +14,7 @@ import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { PhotoButton } from '../../../ui/photo-button';
 import { Avatar } from '../../../ui/avatar';
+import { push } from '../../../ui/nav';
 
 export default function TournamentScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -148,7 +149,7 @@ export default function TournamentScreen() {
                               right={slot.playerBId ? data.people[slot.playerBId]?.displayName ?? null : null}
                               match={match}
                               final={round === data.totalRounds}
-                              onPress={match ? () => router.push(`/partido/${match.id}`) : undefined}
+                              onPress={match ? () => push(`/partido/${match.id}`) : undefined}
                             />
                           );
                         })}
@@ -169,7 +170,7 @@ export default function TournamentScreen() {
                             left={slot.playerAId ? data.people[slot.playerAId]?.displayName ?? null : null}
                             right={slot.playerBId ? data.people[slot.playerBId]?.displayName ?? null : null}
                             match={match}
-                            onPress={match ? () => router.push(`/partido/${match.id}`) : undefined}
+                            onPress={match ? () => push(`/partido/${match.id}`) : undefined}
                           />
                         );
                       })}
@@ -189,7 +190,7 @@ export default function TournamentScreen() {
                   </View>
                 </View>
               ) : null}
-              <Button label="Crear nuevo torneo" tone="ghost" onPress={() => router.push(`/torneo/nuevo?grupo=${data.group.id}`)} />
+              <Button label="Crear nuevo torneo" tone="ghost" onPress={() => push(`/torneo/nuevo?grupo=${data.group.id}`)} />
             </>
           );
         }}

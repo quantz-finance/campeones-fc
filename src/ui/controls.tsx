@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, TextInput, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, TextInput, View, type StyleProp, type ViewStyle } from 'react-native';
 import { SkewBlock } from './broadcast';
 import { Animated } from 'react-native';
-import { FadeIn, useDelayed, useShimmerStyle } from './motion';
+import { useDelayed, useShimmerStyle } from './motion';
+import { Shine, SportPress } from './press';
+import { Scene } from './scene';
 import { CardsSkeleton } from './skeleton';
 import { colors, font, space } from './theme';
 import { T } from './text';
@@ -29,32 +31,35 @@ export function Button({
   const ink = tone === 'accent' || tone === 'gold' ? colors.ink : tone === 'danger' ? colors.danger : colors.text;
   const border = tone === 'ghost' ? 'rgba(255,255,255,0.45)' : tone === 'danger' ? colors.danger : undefined;
   return (
-    <Pressable
+    <SportPress
       disabled={disabled || pending}
       onPress={onPress}
       accessibilityState={{ disabled: disabled || pending, busy: pending }}
-      style={({ pressed }) => [styles.hit, (pressed || disabled) && styles.dim, pending && styles.pending]}
+      style={[styles.hit, disabled && styles.dim, pending && styles.pending]}
     >
-      <View style={styles.stretch}>
-        <SkewBlock
-          color={fill}
-          shadow={tone === 'accent' || tone === 'gold' ? colors.red : undefined}
-          border={border}
-          padH={14}
-          padV={12}
-          angle="-8deg"
-          fill
-        >
-          <View style={styles.rowCenter}>
-            {icon}
-            <T variant="title" color={ink} style={styles.btnLabel}>
-              {label}
-            </T>
-            {pending ? <PendingDots color={ink} /> : null}
-          </View>
-        </SkewBlock>
-      </View>
-    </Pressable>
+      {({ glint }) => (
+        <View style={styles.stretch}>
+          <SkewBlock
+            color={fill}
+            shadow={tone === 'accent' || tone === 'gold' ? colors.red : undefined}
+            border={border}
+            padH={14}
+            padV={12}
+            angle="-8deg"
+            fill
+            overlay={<Shine tick={glint} />}
+          >
+            <View style={styles.rowCenter}>
+              {icon}
+              <T variant="title" color={ink} style={styles.btnLabel}>
+                {label}
+              </T>
+              {pending ? <PendingDots color={ink} /> : null}
+            </View>
+          </SkewBlock>
+        </View>
+      )}
+    </SportPress>
   );
 }
 
@@ -102,13 +107,22 @@ export function Chip({
   onPress?: () => void;
 }) {
   return (
-    <Pressable onPress={onPress}>
-      <SkewBlock color={active ? colors.red : 'rgba(255,255,255,0.06)'} shadow={active ? colors.yellow : undefined} border={active ? undefined : 'rgba(255,255,255,0.2)'} padH={12} padV={8}>
-        <T variant="label" color={active ? colors.redInk : colors.text}>
-          {label}
-        </T>
-      </SkewBlock>
-    </Pressable>
+    <SportPress onPress={onPress} disabled={!onPress}>
+      {({ glint }) => (
+        <SkewBlock
+          color={active ? colors.red : 'rgba(255,255,255,0.06)'}
+          shadow={active ? colors.yellow : undefined}
+          border={active ? undefined : 'rgba(255,255,255,0.2)'}
+          padH={12}
+          padV={8}
+          overlay={<Shine tick={glint} />}
+        >
+          <T variant="label" color={active ? colors.redInk : colors.text}>
+            {label}
+          </T>
+        </SkewBlock>
+      )}
+    </SportPress>
   );
 }
 
@@ -176,16 +190,29 @@ export function Gate<T>({
   const showSkeleton = useDelayed(waiting);
   // Datos previos se quedan visibles mientras refresca (stale-while-revalidate).
   if (waiting) return showSkeleton ? <>{skeleton ?? <CardsSkeleton />}</> : null;
-  if (!query.data) return <ErrorNote message={query.error ?? 'Sin datos'} />;
-  return <FadeIn style={[styles.gate, fill && styles.fill]}>{children(query.data)}</FadeIn>;
+  if (!query.data) {
+    return (
+      <Scene>
+        <ErrorNote message={query.error ?? 'Sin datos'} />
+      </Scene>
+    );
+  }
+  if (fill) {
+    return (
+      <View style={styles.fill}>
+        <Scene>{children(query.data)}</Scene>
+      </View>
+    );
+  }
+  return <Scene>{children(query.data)}</Scene>;
 }
+(Gate as { passthrough?: boolean }).passthrough = true;
 
 export function rowStyle(extra?: StyleProp<ViewStyle>) {
   return [styles.row, extra];
 }
 
 const styles = StyleSheet.create({
-  gate: { gap: 14 },
   fill: { flex: 1 },
   hit: { alignSelf: 'stretch' },
   stretch: { alignSelf: 'stretch' },

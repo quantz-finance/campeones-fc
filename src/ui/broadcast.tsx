@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-svg';
 import { avatarByKey, branding } from '../../config/branding';
+import { CountRoll, CountUp, GrowX } from './motion';
+import { SportPress } from './press';
 import { colors, font } from './theme';
 import { T } from './text';
 import { toroPaths, toroTransform, toroViewBox } from './toro-data';
@@ -32,6 +34,7 @@ export function SkewBlock({
   angle = '-10deg',
   fill = false,
   style,
+  overlay,
 }: {
   children: ReactNode;
   color: string;
@@ -42,6 +45,8 @@ export function SkewBlock({
   angle?: string;
   fill?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** Capa encima de la cara (brillo). Recorta la cara para que no se salga. */
+  overlay?: ReactNode;
 }) {
   const face = [
     styles.skewFace,
@@ -52,6 +57,7 @@ export function SkewBlock({
       borderWidth: border ? 1.5 : 0,
       borderColor: border,
       transform: [{ skewX: angle }],
+      overflow: overlay ? ('hidden' as const) : ('visible' as const),
     },
     style,
   ];
@@ -71,6 +77,7 @@ export function SkewBlock({
       ) : null}
       <View style={face as StyleProp<ViewStyle>}>
         <View style={{ transform: [{ skewX: angle.startsWith('-') ? angle.slice(1) : `-${angle}` }] }}>{children}</View>
+        {overlay}
       </View>
     </View>
   );
@@ -229,6 +236,39 @@ export function InitialsMark({
   );
 }
 
+function ScoreFigure({ score }: { score: string }) {
+  const style = { fontSize: 26, color: colors.ink, fontStyle: 'italic' as const };
+  const parts = score.split('–');
+  if (parts.length === 2 && parts.every((part) => /^\d+$/.test(part.trim()))) {
+    return (
+      <View style={styles.scoreFigure}>
+        <CountRoll value={Number(parts[0])} format={(n) => String(Math.round(n))}>
+          {(shown) => (
+            <T variant="display" style={style}>
+              {shown}
+            </T>
+          )}
+        </CountRoll>
+        <T variant="display" style={style}>
+          –
+        </T>
+        <CountRoll value={Number(parts[1])} format={(n) => String(Math.round(n))}>
+          {(shown) => (
+            <T variant="display" style={style}>
+              {shown}
+            </T>
+          )}
+        </CountRoll>
+      </View>
+    );
+  }
+  return (
+    <T variant="display" style={style}>
+      {score}
+    </T>
+  );
+}
+
 export function ScoreBar({
   leftTag,
   rightTag,
@@ -254,7 +294,7 @@ export function ScoreBar({
 }) {
   return (
     <View style={styles.scoreWrap}>
-      <Pressable onPress={onPress} disabled={!onPress} style={styles.scoreRow}>
+      <SportPress onPress={onPress} disabled={!onPress} style={styles.scoreRow}>
         <View style={[styles.scoreSide, { backgroundColor: colors.red }]}>
           <PhotoLayer uri={leftPhoto} counterSkew="8deg" />
           {leftPhoto ? <View style={styles.scoreShade} /> : null}
@@ -263,9 +303,7 @@ export function ScoreBar({
           </T>
         </View>
         <View style={styles.scoreMid}>
-          <T variant="display" style={{ fontSize: 26, color: colors.ink, fontStyle: 'italic' }}>
-            {score}
-          </T>
+          <ScoreFigure score={score} />
         </View>
         <View style={[styles.scoreSide, { backgroundColor: colors.blue }]}>
           <PhotoLayer uri={rightPhoto} counterSkew="8deg" />
@@ -291,7 +329,7 @@ export function ScoreBar({
             )}
           </Pressable>
         ) : null}
-      </Pressable>
+      </SportPress>
       {note ? (
         <View style={styles.note}>
           <T variant="tiny" color="#fff" style={{ letterSpacing: 0.4 }}>
@@ -319,7 +357,7 @@ export function QuickTile({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={[styles.tile, { backgroundColor: color }]}>
+    <SportPress onPress={onPress} style={[styles.tile, { backgroundColor: color }]}>
       <View style={styles.tileTop}>
         <T variant="label" color={ink} style={{ fontSize: 12, opacity: 0.85 }}>
           {kicker}
@@ -329,16 +367,20 @@ export function QuickTile({
       <T variant="display" style={{ fontSize: 26, color: ink, fontStyle: 'italic' }}>
         {title}
       </T>
-    </Pressable>
+    </SportPress>
   );
 }
 
 export function StatCell({ value, label, accent = false }: { value: string; label: string; accent?: boolean }) {
   return (
     <View style={styles.stat}>
-      <T variant="display" style={{ fontSize: 28, color: accent ? colors.yellow : '#fff', fontStyle: 'italic' }}>
-        {value}
-      </T>
+      <CountUp value={value}>
+        {(shown) => (
+          <T variant="display" style={{ fontSize: 28, color: accent ? colors.yellow : '#fff', fontStyle: 'italic' }}>
+            {shown}
+          </T>
+        )}
+      </CountUp>
       <T variant="tiny" color={colors.yellow} style={{ fontSize: 10 }}>
         {label}
       </T>
@@ -368,9 +410,9 @@ export function CompareRow({
       </T>
       <View style={styles.compareTrack}>
         <View style={styles.compareBars}>
-          <View style={[styles.compareLeft, { flex: leftW }]} />
+          <GrowX style={[styles.compareLeft, { flex: leftW }]} />
           <View style={{ width: 6 }} />
-          <View style={[styles.compareRight, { flex: rightW }]} />
+          <GrowX style={[styles.compareRight, { flex: rightW }]} />
         </View>
         <T variant="tiny" color={colors.muted} style={styles.compareLabel}>
           {label}
@@ -541,6 +583,7 @@ const styles = StyleSheet.create({
   },
   scoreTag: { fontSize: 18, color: '#fff', transform: [{ skewX: '8deg' }] },
   scoreMid: { flex: 1, backgroundColor: colors.text, alignItems: 'center', justifyContent: 'center' },
+  scoreFigure: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   scoreActionHit: { justifyContent: 'center', marginLeft: 6 },
   ghostAction: {
     borderWidth: 1.5,

@@ -1,9 +1,14 @@
-import { router } from 'expo-router';
+import { useIsFocused } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { AudioToggle } from './audio-toggle';
 import { Backdrop, tabBarSpace } from './broadcast';
+import { useGlobalExit } from './motion-context';
+import { back as goBack } from './nav';
+import { SportPress } from './press';
+import { BroadcastSlash, Scene } from './scene';
 import { TabReplica } from './tabs';
 import { colors, space } from './theme';
 import { T } from './text';
@@ -31,13 +36,23 @@ export function Screen({
   fill?: boolean;
 }) {
   const insets = useSafeAreaInsets();
+  const exiting = useGlobalExit();
+  const focused = useIsFocused();
   const docked = tab || Boolean(dock);
   const footerReserve = !docked && footer ? 36 + Math.max(insets.bottom, 8) : 0;
   const bottom = docked ? tabBarSpace(insets.bottom) + (footer ? footerHeight + 12 : 18) : Math.max(insets.bottom, 12) + 16;
-  const body = <View style={[styles.inner, fill && styles.flex]}>{children}</View>;
+  const body = (
+    <View style={[styles.inner, fill && styles.flex]}>
+      <Scene>{children}</Scene>
+    </View>
+  );
   return (
     <View style={styles.root}>
       <Backdrop />
+      {exiting && focused ? <BroadcastSlash /> : null}
+      <View pointerEvents="box-none" style={[styles.sound, { top: insets.top + 8 }]}>
+        <AudioToggle />
+      </View>
       <View style={[styles.safe, { paddingTop: insets.top + TOP_AIR }]}>
         {scroll ? (
           <ScrollView
@@ -82,11 +97,11 @@ export function Top({
     <View style={styles.top}>
       <View style={styles.topText}>
         {back ? (
-          <Pressable onPress={() => router.back()} hitSlop={8} style={styles.back} accessibilityLabel="Volver">
+          <SportPress onPress={() => goBack()} hitSlop={8} style={styles.back} accessibilityLabel="Volver">
             <View style={styles.unskew}>
               <Ionicons name="chevron-back" size={22} color={colors.text} />
             </View>
-          </Pressable>
+          </SportPress>
         ) : null}
         <View style={styles.flex}>
           {kicker ? (
@@ -108,6 +123,8 @@ export function Panel({ children }: { children: ReactNode }) {
   return <View style={styles.panel}>{children}</View>;
 }
 
+(Top as { broadcast?: string }).broadcast = 'header';
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   safe: { flex: 1 },
@@ -121,7 +138,8 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, minHeight: 44 },
+  sound: { position: 'absolute', right: 10, zIndex: 45 },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, minHeight: 44, paddingRight: 62 },
   topText: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   back: {
     width: 44,
