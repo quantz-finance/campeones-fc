@@ -51,7 +51,7 @@ self.addEventListener('fetch', (e) => {
   }
   if (r.mode === 'navigate') {
     e.respondWith(
-      fetch(r)
+      fetch(r, { cache: 'no-store' })
         .then((res) => {
           if (res.ok) { const cp = res.clone(); caches.open(PAGES).then((c) => c.put('/', cp)); }
           return res;

@@ -1,13 +1,21 @@
-// Aviso flotante (arriba) cuando llega algo nuevo: amigo que entró por tu enlace, reto, resultado por confirmar…
+// Aviso flotante (abajo) cuando llega algo nuevo: amigo que entró por tu enlace, reto, resultado por confirmar…
 import { Ionicons } from '@expo/vector-icons';
+import { usePathname } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { noticeCopy } from '../data/notices';
 import { useApp } from '../state/app-provider';
-import { Rise } from './motion';
+import { cssAnim, useReducedMotion } from './motion';
+import { push } from './nav';
 import { T } from './text';
 import { colors } from './theme';
-import { push } from './nav';
+import { toastBottom } from './toast-place';
+
+const slideFrames = {
+  from: { opacity: 0, transform: [{ translateY: 24 }] },
+  to: { opacity: 1, transform: [{ translateY: 0 }] },
+};
 
 type Toast = { id: string; noticeId?: string; title: string; body?: string; href?: string; tone?: 'accent' | 'danger'; more: number };
 
@@ -16,8 +24,14 @@ const SHOW_MS = 6500;
 
 export function NoticeToast() {
   const { notices, flash, showFlash, markNoticesRead } = useApp();
+  const path = usePathname();
+  const insets = useSafeAreaInsets();
+  const reduced = useReducedMotion();
+  const bottom = toastBottom(path, insets.bottom);
   const seen = useRef<Set<string> | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [settledId, setSettledId] = useState<string | null>(null);
+  const web = Platform.OS === 'web';
 
   useEffect(() => {
     const unread = notices.filter((n) => !n.readAt);
@@ -47,11 +61,19 @@ export function NoticeToast() {
     return () => clearTimeout(timer);
   }, [toast]);
 
+  useEffect(() => {
+    if (!toast || reduced || !web) return;
+    const id = toast.id;
+    const timer = setTimeout(() => setSettledId(id), 300);
+    return () => clearTimeout(timer);
+  }, [toast, reduced, web]);
+
   if (!toast) return null;
   const danger = toast.tone === 'danger';
+  const sliding = !reduced && web && settledId !== toast.id;
   return (
-    <View style={styles.wrap} pointerEvents="box-none">
-      <Rise key={toast.id}>
+    <View style={[styles.wrap, { bottom }]} pointerEvents="box-none">
+      <View key={toast.id} style={sliding ? cssAnim(slideFrames, 280) : null}>
         <Pressable
           accessibilityRole="alert"
           style={[styles.card, { borderLeftColor: danger ? colors.danger : colors.accent }]}
@@ -81,13 +103,13 @@ export function NoticeToast() {
             <Ionicons name="close" size={18} color={colors.muted} />
           </Pressable>
         </Pressable>
-      </Rise>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', top: 12, left: 12, right: 12, zIndex: 50, alignItems: 'center' },
+  wrap: { position: 'absolute', left: 16, right: 16, zIndex: 60, alignItems: 'center' },
   card: {
     width: '100%',
     maxWidth: 480,
@@ -99,12 +121,7 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderWidth: 1,
     borderLeftWidth: 4,
-    borderRadius: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
+    borderRadius: 2,
   },
   copy: { flex: 1, gap: 2 },
 });

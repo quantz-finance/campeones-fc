@@ -104,7 +104,7 @@
       setTimeout(function () { var s = document.getElementById('boot-splash'); if (s) s.remove(); }, 10000);
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () {});
+          navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(function () {});
         });
       }
     </script>

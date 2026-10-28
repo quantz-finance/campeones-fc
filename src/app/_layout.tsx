@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { startPwaUpdates } from '../lib/pwa-update';
 import { AppProvider, useAppMaybe } from '../state/app-provider';
 import { colors } from '../ui/theme';
 import { TransitionHost } from '../ui/transition';
@@ -12,6 +13,8 @@ import { TransitionHost } from '../ui/transition';
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  useEffect(() => startPwaUpdates(), []);
+
   const [loaded, error] = useFonts({
     Anton_400Regular,
     Barlow_400Regular: require('../../assets/fonts/Barlow-Regular.ttf'),
