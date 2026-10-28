@@ -1,12 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
+import { cavosSupported } from '../lib/cavos/config';
+import { useCavosEntry } from '../lib/cavos/use-entry';
+import { useApp } from '../state/app-provider';
 import { playIntro } from './audio';
+import { Avatar } from './avatar';
 import { Affiliation, SkewBlock, Toro } from './broadcast';
-import { Button } from './controls';
+import { Banner, Button } from './controls';
 import { BroadcastView, cssAnim, useReducedMotion } from './motion';
-import { push } from './nav';
+import { transit } from './nav';
 import { SportPress } from './press';
 import { Screen } from './screen';
 import { openExternal } from './share';
@@ -54,12 +58,22 @@ function SocialLink({ icon, label, url }: { icon: 'logo-instagram' | 'logo-x'; l
 }
 
 export function Landing() {
+  const app = useApp();
+  const { configured, phase, error, busy, openCavos, approveDevice, otherAccount } = useCavosEntry();
+  const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
+  const cavosLabel = phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar';
+
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     const onGesture = () => playIntro();
     window.addEventListener('pointerdown', onGesture, { once: true });
     return () => window.removeEventListener('pointerdown', onGesture);
   }, []);
+
+  function enter() {
+    playIntro();
+    openCavos();
+  }
 
   return (
     <Screen>
@@ -94,11 +108,64 @@ export function Landing() {
           </SkewBlock>
         ))}
       </View>
-      <Button label="Entrar" onPress={() => { playIntro(); push('/entrar'); }} />
-      <Button label="Crear cuenta" tone="ghost" onPress={() => { playIntro(); push('/entrar'); }} />
-      <T variant="tiny" color={colors.faint} style={styles.note}>
-        Google, Apple o correo. Si todavía no tienes cuenta, se crea al entrar.
-      </T>
+      {app.mode === 'demo' ? (
+        <View style={styles.accounts}>
+          <T variant="label" color={colors.yellow}>
+            Cuentas de ejemplo
+          </T>
+          {accounts.map((account) => (
+            <Pressable key={account.id} style={styles.account} onPress={() => transit(() => app.signInDemo(account.id))}>
+              <Avatar avatarKey={account.avatarKey} name={account.displayName} photoUrl={account.photoUrl} size={40} />
+              <View style={styles.accountCopy}>
+                <T variant="strong">{account.displayName}</T>
+                <T variant="tiny" color={colors.muted} style={styles.note}>
+                  @{account.username}
+                </T>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      ) : configured ? (
+        phase === 'approve' ? (
+          <>
+            <Banner
+              tone="accent"
+              title="Confirma que eres tú"
+              body="Tu billetera de Cavos se creó en otro dispositivo. Usa tu passkey para traerla a este."
+            />
+            <Button label="Confirmar con mi passkey" onPress={approveDevice} />
+            <Button label="Entrar con otra cuenta" tone="ghost" onPress={() => void otherAccount()} />
+          </>
+        ) : phase === 'nokey' ? (
+          <>
+            <Banner
+              tone="warn"
+              title="Tu billetera está en otro dispositivo"
+              body="Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta."
+            />
+            <Button label="Entrar con otra cuenta" tone="ghost" onPress={() => void otherAccount()} />
+          </>
+        ) : (
+          <>
+            <Button label={cavosLabel} pending={busy} disabled={busy} onPress={enter} />
+            <Button label="Crear cuenta" tone="ghost" pending={busy} disabled={busy} onPress={enter} />
+            <T variant="tiny" color={colors.faint} style={styles.note}>
+              Google, Apple o correo. Si todavía no tienes cuenta, se crea en el mismo paso. El código puede caer en Spam.
+            </T>
+          </>
+        )
+      ) : (
+        <Banner
+          tone="warn"
+          title="Cavos no configurado"
+          body={
+            cavosSupported
+              ? 'La entrada con Cavos (Google, Apple o correo) se activa cuando el equipo agregue el appId de Cavos. Vuelve pronto.'
+              : 'Por ahora la entrada con Cavos funciona en la versión web. Ábrela desde el navegador.'
+          }
+        />
+      )}
+      {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
       <View style={styles.footer}>
         <View style={styles.socials}>
           <SocialLink icon="logo-instagram" label="Instagram" url={branding.social.instagram} />
@@ -142,6 +209,18 @@ const styles = StyleSheet.create({
   pitch: { textTransform: 'none', letterSpacing: 0 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   note: { textTransform: 'none', letterSpacing: 0, lineHeight: 16 },
+  accounts: { gap: space.sm },
+  account: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.sm,
+    backgroundColor: 'rgba(19,26,42,0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  accountCopy: { flex: 1 },
   footer: { gap: space.sm, marginTop: 12, paddingBottom: 8 },
   socials: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   socialRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },

@@ -5,7 +5,8 @@ export const MUTE_KEY = 'campeones-fc-audio-muted';
 /** Volumen por defecto: la música queda de fondo y los efectos se oyen encima. */
 export const AUDIO_LEVELS = {
   master: 0.85,
-  music: 0.26,
+  /** Por debajo de los efectos, aunque el arreglo tenga más capas. */
+  music: 0.18,
   sfx: 0.62,
 } as const;
 
