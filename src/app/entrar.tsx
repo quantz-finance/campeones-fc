@@ -1,12 +1,8 @@
 import { Redirect } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
-import { track } from '../lib/analytics';
-import { authErrorText } from '../lib/cavos/auth-ux';
-import { cavosConfigured, cavosSupported } from '../lib/cavos/config';
-import { DeviceApprovalNeeded, exchangeCavosSession, loginPath, NoDeviceKey } from '../lib/cavos/session';
-import { cavosStore, useCavosState } from '../lib/cavos/store';
+import { cavosSupported } from '../lib/cavos/config';
+import { useCavosEntry } from '../lib/cavos/use-entry';
 import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
 import { Affiliation, Wordmark } from '../ui/broadcast';
@@ -16,118 +12,13 @@ import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
 
-type Phase = 'idle' | 'opening' | 'session' | 'approve' | 'nokey';
-
 export default function Login() {
   const app = useApp();
-  const { bridged, signedOut } = useCavosState();
-  const [phase, setPhase] = useState<Phase>('idle');
-  const [error, setError] = useState<string | null>(null);
-  const exchanging = useRef(false);
-  const configured = app.mode === 'supabase' && cavosConfigured();
+  const { configured, phase, error, busy, label, openCavos, approveDevice, otherAccount } = useCavosEntry();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
-
-  // Cargar el SDK de Cavos al abrir la pantalla (también procesa la vuelta del login con Google/Apple).
-  useEffect(() => {
-    if (configured) cavosStore.want();
-  }, [configured]);
-
-  // Cavos ya entró (modal o vuelta de OAuth) y todavía no hay sesión: cambiarla por una de Supabase.
-  useEffect(() => {
-    if (!configured || app.userId || !bridged || bridged.isLoading) return;
-    if (!bridged.isAuthenticated || !bridged.address || exchanging.current || error || signedOut) return;
-    // Estado del kit a medio cambiar (p. ej. justo después de salir): sin token todavía no hay nada que cambiar.
-    if (!bridged.token()) return;
-    // Esperar a que el kit sepa si la llave de la billetera está en este navegador.
-    const path = loginPath(bridged.wallet);
-    if (path === null || (path === 'approve' && phase === 'approve') || phase === 'nokey') return;
-    exchanging.current = true;
-    setPhase('session');
-    exchangeCavosSession(bridged)
-      .then((w) => {
-        track('sign_in', { method: 'cavos', wallet: w.status });
-      })
-      .catch((cause) => {
-        if (cause instanceof DeviceApprovalNeeded) {
-          setPhase('approve');
-          return;
-        }
-        if (cause instanceof NoDeviceKey) {
-          setPhase('nokey');
-          return;
-        }
-        setError(cause instanceof Error ? authErrorText(cause.message) : 'No se pudo entrar.');
-        setPhase('idle');
-      })
-      .finally(() => {
-        exchanging.current = false;
-      });
-  }, [configured, app.userId, bridged, error, phase, signedOut]);
-
-  async function approveDevice() {
-    if (!bridged) return;
-    setError(null);
-    try {
-      await bridged.approveDevice();
-      setPhase('idle'); // con la llave lista, el efecto de arriba acuña la sesión
-    } catch (cause) {
-      setError(cause instanceof Error ? authErrorText(cause.message) : 'No se pudo confirmar.');
-    }
-  }
-
-  /** Salir de esta cuenta de Cavos (la llave del dispositivo se queda) y abrir el login otra vez. */
-  async function otherAccount() {
-    setError(null);
-    setPhase('idle');
-    if (bridged) {
-      await bridged.logout().catch(() => undefined);
-      bridged.openModal();
-    }
-  }
-
-  useEffect(() => {
-    if (bridged?.error) {
-      setError(bridged.error);
-      setPhase('idle');
-    }
-  }, [bridged?.error]);
-
-  function openCavos() {
-    setError(null);
-    if (signedOut) {
-      // Después de "Cerrar sesión": empezar de cero con el modal (el estado del kit puede estar viejo).
-      cavosStore.setSignedOut(false);
-      if (bridged?.isAuthenticated) {
-        void otherAccount();
-        return;
-      }
-    }
-    if (!bridged || bridged.isLoading) {
-      setPhase('opening');
-      cavosStore.want();
-      return;
-    }
-    // Ya entró a Cavos pero falló el paso siguiente: volver a empezar en vez de reintentar lo mismo en bucle.
-    if (bridged.isAuthenticated && bridged.address) {
-      void otherAccount();
-      return;
-    }
-    bridged.openModal();
-  }
-
-  // Si tocaste el botón mientras el SDK cargaba, abrir el modal apenas esté listo.
-  useEffect(() => {
-    if (phase !== 'opening' || !bridged || bridged.isLoading) return;
-    setPhase('idle');
-    if (!bridged.isAuthenticated) bridged.openModal();
-  }, [phase, bridged]);
 
   // Después de todos los hooks: un return temprano antes de un hook rompe el orden (error #300 de React).
   if (app.ready && app.userId) return <Redirect href="/inicio" />;
-
-  const busy = phase === 'opening' || phase === 'session';
-  const label =
-    phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar con Cavos';
 
   return (
     <Screen

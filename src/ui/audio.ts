@@ -1,9 +1,14 @@
-// Sonido sintetizado con Web Audio (sin archivos). Licencia y diseño: docs/AUDIO.md.
+// Sonido sintetizado con Web Audio (sin archivos). Diseño y licencia: docs/AUDIO.md.
+// Interfaz de transmisión: ticks de ruido, barridos de aire y un groove de house.
+// Sin ondas cuadradas ni glissandi de «boing» en los clics.
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { AUDIO_LEVELS, readMuted, writeMuted } from './audio-prefs';
 
 const web = Platform.OS === 'web';
+const BPM = 124;
+const BARS = 8;
+const STEPS = 16;
 
 type Listener = (muted: boolean) => void;
 
@@ -16,14 +21,27 @@ function browserStorage(): Storage | null {
   }
 }
 
-function envGain(ctx: AudioContext, when: number, peak: number, duration: number) {
-  const gain = ctx.createGain();
-  const safe = Math.max(peak, 0.0001);
-  gain.gain.setValueAtTime(0.0001, when);
-  gain.gain.exponentialRampToValueAtTime(safe, when + 0.008);
-  gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
-  return gain;
-}
+/** Acordes en senos (menor, con séptima suave). Graves de house, no de chiptune. */
+const CHORDS: Record<string, number[]> = {
+  Am: [220, 261.63, 329.63],
+  F: [174.61, 220, 261.63],
+  C: [261.63, 329.63, 392],
+  G: [196, 246.94, 293.66],
+};
+
+/** Bajo por compás: tiempo 1, contratiempo y una nota de paso. 0 = silencio. */
+const BASS: number[][] = [
+  [55, 0, 0, 55, 0, 0, 82.41, 0, 55, 0, 0, 65.41, 0, 0, 55, 0],
+  [55, 0, 0, 0, 82.41, 0, 55, 0, 65.41, 0, 0, 55, 0, 82.41, 0, 0],
+  [43.65, 0, 0, 43.65, 0, 0, 65.41, 0, 43.65, 0, 87.31, 0, 0, 0, 43.65, 0],
+  [43.65, 0, 65.41, 0, 43.65, 0, 0, 87.31, 43.65, 0, 0, 65.41, 0, 0, 43.65, 0],
+  [65.41, 0, 0, 65.41, 0, 0, 98, 0, 65.41, 0, 0, 82.41, 0, 0, 65.41, 0],
+  [65.41, 0, 82.41, 0, 65.41, 0, 98, 0, 65.41, 0, 49, 0, 82.41, 0, 65.41, 0],
+  [49, 0, 0, 49, 0, 0, 73.42, 0, 49, 0, 98, 0, 0, 73.42, 49, 0],
+  [49, 0, 73.42, 0, 49, 0, 0, 98, 0, 0, 73.42, 0, 49, 0, 55, 0],
+];
+
+const CHORD_OF = ['Am', 'Am', 'F', 'F', 'C', 'C', 'G', 'Am'] as const;
 
 class AudioEngine {
   muted = readMuted(browserStorage());
@@ -35,6 +53,7 @@ class AudioEngine {
   private noise: AudioBuffer | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private crowd: AudioBufferSourceNode | null = null;
+  private crowdLfo: OscillatorNode | null = null;
   private nextStep = 0;
   private stepIndex = 0;
   private unlocked = false;
@@ -88,65 +107,45 @@ class AudioEngine {
     this.emit();
   }
 
+  /** Tick seco: transiente de ruido + cuerpo grave fijo, sin tono que se deslice. */
   click() {
     const ctx = this.live();
-    if (!ctx) return;
+    if (!ctx || !this.sfx) return;
     const now = ctx.currentTime;
-    this.tone(ctx, 740, now, 0.045, 'square', 0.16);
-    this.tone(ctx, 180, now, 0.07, 'sine', 0.2);
+    this.burst(ctx, this.sfx, now, 0.016, 0.32, 'highpass', 4200);
+    this.sine(ctx, this.sfx, now, 148, 0.28, 0.04);
   }
 
+  /** Barrido de aire: dos capas de ruido, una grave y otra brillante. */
   whoosh() {
     const ctx = this.live();
-    if (!ctx || !this.sfx || !this.noise) return;
+    if (!ctx || !this.sfx) return;
     const now = ctx.currentTime;
-    const source = ctx.createBufferSource();
-    source.buffer = this.noise;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(280, now);
-    filter.frequency.exponentialRampToValueAtTime(2400, now + 0.16);
-    filter.Q.value = 0.7;
-    const gain = envGain(ctx, now, 0.35, 0.2);
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.sfx);
-    source.start(now);
-    source.stop(now + 0.22);
+    this.burst(ctx, this.sfx, now, 0.18, 0.2, 'bandpass', 420, 2800, 0.55);
+    this.burst(ctx, this.sfx, now + 0.02, 0.16, 0.1, 'highpass', 1600, 6400, 0.4);
   }
 
   confirm() {
     const ctx = this.live();
-    if (!ctx) return;
+    if (!ctx || !this.sfx) return;
     const now = ctx.currentTime;
-    this.tone(ctx, 523.25, now, 0.12, 'triangle', 0.18);
-    this.tone(ctx, 659.25, now + 0.07, 0.16, 'triangle', 0.16);
+    this.burst(ctx, this.sfx, now, 0.028, 0.22, 'highpass', 2800);
+    this.sine(ctx, this.sfx, now, 196, 0.16, 0.07);
   }
 
-  /** Golpe de entrada. Una sola vez, y solo después de un gesto. */
+  /** Subida corta y golpe de estadio. Una sola vez, después de un gesto. */
   intro() {
     this.unlock();
     if (this.introPlayed || this.muted) return;
     this.introPlayed = true;
     const ctx = this.live();
-    if (!ctx || !this.sfx || !this.noise) return;
+    if (!ctx || !this.sfx) return;
     const now = ctx.currentTime;
-    const source = ctx.createBufferSource();
-    source.buffer = this.noise;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(180, now);
-    filter.frequency.exponentialRampToValueAtTime(1400, now + 0.12);
-    const gain = envGain(ctx, now, 0.55, 0.18);
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.sfx);
-    source.start(now);
-    source.stop(now + 0.2);
-    this.tone(ctx, 98, now, 0.22, 'sine', 0.45);
-    this.tone(ctx, 523.25, now + 0.05, 0.28, 'sawtooth', 0.12);
-    this.tone(ctx, 659.25, now + 0.07, 0.32, 'sawtooth', 0.1);
-    this.tone(ctx, 783.99, now + 0.09, 0.36, 'triangle', 0.12);
+    this.riser(ctx, this.sfx, now, 0.42, 0.14);
+    const hit = now + 0.36;
+    this.kick(ctx, this.sfx, hit, 0.9);
+    this.burst(ctx, this.sfx, hit, 0.05, 0.28, 'bandpass', 1800, undefined, 0.8);
+    this.pluck(ctx, this.sfx, hit, CHORDS.Am, 0.07, 0.28);
   }
 
   private live(): AudioContext | null {
@@ -154,17 +153,93 @@ class AudioEngine {
     return this.ctx;
   }
 
-  private tone(ctx: AudioContext, freq: number, when: number, duration: number, type: OscillatorType, peak: number) {
-    if (!this.sfx) return;
+  private amp(ctx: AudioContext, when: number, peak: number, attack: number, decay: number) {
+    const gain = ctx.createGain();
+    const a = Math.max(0.001, attack);
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0001), when + a);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + a + Math.max(0.01, decay));
+    return gain;
+  }
+
+  private sine(ctx: AudioContext, dest: GainNode, when: number, freq: number, peak: number, decay: number) {
+    const gain = this.amp(ctx, when, peak, 0.002, decay);
     const osc = ctx.createOscillator();
-    osc.type = type;
+    osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, when);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq * 0.7), when + duration);
-    const gain = envGain(ctx, when, peak, duration);
     osc.connect(gain);
-    gain.connect(this.sfx);
+    gain.connect(dest);
     osc.start(when);
-    osc.stop(when + duration + 0.02);
+    osc.stop(when + decay + 0.04);
+  }
+
+  private burst(
+    ctx: AudioContext,
+    dest: GainNode,
+    when: number,
+    dur: number,
+    peak: number,
+    type: BiquadFilterType,
+    freq: number,
+    freqTo?: number,
+    q = 0.7,
+  ) {
+    if (!this.noise) return;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noise;
+    const filter = ctx.createBiquadFilter();
+    filter.type = type;
+    filter.Q.value = q;
+    filter.frequency.setValueAtTime(Math.max(40, freq), when);
+    if (freqTo) filter.frequency.exponentialRampToValueAtTime(Math.max(40, freqTo), when + Math.max(0.01, dur));
+    const gain = this.amp(ctx, when, peak, 0.002, dur);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(dest);
+    src.start(when);
+    src.stop(when + dur + 0.03);
+  }
+
+  private riser(ctx: AudioContext, dest: GainNode, when: number, dur: number, peak: number) {
+    if (!this.noise) return;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noise;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 0.85;
+    filter.frequency.setValueAtTime(180, when);
+    filter.frequency.exponentialRampToValueAtTime(5200, when + dur);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0001), when + dur * 0.92);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(dest);
+    src.start(when);
+    src.stop(when + dur + 0.02);
+  }
+
+  /** Acorde corto, filtrado, solo senos. */
+  private pluck(ctx: AudioContext, dest: GainNode, when: number, freqs: number[], peak: number, decay: number) {
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1600, when);
+    filter.frequency.exponentialRampToValueAtTime(420, when + decay);
+    const gain = this.amp(ctx, when, 1, 0.004, decay);
+    filter.connect(gain);
+    gain.connect(dest);
+    for (const freq of freqs) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, when);
+      const partial = ctx.createGain();
+      partial.gain.value = peak;
+      osc.connect(partial);
+      partial.connect(filter);
+      osc.start(when);
+      osc.stop(when + decay + 0.03);
+    }
   }
 
   private makeNoise(ctx: AudioContext) {
@@ -184,14 +259,21 @@ class AudioEngine {
     this.crowd.loop = true;
     const crowdFilter = ctx.createBiquadFilter();
     crowdFilter.type = 'lowpass';
-    crowdFilter.frequency.value = 420;
+    crowdFilter.frequency.value = 380;
     const crowdGain = ctx.createGain();
-    crowdGain.gain.value = 0.045;
+    crowdGain.gain.value = 0.028;
+    this.crowdLfo = ctx.createOscillator();
+    this.crowdLfo.frequency.value = 0.12;
+    const lfoDepth = ctx.createGain();
+    lfoDepth.gain.value = 0.01;
+    this.crowdLfo.connect(lfoDepth);
+    lfoDepth.connect(crowdGain.gain);
     this.crowd.connect(crowdFilter);
     crowdFilter.connect(crowdGain);
     crowdGain.connect(this.music);
     this.crowd.start();
-    this.nextStep = ctx.currentTime + 0.08;
+    this.crowdLfo.start();
+    this.nextStep = ctx.currentTime + 0.06;
     this.stepIndex = 0;
     this.timer = setInterval(() => this.pump(), 25);
   }
@@ -201,103 +283,85 @@ class AudioEngine {
       clearInterval(this.timer);
       this.timer = null;
     }
-    if (this.crowd) {
+    for (const node of [this.crowd, this.crowdLfo]) {
       try {
-        this.crowd.stop();
+        node?.stop();
       } catch {
         // ya estaba parado
       }
-      this.crowd = null;
     }
+    this.crowd = null;
+    this.crowdLfo = null;
   }
 
   private pump() {
     const ctx = this.ctx;
     const dest = this.music;
     if (!ctx || !dest || !this.noise || this.muted) return;
-    const eighth = 60 / 112 / 2;
-    while (this.nextStep < ctx.currentTime + 0.12) {
+    const sixteenth = 60 / BPM / 4;
+    while (this.nextStep < ctx.currentTime + 0.14) {
       this.scheduleStep(ctx, dest, this.nextStep, this.stepIndex);
-      this.nextStep += eighth;
-      this.stepIndex = (this.stepIndex + 1) % 16;
+      this.nextStep += sixteenth;
+      this.stepIndex = (this.stepIndex + 1) % (STEPS * BARS);
     }
   }
 
-  private scheduleStep(ctx: AudioContext, dest: GainNode, when: number, step: number) {
-    if (step % 4 === 0) this.kick(ctx, dest, when);
-    if (step === 4 || step === 12) this.snare(ctx, dest, when);
-    this.hat(ctx, dest, when, step % 2 === 0 ? 0.05 : 0.025);
-    const bass = [55, 0, 0, 65.41, 0, 55, 0, 82.41, 55, 0, 73.42, 0, 65.41, 0, 55, 0][step] ?? 0;
-    if (bass) this.bass(ctx, dest, when, bass);
-    if (step === 0) this.stab(ctx, dest, when);
+  private scheduleStep(ctx: AudioContext, dest: GainNode, when: number, index: number) {
+    const bar = Math.floor(index / STEPS);
+    const step = index % STEPS;
+    const building = bar === BARS - 1;
+    const full = bar >= 4 && !building;
+    const groove = bar >= 2;
+
+    if (step % 4 === 0 && !(building && step >= 8)) this.kick(ctx, dest, when, full ? 0.95 : 0.8);
+    if ((step === 4 || step === 12) && bar >= 1 && !(building && step === 12)) this.clap(ctx, dest, when);
+    if (step % 2 === 0) this.hat(ctx, dest, when, full ? 0.07 : 0.045, false);
+    else if (groove && (step === 6 || step === 14)) this.hat(ctx, dest, when, 0.05, true);
+    else if (full) this.hat(ctx, dest, when, 0.018, false);
+    if (groove && step % 4 === 3) this.burst(ctx, dest, when, 0.04, 0.05, 'bandpass', 480, undefined, 1.2);
+
+    const note = BASS[bar]?.[step] ?? 0;
+    if (note && !(building && step >= 8)) this.sub(ctx, dest, when, note);
+
+    const stab = full ? step % 4 === 2 : groove && (step === 4 || step === 12);
+    if (stab) this.pluck(ctx, dest, when, CHORDS[CHORD_OF[bar] ?? 'Am'], full ? 0.045 : 0.03, 0.12);
+
+    if (building && step === 8) this.riser(ctx, dest, when, 60 / BPM, 0.12);
   }
 
-  private kick(ctx: AudioContext, dest: GainNode, when: number) {
+  /** Bombo de club: seno que cae en pocos milisegundos y un clic de mazo. */
+  private kick(ctx: AudioContext, dest: GainNode, when: number, peak: number) {
     const osc = ctx.createOscillator();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(160, when);
-    osc.frequency.exponentialRampToValueAtTime(48, when + 0.12);
-    const gain = envGain(ctx, when, 0.9, 0.16);
+    osc.frequency.setValueAtTime(168, when);
+    osc.frequency.exponentialRampToValueAtTime(44, when + 0.055);
+    const gain = this.amp(ctx, when, peak, 0.002, 0.18);
     osc.connect(gain);
     gain.connect(dest);
     osc.start(when);
-    osc.stop(when + 0.18);
+    osc.stop(when + 0.22);
+    this.burst(ctx, dest, when, 0.01, peak * 0.18, 'highpass', 2200);
   }
 
-  private snare(ctx: AudioContext, dest: GainNode, when: number) {
-    if (!this.noise) return;
-    const source = ctx.createBufferSource();
-    source.buffer = this.noise;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.value = 1400;
-    const gain = envGain(ctx, when, 0.28, 0.1);
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(dest);
-    source.start(when);
-    source.stop(when + 0.12);
-    this.toneInto(ctx, dest, 196, when, 0.08, 'triangle', 0.12);
+  private clap(ctx: AudioContext, dest: GainNode, when: number) {
+    this.burst(ctx, dest, when, 0.04, 0.16, 'bandpass', 1700, undefined, 0.9);
+    this.burst(ctx, dest, when + 0.012, 0.05, 0.1, 'highpass', 2400);
   }
 
-  private hat(ctx: AudioContext, dest: GainNode, when: number, peak: number) {
-    if (!this.noise) return;
-    const source = ctx.createBufferSource();
-    source.buffer = this.noise;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.value = 7000;
-    const gain = envGain(ctx, when, peak, 0.04);
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(dest);
-    source.start(when);
-    source.stop(when + 0.05);
+  private hat(ctx: AudioContext, dest: GainNode, when: number, peak: number, open: boolean) {
+    this.burst(ctx, dest, when, open ? 0.09 : 0.025, peak, 'highpass', open ? 6500 : 8000);
   }
 
-  private bass(ctx: AudioContext, dest: GainNode, when: number, freq: number) {
-    this.toneInto(ctx, dest, freq, when, 0.18, 'sawtooth', 0.12);
-  }
-
-  private stab(ctx: AudioContext, dest: GainNode, when: number) {
-    for (const freq of [523.25, 659.25, 783.99]) {
-      this.toneInto(ctx, dest, freq, when, 0.18, 'sawtooth', 0.045);
-    }
-  }
-
-  private toneInto(ctx: AudioContext, dest: GainNode, freq: number, when: number, duration: number, type: OscillatorType, peak: number) {
+  private sub(ctx: AudioContext, dest: GainNode, when: number, freq: number) {
     const osc = ctx.createOscillator();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, when);
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(type === 'sawtooth' ? 900 : 4000, when);
-    const gain = envGain(ctx, when, peak, duration);
-    osc.connect(filter);
-    filter.connect(gain);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq * 1.4, when);
+    osc.frequency.exponentialRampToValueAtTime(freq, when + 0.012);
+    const gain = this.amp(ctx, when, 0.2, 0.003, 0.16);
+    osc.connect(gain);
     gain.connect(dest);
     osc.start(when);
-    osc.stop(when + duration + 0.02);
+    osc.stop(when + 0.2);
   }
 
   private watchVisibility() {

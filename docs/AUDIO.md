@@ -4,21 +4,23 @@ No hay archivos de audio en el repositorio. Todo el sonido se sintetiza en el na
 
 Eso lo hace propio del proyecto: no hay samples de terceros, no hay una pista con copyright y no suma peso a la descarga. Se puede silenciar, y esa preferencia queda en `localStorage` bajo la clave `campeones-fc-audio-muted`.
 
-## Qué suena
+## Cómo está diseñado
 
-- **Clic**: un golpe corto (onda cuadrada + seno) al pulsar botones, pestañas y fichas.
-- **Barrido**: ruido filtrado que sube de tono cuando una pantalla sale y entra la siguiente.
-- **Confirmación**: dos notas (un intervalo de tercera) al reactivar el sonido.
-- **Golpe de entrada**: un impacto con acorde, una sola vez, en el primer toque de la portada (antes de entrar).
-- **Música de fondo**: un loop rítmico de estadio (bombo, caja, charles, bajo y un acorde corto) más un rumor grave muy bajo. Arranca solo después del primer gesto, porque el navegador no deja sonar nada solo.
+La interfaz imita un gráfico de transmisión, no un juego de 8 bits. No hay ondas cuadradas ni notas que se deslicen como un «boing».
+
+- **Clic**: un tick de ruido muy corto (pasa-altos) más un golpe grave de seno a frecuencia fija. Ataque y caída rápidos.
+- **Barrido**: dos capas de ruido, una que sube en medios y otra más brillante, para el cambio de pantalla.
+- **Confirmación**: el mismo tick, un poco más largo, al reactivar el sonido.
+- **Golpe de entrada**: una subida de ruido de menos de medio segundo y un impacto (bombo, crack y un acorde corto). Suena una sola vez, en el primer toque de la portada.
+- **Música**: un groove de ocho compases a 124 BPM. Bombo profundo en negras, charles cerrado (y abierto en los contratiempos), palmada, bajo en seno con un asentamiento de unos milisegundos, acordes cortos filtrados y un shaker. Los compases 3 a 6 se llenan; el último abre un hueco y sube un riser antes de volver al golpe. Debajo, un rumor grave muy bajo que respira. Arranca solo después del primer gesto, porque el navegador no deja sonar nada solo. Se pausa si la pestaña queda oculta.
 
 ## Volumen
 
 Por defecto (`src/ui/audio-prefs.ts`):
 
 - master `0.85`
-- música `0.26` (de fondo)
-- efectos `0.62` (por encima de la música)
+- música `0.18` (por debajo de los efectos, aunque el arreglo tenga más capas)
+- efectos `0.62`
 
 El interruptor **SONIDO / MUTE** está fijo arriba a la derecha en todas las pantallas. Si el sistema pide menos movimiento, las animaciones se apagan; el sonido sigue disponible y se puede silenciar aparte.
 

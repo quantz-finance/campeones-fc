@@ -22,7 +22,10 @@ export function replace(href: Href) {
 }
 
 export function back() {
-  transit(() => router.back());
+  transit(() => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/inicio');
+  });
 }
 
 export function navigate(href: Href) {
