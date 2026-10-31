@@ -53,7 +53,7 @@ function fetchBinaries() {
     mkdirSync(pgDir, { recursive: true });
     sh('npm', ['pack', `@embedded-postgres/linux-x64@${VERSIONS.pg}`], { cwd: pgDir });
     const tgz = readdirSync(pgDir).find((f) => f.endsWith('.tgz'));
-    sh('tar', ['xzf', tgz, '-C', pgDir]);
+    sh('tar', ['xzf', join(pgDir, tgz), '-C', pgDir]);
     const links = JSON.parse(readFileSync(join(pgDir, 'package/native/pg-symlinks.json'), 'utf8'));
     for (const l of links) {
       const target = join(pgDir, 'package', l.target);
