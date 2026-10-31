@@ -9,10 +9,6 @@ import type { Notice } from '../data/notices';
 import { initAnalytics, track } from '../lib/analytics';
 import { backendMode, type BackendMode } from '../lib/env';
 import { getSupabase } from '../lib/supabase';
-import { CavosLoader } from '../lib/cavos/loader';
-import { cavosLogout } from '../lib/cavos/session';
-import { cavosConfigured } from '../lib/cavos/config';
-import { cavosStore } from '../lib/cavos/store';
 
 export type Flash = { id: string; title: string; body?: string; href?: string; tone?: 'accent' | 'danger' };
 
@@ -115,8 +111,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // así los dos lados quedan al día aunque el socket se haya dormido (p. ej. al saltar a WhatsApp).
   useEffect(() => {
     if (!repo || !userId) return;
-    // Con sesión abierta, cargar Cavos de una vez: reconecta la billetera en silencio al abrir la app.
-    if (backendMode() === 'supabase' && cavosConfigured()) cavosStore.want();
     let last = 0;
     const wake = () => {
       const now = Date.now();
@@ -226,7 +220,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       async signOut() {
         if (mode === 'supabase') {
-          await cavosLogout();
           // Solo este dispositivo: cerrar sesión aquí no saca al usuario de su otro teléfono o de la app instalada.
           await getSupabase().auth.signOut({ scope: 'local' });
         }
@@ -245,7 +238,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
   return (
     <AppContext.Provider value={value}>
-      {mode === 'supabase' ? <CavosLoader /> : null}
       {children}
     </AppContext.Provider>
   );

@@ -215,13 +215,13 @@ export default function Profile() {
       ) : null}
       <View style={styles.modeBox}>
         <T variant="label" color={colors.yellow}>
-          Modo
+          Modo prueba
         </T>
         <View style={styles.segment} accessibilityRole="radiogroup">
           {APP_MODES.map((m) => {
             const current = appModeOf({ showDemo }, app.mode !== 'supabase');
             const on = current === m.key;
-            const locked = m.disabled || app.mode !== 'supabase';
+            const locked = app.mode !== 'supabase';
             return (
               <Pressable
                 key={m.key}
@@ -230,31 +230,26 @@ export default function Profile() {
                 accessibilityState={{ selected: on, disabled: locked }}
                 accessibilityLabel={m.label}
                 onPress={() => {
-                  const next = m.key === 'fake';
+                  const next = m.key === 'prueba';
                   setShowDemo(next);
                   void app.repo
                     .updateProfile(app.userId!, { showDemo: next })
                     .then(() => app.refresh())
                     .catch(() => setShowDemo(!next));
                 }}
-                style={[styles.segItem, on && styles.segOn, m.disabled && styles.segOff]}
+                style={[styles.segItem, on && styles.segOn]}
               >
                 <T variant="strong" color={on ? colors.ink : colors.text} style={{ fontSize: 13 }}>
                   {m.label}
                 </T>
-                {m.disabled ? (
-                  <T variant="tiny" color={colors.muted} style={{ fontSize: 9 }}>
-                    Próximamente
-                  </T>
-                ) : null}
               </Pressable>
             );
           })}
         </View>
         <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>
           {showDemo || app.mode !== 'supabase'
-            ? 'Datos falsos: ves el mundo de demostración (jugadores, partidos, grupos). Sin apuestas: nada va a la blockchain.'
-            : 'Testnet: solo jugadores y partidos reales. Apuestas y verificación en Stellar (red de prueba, sin dinero real).'}
+            ? 'Modo prueba: ves el mundo de demostración (jugadores, partidos, grupos y torneos de ejemplo). Es solo para mirar.'
+            : 'Real: solo ves a tus amigos y tus partidos. Activa el modo prueba para mirar el mundo de demostración.'}
         </T>
       </View>
       <View style={styles.links}>
@@ -274,7 +269,6 @@ const styles = StyleSheet.create({
   segment: { flexDirection: 'row', transform: [{ skewX: '-8deg' }], borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
   segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, minHeight: 48 },
   segOn: { backgroundColor: colors.yellow },
-  segOff: { opacity: 0.5 },
   top: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   flex: { flex: 1 },
   iconBtn: {

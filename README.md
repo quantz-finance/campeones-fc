@@ -14,8 +14,7 @@ npm run brand
 
 ## Qué puedes hacer
 
-- Entrar con Cavos (Google, Apple o código al correo). Cada jugador recibe una wallet de Stellar. En el modo demostración entras con las cuentas de ejemplo.
-- Firmar con tu wallet el resultado confirmado. La plataforma lo ancla en Stellar (testnet por ahora) con las dos firmas y el partido muestra el enlace a stellar.expert.
+- Entrar con tu cuenta de Google (Supabase Auth). En el modo demostración entras con las cuentas de ejemplo.
 - Elegir nombre de jugador y avatar.
 - Invitar amigos con un enlace (WhatsApp u otro) o por usuario, y aceptar o rechazar.
 - Proponer un partido. Tu rival lo acepta. Al terminar, cada uno marca quién ganó y, si quiere, los goles. Si coinciden, el resultado cuenta. Si no, queda en disputa y nadie suma hasta que uno corrija su voto.
@@ -82,7 +81,7 @@ Cubren la doble confirmación, la disputa, la expiración, el avance del cuadro,
 1. Instala la CLI y, en esta carpeta, corre `supabase start` y `supabase db reset`.
 2. Copia `.env.example` a `.env.local`.
 3. Pon `EXPO_PUBLIC_SUPABASE_URL` (suele ser `http://127.0.0.1:54321`) y la clave anónima que imprime la CLI. Las dos juntas, o ninguna: si falta una, la app se detiene a propósito.
-4. El inicio de sesión es solo con Cavos (ver «Cavos y Stellar»). Sin `EXPO_PUBLIC_CAVOS_APP_ID`, la pantalla de entrada muestra «Cavos no configurado».
+4. El inicio de sesión es solo con Google (ver «Entrar con Google»).
 5. Reinicia `npm run web`. Las variables se leen al arrancar.
 
 La migración `supabase/migrations/20261024120000_piquemos_v1.sql` crea las tablas, las políticas RLS y las funciones. El cliente no inserta partidos ni amistades a mano: llama a esas funciones. Realtime avisa de partidos, votos, amistades, torneos y trofeos.
@@ -106,57 +105,32 @@ Sirve la PWA por HTTPS para poder instalarla. El service worker no guarda caché
 
 En un proyecto de Supabase alojado, aplica la misma migración y agrega la URL pública a las redirecciones de Auth y al sitio permitido.
 
-## Cavos y Stellar
+## Entrar con Google
 
-Cavos crea la wallet de Stellar de cada jugador y envía los códigos por correo (no hace falta SMTP propio). El flujo:
+La única entrada real es Google, con Supabase Auth (`signInWithOAuth`, proveedor `google`, flujo PKCE). Google vuelve a `/auth/callback` y supabase-js abre la sesión. El perfil lo crea el trigger `handle_new_user`.
 
-1. El cliente abre el modal de Cavos (`@cavos/kit` 0.4.4, parcheado en `postinstall` por `scripts/patch-cavos-kit.mjs`: autocompletar el código de 9 caracteres en iOS, errores en español, pausa entre códigos que sobrevive a recargar y aviso de revisar Spam).
-2. `POST /api/auth` (`step: nonce`) entrega un nonce de un solo uso. La wallet firma `campeones-fc:bind:<identidad>:<nonce>`.
-3. `POST /api/auth` (`step: session`) verifica el JWT de Cavos (emisores cerrados, `aud` = appId), la firma y el nonce, y crea o encuentra el usuario de Supabase. Solo vincula por correo si `email_verified === true` y nunca con correos `privaterelay` de Apple. La identidad es `(iss, sub)`. Como el aud de Google, Apple y el enclave es compartido entre apps de Cavos, el token solo no basta: la primera billetera que firma queda ligada a la cuenta y cada entrada exige su firma sobre un nonce de un solo uso (igual que Meteorito). El servidor nunca llama a la API HTTP de Cavos y no hay entrada solo con token. Devuelve una sesión real de Supabase, así RLS y `auth.uid()` siguen igual.
-4. Con el partido confirmado, cada jugador firma `campeones-fc:match:v1:<red>:<id>:<digest>`. `POST /api/anchor` guarda la firma y, con las dos (o tras `ANCHOR_ATTEST_WAIT_HOURS`, 24 por defecto), la cuenta de la plataforma escribe el hash canónico en un memo hash y en `manageData` (`cfc:last`). Es idempotente: el hash de la transacción se guarda antes de enviarla y solo se reconstruye cuando la anterior ya expiró sin entrar.
-5. Un cron de Vercel llama `GET /api/anchor` cada 10 minutos para lo que quede pendiente.
-6. Acta diaria: un cron de Vercel llama `GET /api/daily` a las 00:20 (hora de Costa Rica). Arma la raíz Merkle de los resultados confirmados del día anterior (hoja = `sha256(0x00 || huella del resultado)`, nodo = `sha256(0x01 || izq || der)`, orden `confirmed_at, id`), la encadena con el hash del acta anterior y la ancla en un memo hash (`manageData` `cfc:day`). Se guarda en `chain_daily_records`. Si faltan días, los arma en orden.
-7. Partidos anteriores al registro: `scripts/chain/backfill.mjs` los encola "sin firma" (`chain_backfill`) y los ancla por lotes; después pone al día las actas.
+Para activarlo en un proyecto de Supabase:
 
-### Verificar un resultado
+1. En Google Cloud, crea un cliente OAuth «Aplicación web» con la URI de redirección `https://<ref>.supabase.co/auth/v1/callback`.
+2. En Supabase › Authentication › Providers › Google, pega el client ID y el secret y actívalo.
+3. En Supabase › Authentication › URL Configuration, agrega a las redirecciones permitidas `https://campeones-fc.vercel.app/auth/callback` y, para las previews, `https://campeones-fc-*-quantz4.vercel.app/**`.
 
-- `/verificar/<id>` es pública: muestra el JSON canónico, el hash, las firmas y el enlace a stellar.expert. El navegador recalcula el hash, lee el memo directo de Horizon, comprueba la prueba Merkle del acta y valida las firmas ed25519. En la app, cada partido registrado dice «✓ Verificado en Stellar».
-- `GET /api/verificar?id=<id>`, `?day=YYYY-MM-DD` y `?index=1` devuelven los datos (ids públicos y direcciones G…, nunca nombres ni correos).
-- Elo desde la cadena, sin el código de la app (solo Node 22):
+## Pruebas de punta a punta (Playwright)
+
+Ver `e2e/README.md`. Resumen:
 
 ```bash
-node scripts/chain/elo-from-chain.mjs            # comprueba cada acta contra Stellar y recalcula el Elo FIDE
-node scripts/chain/elo-from-chain.mjs --json
+npx playwright install chromium
+npm run e2e            # build local contra un Supabase local (aislado)
+E2E_BASE_URL=https://<preview>.vercel.app npm run e2e   # la preview, con el backend redirigido al Supabase local
 ```
 
-Paso a mainnet (solo variables de entorno, con verificación de la cuenta): ver `docs/mainnet-cutover.md`.
-
-Poner al día (necesita `CRON_SECRET`, no lo imprime):
-
-```bash
-CRON_SECRET=... node scripts/chain/backfill.mjs
-```
-
-Variables del servidor (Vercel): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CAVOS_JWKS_URL`, `CAVOS_JWT_ISSUERS`, `CAVOS_JWT_AUDIENCE`, opcionales `CAVOS_GOOGLE_AUDIENCE`, `CAVOS_APPLE_AUDIENCE`, `CAVOS_EXTRA_ISSUER` (`<iss>|<jwks>|<aud>`, hoy `https://enclave.cavos.xyz|https://enclave.cavos.xyz/.well-known/jwks.json|cavos-email`), `CAVOS_ENVIRONMENT`, `STELLAR_NETWORK`, `PLATFORM_PUBLIC`, `PLATFORM_SECRET`, `CRON_SECRET`, `ANCHOR_ATTEST_WAIT_HOURS`. Del cliente: `EXPO_PUBLIC_CAVOS_APP_ID`, `EXPO_PUBLIC_CAVOS_RP_ID`, `EXPO_PUBLIC_CAVOS_ENVIRONMENT`, `EXPO_PUBLIC_STELLAR_NETWORK`.
-
-Prueba real en testnet (opcional, firma con la cuenta de la plataforma):
-
-```bash
-set -a; . ./platform.env; set +a
-ANCHOR_TESTNET=1 npx vitest run api/_lib/anchor.testnet.test.ts
-```
-
-## Pagos, más adelante
-
-Esta versión no mueve valor. `src/lib/payments/escrow.ts` deja el lugar para, en una versión futura, conectar wallets y una custodia (escrow) sobre Stellar con Trustless Work. `paymentsEnabled()` devuelve `false`. Un partido ya confirmado podrá apuntar a esa custodia sin cambiar la doble confirmación del resultado. No lo implementes hasta que el producto lo pida.
+Las pruebas que escriben datos corren SOLO contra un Supabase local; nunca escriben en la base compartida.
 
 ## Qué queda fuera de esta V1
 
 - No hay un proyecto de Supabase creado ni credenciales en el repo.
-- El anclaje usa testnet. Para la red principal hace falta una cuenta de la plataforma propia en mainnet (ver «Verificar un resultado»).
-- La migración no corre en la integración continua.
 - No hay apps nativas compiladas, notificaciones push ni cron de expiración.
-- La custodia en Stellar no está implementada.
 - El ranking de la pantalla usa los partidos que puedes ver, no la caché `player_ratings`.
 
 ## Licencia

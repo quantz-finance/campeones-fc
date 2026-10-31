@@ -64,8 +64,8 @@ export default function Home() {
               <View style={styles.brandRow}>
                 <View style={styles.brandLeft}>
                   <Wordmark size={20} />
-                  <View style={[styles.modeChip, modeNow === 'fake' && styles.modeChipFake]}>
-                    <T variant="tiny" color={modeNow === 'fake' ? colors.ink : colors.text} style={{ fontSize: 10 }}>
+                  <View style={[styles.modeChip, modeNow === 'prueba' && styles.modeChipFake]}>
+                    <T variant="tiny" color={modeNow === 'prueba' ? colors.ink : colors.text} style={{ fontSize: 10 }}>
                       {modeChip(modeNow)}
                     </T>
                   </View>
@@ -92,7 +92,7 @@ export default function Home() {
                   Modo demostración · los datos viven en este navegador
                 </T>
               ) : null}
-              {modeNow === 'fake' ? (
+              {modeNow === 'prueba' ? (
                 <T variant="tiny" color={colors.faint} style={[styles.plain, { fontSize: 10 }]}>
                   {AI_PHOTO_NOTE}
                 </T>

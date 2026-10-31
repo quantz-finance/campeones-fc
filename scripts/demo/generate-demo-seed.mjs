@@ -271,7 +271,7 @@ const out = [];
 out.push(`-- Campeones FC: datos de demo (GENERADO por scripts/demo/generate-demo-seed.mjs, no editar a mano).
 -- ${players.length} jugadores, ${GROUPS.length} grupos, ${tournaments.length} torneos, ${matches.length} partidos (${confirmed.length} confirmados).
 -- Todo queda registrado en public.demo_seed; supabase/seed/demo-cleanup.sql lo borra.
--- Los jugadores demo no pueden entrar: sin contraseña, sin identidad Cavos, correo @demo.campeonesfc.invalid.
+-- Los jugadores demo no pueden entrar: sin contraseña, sin cuenta de Google, correo @demo.campeonesfc.invalid.
 begin;
 
 create table if not exists public.demo_seed (

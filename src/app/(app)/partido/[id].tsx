@@ -6,9 +6,6 @@ import type { ReportDraft } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { SkewBlock } from '../../../ui/broadcast';
-import { ChainCard } from '../../../ui/chain-card';
-import { StakeCard } from '../../../ui/stake-card';
-import { settleStake, stakesEnabled } from '../../../lib/payments/stake';
 import { Banner, Button, Gate } from '../../../ui/controls';
 import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
@@ -23,7 +20,7 @@ type Choice = 'me' | 'them' | 'draw';
 
 export default function MatchScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { repo, userId, version, mode, profile } = useApp();
+  const { repo, userId, version } = useApp();
   const query = useQuery(() => repo.matchSnapshot(String(id), userId!), [repo, userId, version, id]);
   const [choice, setChoice] = useState<Choice>('me');
   const [withGoals, setWithGoals] = useState(true);
@@ -125,7 +122,6 @@ export default function MatchScreen() {
               await repo.submitReport(snap.match.id, userId!, next);
               track('report_submitted');
               setEditing(false);
-              if (mode === 'supabase' && stakesEnabled()) void settleStake(snap.match.id).catch(() => undefined);
             });
           const leftGoals = snap.youAre === 'b' ? theirs : mine;
           const rightGoals = snap.youAre === 'b' ? mine : theirs;
@@ -273,14 +269,6 @@ export default function MatchScreen() {
                   />
                 </View>
               ) : null}
-              {mode === 'supabase' && stakesEnabled() && profile?.showDemo !== true ? (
-                <StakeCard
-                  match={snap.match}
-                  userId={userId!}
-                  youAre={snap.youAre}
-                  names={Object.fromEntries(Object.entries(snap.people).map(([id, p]) => [id, p.displayName]))}
-                />
-              ) : null}
               {confirmable && !editing && theirDraft ? (
                 <View style={styles.block}>
                   <SkewBlock color={colors.yellow} padH={10} padV={4}>
@@ -379,8 +367,6 @@ export default function MatchScreen() {
                         if (!draft) return;
                         await repo.submitReport(snap.match.id, userId!, draft);
                         track('report_submitted');
-                        // Si con este voto quedó confirmado y hay pozo, pagarlo ya (idempotente; el cron también lo hace).
-                        if (mode === 'supabase' && stakesEnabled()) void settleStake(snap.match.id).catch(() => undefined);
                       })
                     }
                   />
@@ -403,9 +389,6 @@ export default function MatchScreen() {
                     })
                   }
                 />
-              ) : null}
-              {mode === 'supabase' && snap.match.status === 'confirmed' ? (
-                <ChainCard match={snap.match} userId={userId!} canSign={snap.youAre !== 'other'} />
               ) : null}
               {snap.match.status === 'confirmed' && snap.youAre !== 'other' ? (
                 <Button

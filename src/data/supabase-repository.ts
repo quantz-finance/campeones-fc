@@ -86,9 +86,6 @@ function mapMatch(row: Row): Match {
     ratingBBefore: asNumber(row.rating_b_before),
     ratingDeltaA: asNumber(row.rating_delta_a),
     ratingDeltaB: asNumber(row.rating_delta_b),
-    chainStatus: asNullable(row.chain_status) as Match['chainStatus'],
-    chainTx: asNullable(row.chain_tx),
-    chainNetwork: asNullable(row.chain_network) as Match['chainNetwork'],
   };
 }
 
@@ -233,7 +230,6 @@ export function createSupabaseRepository(): Repository {
       .on('postgres_changes', watch('tournaments'), notify)
       .on('postgres_changes', watch('tournament_slots'), notify)
       .on('postgres_changes', watch('achievements'), notify)
-      .on('postgres_changes', watch('match_stakes'), notify)
       .on('postgres_changes', watch('notifications', `user_id=eq.${userId}`), notify);
     channel = next;
     next.subscribe((status) => {

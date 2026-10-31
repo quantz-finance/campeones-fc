@@ -2,8 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
-import { cavosSupported } from '../lib/cavos/config';
-import { useCavosEntry } from '../lib/cavos/use-entry';
+import { useGoogleEntry } from '../lib/google-auth';
 import { useApp } from '../state/app-provider';
 import { playIntro } from './audio';
 import { Avatar } from './avatar';
@@ -59,9 +58,8 @@ function SocialLink({ icon, label, url }: { icon: 'logo-instagram' | 'logo-x'; l
 
 export function Landing() {
   const app = useApp();
-  const { configured, phase, error, busy, openCavos, approveDevice, otherAccount } = useCavosEntry();
+  const { configured, error, busy, signIn } = useGoogleEntry();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
-  const cavosLabel = phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar';
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
@@ -72,7 +70,7 @@ export function Landing() {
 
   function enter() {
     playIntro();
-    openCavos();
+    signIn();
   }
 
   return (
@@ -126,44 +124,20 @@ export function Landing() {
           ))}
         </View>
       ) : configured ? (
-        phase === 'approve' ? (
-          <>
-            <Banner
-              tone="accent"
-              title="Confirma que eres tú"
-              body="Tu billetera de Cavos se creó en otro dispositivo. Usa tu passkey para traerla a este."
-            />
-            <Button label="Confirmar con mi passkey" onPress={approveDevice} />
-            <Button label="Entrar con otra cuenta" tone="ghost" onPress={() => void otherAccount()} />
-          </>
-        ) : phase === 'nokey' ? (
-          <>
-            <Banner
-              tone="warn"
-              title="Tu billetera está en otro dispositivo"
-              body="Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta."
-            />
-            <Button label="Entrar con otra cuenta" tone="ghost" onPress={() => void otherAccount()} />
-          </>
-        ) : (
-          <>
-            <Button label={cavosLabel} pending={busy} disabled={busy} onPress={enter} />
-            <Button label="Crear cuenta" tone="ghost" pending={busy} disabled={busy} onPress={enter} />
-            <T variant="tiny" color={colors.faint} style={styles.note}>
-              Google, Apple o correo. Si todavía no tienes cuenta, se crea en el mismo paso. El código puede caer en Spam.
-            </T>
-          </>
-        )
+        <>
+          <Button
+            label={busy ? 'Abriendo Google…' : 'Entrar con Google'}
+            icon={<Ionicons name="logo-google" size={18} color={colors.ink} />}
+            pending={busy}
+            disabled={busy}
+            onPress={enter}
+          />
+          <T variant="tiny" color={colors.faint} style={styles.note}>
+            Entras con tu cuenta de Google. Si es tu primera vez, tu perfil se crea en el mismo paso.
+          </T>
+        </>
       ) : (
-        <Banner
-          tone="warn"
-          title="Cavos no configurado"
-          body={
-            cavosSupported
-              ? 'La entrada con Cavos (Google, Apple o correo) se activa cuando el equipo agregue el appId de Cavos. Vuelve pronto.'
-              : 'Por ahora la entrada con Cavos funciona en la versión web. Ábrela desde el navegador.'
-          }
-        />
+        <Banner tone="warn" title="Entrada no disponible" body="La entrada con Google se activa cuando la app tenga su servidor configurado. Vuelve pronto." />
       )}
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
       <View style={styles.footer}>

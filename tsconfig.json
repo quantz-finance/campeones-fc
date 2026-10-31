@@ -12,6 +12,8 @@
     "scripts",
     "**/*.test.ts",
     "vitest.config.ts",
-    "api"
+    "e2e",
+    "playwright.config.ts",
+    "dist"
   ]
 }

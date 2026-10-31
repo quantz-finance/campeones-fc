@@ -14,11 +14,13 @@ export function getSupabase(): SupabaseClient {
     {
       auth: {
         // localStorage explícito (Safari/PWA en iPhone): la sesión de la app sobrevive a cerrar y reabrir.
-        // Se renueva sola con el refresh token; no depende del token de Cavos (~1 h).
+        // Se renueva sola con el refresh token.
         ...(typeof window !== 'undefined' && window.localStorage ? { storage: window.localStorage } : {}),
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: typeof window !== 'undefined',
+        // Google vuelve a /auth/callback con ?code=…; supabase-js lo canjea por la sesión (PKCE).
+        flowType: 'pkce',
       },
     },
   );

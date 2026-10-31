@@ -144,7 +144,7 @@ export function HomeSkeleton() {
   );
 }
 
-/** Detalle (partido, verificar, versus): marcador grande + bloques. */
+/** Detalle (partido, versus): marcador grande + bloques. */
 export function DetailSkeleton() {
   return (
     <Shimmer>
