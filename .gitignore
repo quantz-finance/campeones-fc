@@ -44,3 +44,12 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# e2e (Playwright)
+/e2e/.stack/
+/e2e/.stack.json
+/test-results/
+/playwright-report/
+/blob-report/
+/dist-e2e/
+/e2e/.vercel-state.json

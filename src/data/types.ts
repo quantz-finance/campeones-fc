@@ -22,6 +22,15 @@ export type Profile = {
 
 export type UserAccount = Profile & { email: string };
 
+/** Consentimiento guardado al crear la cuenta (Términos, Aviso de privacidad y edad). */
+export type Consent = {
+  termsVersion: string;
+  privacyVersion: string;
+  acceptedAt: string;
+  ageBand: '13_17' | '18_plus';
+  parentalAckAt: string | null;
+};
+
 export type Friendship = {
   id: string;
   requesterId: string;

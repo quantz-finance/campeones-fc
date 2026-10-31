@@ -28,7 +28,7 @@ self.addEventListener('fetch', (e) => {
   const r = e.request;
   if (r.method !== 'GET') return;
   const u = new URL(r.url);
-  if (u.origin !== self.location.origin) return; // Supabase, Cavos, Stellar, analítica: directo a la red.
+  if (u.origin !== self.location.origin) return; // Supabase y analítica: directo a la red.
   if (u.pathname.startsWith('/api/') || u.pathname === '/sw.js') return;
   if (/^\/(_expo\/static|assets)\//.test(u.pathname)) {
     e.respondWith(

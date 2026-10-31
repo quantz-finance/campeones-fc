@@ -68,6 +68,13 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
 
   return {
     mode: 'demo',
+    // Modo demostración (sin servidor): las cuentas de ejemplo no piden consentimiento.
+    async getConsent() {
+      return { termsVersion: 'demo', privacyVersion: 'demo', acceptedAt: new Date(0).toISOString(), ageBand: '18_plus' as const, parentalAckAt: null };
+    },
+    async recordConsent() {
+      return '18_plus' as const;
+    },
     async getProfile(userId) {
       const user = view().users.find((item) => item.id === userId);
       return user ? toProfile(user) : null;

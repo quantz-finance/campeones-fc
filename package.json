@@ -3,16 +3,12 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
-    "@cavos/kit": "0.4.4",
     "@expo-google-fonts/anton": "^0.4.2",
     "@expo-google-fonts/archivo": "^0.4.2",
     "@expo-google-fonts/sora": "^0.4.2",
     "@expo-google-fonts/space-grotesk": "^0.4.1",
     "@expo/vector-icons": "^15.0.2",
-    "@noble/hashes": "1.8.0",
-    "@stellar/stellar-sdk": "15.1.0",
     "@supabase/supabase-js": "^2.118.0",
-    "buffer": "6.0.3",
     "expo": "~58.0.19",
     "expo-constants": "~58.0.13",
     "expo-font": "~58.0.10",
@@ -23,8 +19,6 @@
     "expo-router": "~58.0.26",
     "expo-splash-screen": "~58.0.11",
     "expo-status-bar": "~58.0.4",
-    "jose": "5.10.0",
-    "posthog-js": "^1.438.21",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.0",
@@ -34,7 +28,9 @@
     "react-native-web": "^0.21.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/react": "~19.3.0",
+    "pg": "^8.23.1",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
   },
@@ -44,10 +40,14 @@
     "android": "expo start --android --port 8421",
     "ios": "expo start --ios --port 8421",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p api",
+    "typecheck": "tsc --noEmit",
     "build:web": "expo export -p web",
     "brand": "node --experimental-strip-types scripts/sync-brand.ts",
-    "postinstall": "node scripts/patch-cavos-kit.mjs"
+    "e2e:stack:up": "node e2e/stack/native-stack.mjs up",
+    "e2e:stack:down": "node e2e/stack/native-stack.mjs down",
+    "e2e:build": "node e2e/build.mjs",
+    "e2e": "playwright test",
+    "e2e:local": "node e2e/build.mjs && playwright test"
   },
   "private": true,
   "license": "MIT",

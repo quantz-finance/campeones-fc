@@ -48,7 +48,7 @@ const Row = memo(function Row({ row, index, me }: { row: RankRow; index: number;
 
 export default function Ranking() {
   const { repo, userId, version, mode, profile } = useApp();
-  const fake = appModeOf(profile, mode !== 'supabase') === 'fake';
+  const fake = appModeOf(profile, mode !== 'supabase') === 'prueba';
   const query = useQuery(() => repo.rankingSnapshot(userId!), [repo, userId, version]);
   const renderItem = useCallback(
     ({ item, index }: { item: RankRow; index: number }) => <Row row={item} index={index} me={item.playerId === userId} />,

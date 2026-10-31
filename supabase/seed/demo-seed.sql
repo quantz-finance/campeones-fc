@@ -1,7 +1,7 @@
 -- Campeones FC: datos de demo (GENERADO por scripts/demo/generate-demo-seed.mjs, no editar a mano).
 -- 50 jugadores, 6 grupos, 5 torneos, 807 partidos (780 confirmados).
 -- Todo queda registrado en public.demo_seed; supabase/seed/demo-cleanup.sql lo borra.
--- Los jugadores demo no pueden entrar: sin contraseña, sin identidad Cavos, correo @demo.campeonesfc.invalid.
+-- Los jugadores demo no pueden entrar: sin contraseña, sin cuenta de Google, correo @demo.campeonesfc.invalid.
 begin;
 
 create table if not exists public.demo_seed (

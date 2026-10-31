@@ -34,6 +34,8 @@ export function Button({
     <SportPress
       disabled={disabled || pending}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ disabled: disabled || pending, busy: pending }}
       style={[styles.hit, disabled && styles.dim, pending && styles.pending]}
     >
@@ -91,6 +93,7 @@ export function Field({
         autoCapitalize={autoCapitalize}
         autoCorrect={false}
         keyboardType={keyboardType}
+        accessibilityLabel={label}
         style={styles.input}
       />
     </View>

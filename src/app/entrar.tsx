@@ -1,8 +1,10 @@
 import { Redirect } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
-import { cavosSupported } from '../lib/cavos/config';
-import { useCavosEntry } from '../lib/cavos/use-entry';
+import { Ionicons } from '@expo/vector-icons';
+import { useSignIn } from '../lib/auth';
+import { writePendingConsent } from '../lib/pending-consent';
+import { ConsentForm, useConsentForm } from '../ui/consent-form';
 import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
 import { Affiliation, Wordmark } from '../ui/broadcast';
@@ -14,7 +16,8 @@ import { T } from '../ui/text';
 
 export default function Login() {
   const app = useApp();
-  const { configured, phase, error, busy, label, openCavos, approveDevice, otherAccount } = useCavosEntry();
+  const { configured, error, busy, signIn } = useSignIn('google');
+  const consent = useConsentForm();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
 
   // Después de todos los hooks: un return temprano antes de un hook rompe el orden (error #300 de React).
@@ -67,45 +70,24 @@ export default function Login() {
         </>
       ) : configured ? (
         <>
-          {phase === 'approve' ? (
-            <>
-              <Banner
-                tone="accent"
-                title="Confirma que eres tú"
-                body="Tu billetera de Cavos se creó en otro dispositivo. Usa tu passkey para traerla a este."
-              />
-              <Button label="Confirmar con mi passkey" onPress={approveDevice} />
-              <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
-            </>
-          ) : phase === 'nokey' ? (
-            <>
-              <Banner
-                tone="warn"
-                title="Tu billetera está en otro dispositivo"
-                body="Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta."
-              />
-              <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
-            </>
-          ) : (
-            <>
-              <Button label={label} disabled={busy} onPress={openCavos} />
-              <SpamHint />
-            </>
+          <ConsentForm form={consent} />
+          {consent.blocked ? null : (
+            <Button
+              label={busy ? 'Abriendo Google…' : 'Entrar con Google'}
+              icon={<Ionicons name="logo-google" size={18} color={colors.ink} />}
+              pending={busy}
+              disabled={busy || !consent.valid}
+              onPress={() => {
+                if (!consent.valid) return;
+                writePendingConsent(consent.draft);
+                signIn();
+              }}
+            />
           )}
-          <T color={colors.muted}>
-            Entra con Google, Apple o tu correo. Al entrar recibes tu billetera en Stellar y cada resultado que confirmen los dos queda registrado ahí.
-          </T>
+          <T color={colors.muted}>Entras con tu cuenta de Google. Si es tu primera vez, tu perfil se crea en el mismo paso.</T>
         </>
       ) : (
-        <Banner
-          tone="warn"
-          title="Cavos no configurado"
-          body={
-            cavosSupported
-              ? 'La entrada con Cavos (Google, Apple o correo) se activa cuando el equipo agregue el appId de Cavos. Vuelve pronto.'
-              : 'Por ahora la entrada con Cavos funciona en la versión web. Ábrela desde el navegador.'
-          }
-        />
+        <Banner tone="warn" title="Entrada no disponible" body="La entrada con Google se activa cuando la app tenga su servidor configurado. Vuelve pronto." />
       )}
 
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
@@ -113,17 +95,7 @@ export default function Login() {
   );
 }
 
-/** Los códigos de Cavos suelen caer en Spam (Gmail): avisarlo fuera del modal. */
-function SpamHint() {
-  return (
-    <T style={styles.hintText} color={colors.muted}>
-      El correo con tu código puede llegar a Spam. Revísalo si no lo ves.
-    </T>
-  );
-}
-
 const styles = StyleSheet.create({
-  hintText: { fontSize: 14, lineHeight: 20 },
   hero: { gap: space.md, paddingTop: space.lg, paddingRight: 62 },
   stripe: { flexDirection: 'row', height: 4 },
   bit: { flex: 1 },
