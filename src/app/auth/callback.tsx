@@ -1,6 +1,6 @@
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { oauthErrorFrom } from '../../lib/google-auth';
+import { oauthErrorFrom } from '../../lib/auth';
 import { useApp } from '../../state/app-provider';
 import { Banner, Button, Loading } from '../../ui/controls';
 import { replace } from '../../ui/nav';

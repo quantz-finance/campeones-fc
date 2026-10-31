@@ -9,6 +9,7 @@ import { startPwaUpdates } from '../lib/pwa-update';
 import { AppProvider, useAppMaybe } from '../state/app-provider';
 import { colors } from '../ui/theme';
 import { TransitionHost } from '../ui/transition';
+import { AnalyticsNotice } from '../ui/analytics-notice';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -34,6 +35,7 @@ export default function RootLayout() {
         <TransitionHost>
           <BootSplash />
           <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: colors.bg } }} />
+          <AnalyticsNotice />
         </TransitionHost>
       </AppProvider>
     </SafeAreaProvider>

@@ -19,7 +19,6 @@
     "expo-router": "~58.0.26",
     "expo-splash-screen": "~58.0.11",
     "expo-status-bar": "~58.0.4",
-    "posthog-js": "^1.438.21",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.0",
@@ -31,6 +30,7 @@
   "devDependencies": {
     "@playwright/test": "^1.64.1",
     "@types/react": "~19.3.0",
+    "pg": "^8.23.1",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
   },
@@ -42,7 +42,12 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build:web": "expo export -p web",
-    "brand": "node --experimental-strip-types scripts/sync-brand.ts"
+    "brand": "node --experimental-strip-types scripts/sync-brand.ts",
+    "e2e:stack:up": "node e2e/stack/native-stack.mjs up",
+    "e2e:stack:down": "node e2e/stack/native-stack.mjs down",
+    "e2e:build": "node e2e/build.mjs",
+    "e2e": "playwright test",
+    "e2e:local": "node e2e/build.mjs && playwright test"
   },
   "private": true,
   "license": "MIT",

@@ -256,6 +256,8 @@ export default function Profile() {
         <Button label="Amigos" tone="ghost" onPress={() => push('/amigos')} />
         <Button label="Ranking" tone="ghost" onPress={() => push('/ranking')} />
         <Button label="Trofeos" tone="ghost" onPress={() => push('/trofeos')} />
+        <Button label="Términos de uso" tone="ghost" onPress={() => push('/terminos')} />
+        <Button label="Aviso de privacidad" tone="ghost" onPress={() => push('/privacidad')} />
       </View>
       {app.mode === 'demo' ? <Button label="Restablecer datos de demostración" tone="ghost" onPress={() => void app.repo.resetDemo()} /> : null}
       <Button label="Cerrar sesión" tone="danger" onPress={() => void app.signOut()} />

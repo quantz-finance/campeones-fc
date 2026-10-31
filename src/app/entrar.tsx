@@ -2,7 +2,9 @@ import { Redirect } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
 import { Ionicons } from '@expo/vector-icons';
-import { useGoogleEntry } from '../lib/google-auth';
+import { useSignIn } from '../lib/auth';
+import { writePendingConsent } from '../lib/pending-consent';
+import { ConsentForm, useConsentForm } from '../ui/consent-form';
 import { useApp } from '../state/app-provider';
 import { Avatar } from '../ui/avatar';
 import { Affiliation, Wordmark } from '../ui/broadcast';
@@ -14,7 +16,8 @@ import { T } from '../ui/text';
 
 export default function Login() {
   const app = useApp();
-  const { configured, error, busy, signIn } = useGoogleEntry();
+  const { configured, error, busy, signIn } = useSignIn('google');
+  const consent = useConsentForm();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
 
   // Después de todos los hooks: un return temprano antes de un hook rompe el orden (error #300 de React).
@@ -67,13 +70,20 @@ export default function Login() {
         </>
       ) : configured ? (
         <>
-          <Button
-            label={busy ? 'Abriendo Google…' : 'Entrar con Google'}
-            icon={<Ionicons name="logo-google" size={18} color={colors.ink} />}
-            pending={busy}
-            disabled={busy}
-            onPress={signIn}
-          />
+          <ConsentForm form={consent} />
+          {consent.blocked ? null : (
+            <Button
+              label={busy ? 'Abriendo Google…' : 'Entrar con Google'}
+              icon={<Ionicons name="logo-google" size={18} color={colors.ink} />}
+              pending={busy}
+              disabled={busy || !consent.valid}
+              onPress={() => {
+                if (!consent.valid) return;
+                writePendingConsent(consent.draft);
+                signIn();
+              }}
+            />
+          )}
           <T color={colors.muted}>Entras con tu cuenta de Google. Si es tu primera vez, tu perfil se crea en el mismo paso.</T>
         </>
       ) : (

@@ -99,7 +99,7 @@ npx expo export -p web
 
 Eso deja una PWA estática en `dist/`. `vercel.json` usa ese comando, publica `dist` y reescribe cualquier ruta a `index.html` (el enlace `/i/tu-codigo` y `/auth/callback` son del cliente). Vercel sirve primero los archivos que sí existen.
 
-`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_POSTHOG_KEY` y `EXPO_PUBLIC_POSTHOG_HOST` se incrustan en el bundle. Defínelas en el entorno de build, no después. Sin la clave de PostHog, la analítica no hace nada y no se envían correos.
+`EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` se incrustan en el bundle. Defínelas en el entorno de build, no después. No hay analítica conectada: `src/lib/analytics.ts` es un adaptador apagado (aviso visible, sin grabación de sesión y con opción de excluirse cuando se active).
 
 Sirve la PWA por HTTPS para poder instalarla. El service worker no guarda caché: cada petición va a la red, así que un deploy nuevo se ve al recargar.
 
@@ -113,7 +113,7 @@ Para activarlo en un proyecto de Supabase:
 
 1. En Google Cloud, crea un cliente OAuth «Aplicación web» con la URI de redirección `https://<ref>.supabase.co/auth/v1/callback`.
 2. En Supabase › Authentication › Providers › Google, pega el client ID y el secret y actívalo.
-3. En Supabase › Authentication › URL Configuration, agrega a las redirecciones permitidas `https://campeones-fc.vercel.app/auth/callback` y, para las previews, `https://campeones-fc-*-quantz4.vercel.app/**`.
+3. En Supabase › Authentication › URL Configuration, agrega a las redirecciones permitidas `https://campeones-fc.vercel.app/auth/callback` y, para las previews, el patrón de sus URLs (`https://<proyecto>-*-<equipo>.vercel.app/**`).
 
 ## Pruebas de punta a punta (Playwright)
 
@@ -121,11 +121,13 @@ Ver `e2e/README.md`. Resumen:
 
 ```bash
 npx playwright install chromium
-npm run e2e            # build local contra un Supabase local (aislado)
-E2E_BASE_URL=https://<preview>.vercel.app npm run e2e   # la preview, con el backend redirigido al Supabase local
+npm run e2e:stack:up   # Supabase local y desechable (sin Docker)
+npm run e2e:local      # build de la app contra ese Supabase y corre las pruebas
+E2E_BASE_URL=https://<preview>.vercel.app E2E_APP_SUPABASE_URL=https://<ref>.supabase.co npm run e2e   # la preview, con el backend redirigido al Supabase local
+npm run e2e:stack:down
 ```
 
-Las pruebas que escriben datos corren SOLO contra un Supabase local; nunca escriben en la base compartida.
+Las pruebas que escriben datos corren SOLO contra un Supabase local; nunca escriben en la base compartida. Para probar a mano el inicio de sesión real con Google, sigue `docs/checklist-google.md`. Para iOS, ver `docs/ios.md`.
 
 ## Qué queda fuera de esta V1
 

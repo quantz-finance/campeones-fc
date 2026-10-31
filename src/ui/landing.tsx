@@ -2,14 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
-import { useGoogleEntry } from '../lib/google-auth';
+import { useSignIn } from '../lib/auth';
+import { writePendingConsent } from '../lib/pending-consent';
+import { ConsentForm, useConsentForm } from './consent-form';
 import { useApp } from '../state/app-provider';
 import { playIntro } from './audio';
 import { Avatar } from './avatar';
 import { Affiliation, SkewBlock, Toro } from './broadcast';
 import { Banner, Button } from './controls';
 import { BroadcastView, cssAnim, useReducedMotion } from './motion';
-import { transit } from './nav';
+import { push, transit } from './nav';
 import { SportPress } from './press';
 import { Screen } from './screen';
 import { openExternal } from './share';
@@ -58,7 +60,8 @@ function SocialLink({ icon, label, url }: { icon: 'logo-instagram' | 'logo-x'; l
 
 export function Landing() {
   const app = useApp();
-  const { configured, error, busy, signIn } = useGoogleEntry();
+  const { configured, error, busy, signIn } = useSignIn('google');
+  const consent = useConsentForm();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
 
   useEffect(() => {
@@ -69,7 +72,9 @@ export function Landing() {
   }, []);
 
   function enter() {
+    if (!consent.valid) return;
     playIntro();
+    writePendingConsent(consent.draft);
     signIn();
   }
 
@@ -125,13 +130,16 @@ export function Landing() {
         </View>
       ) : configured ? (
         <>
-          <Button
-            label={busy ? 'Abriendo Google…' : 'Entrar con Google'}
-            icon={<Ionicons name="logo-google" size={18} color={colors.ink} />}
-            pending={busy}
-            disabled={busy}
-            onPress={enter}
-          />
+          <ConsentForm form={consent} />
+          {consent.blocked ? null : (
+            <Button
+              label={busy ? 'Abriendo Google…' : 'Entrar con Google'}
+              icon={<Ionicons name="logo-google" size={18} color={colors.ink} />}
+              pending={busy}
+              disabled={busy || !consent.valid}
+              onPress={enter}
+            />
+          )}
           <T variant="tiny" color={colors.faint} style={styles.note}>
             Entras con tu cuenta de Google. Si es tu primera vez, tu perfil se crea en el mismo paso.
           </T>
@@ -144,6 +152,14 @@ export function Landing() {
         <View style={styles.socials}>
           <SocialLink icon="logo-instagram" label="Instagram" url={branding.social.instagram} />
           <SocialLink icon="logo-x" label="X" url={branding.social.x} />
+        </View>
+        <View style={styles.socials}>
+          <SportPress accessibilityRole="link" onPress={() => push('/terminos')}>
+            <T variant="tiny" color={colors.muted}>Términos de uso</T>
+          </SportPress>
+          <SportPress accessibilityRole="link" onPress={() => push('/privacidad')}>
+            <T variant="tiny" color={colors.muted}>Aviso de privacidad</T>
+          </SportPress>
         </View>
         <T variant="tiny" color={colors.faint}>
           {branding.company} · {branding.country}

@@ -9,6 +9,8 @@ import type { Notice } from '../data/notices';
 import { initAnalytics, track } from '../lib/analytics';
 import { backendMode, type BackendMode } from '../lib/env';
 import { getSupabase } from '../lib/supabase';
+import { readPendingConsent, writePendingConsent } from '../lib/pending-consent';
+import { checkConsent } from '../domain/consent';
 
 export type Flash = { id: string; title: string; body?: string; href?: string; tone?: 'accent' | 'danger' };
 
@@ -26,6 +28,10 @@ type AppValue = {
   /** Aviso local de un momento (p. ej. la invitación se usó al entrar). */
   flash: Flash | null;
   showFlash: (next: Flash | null) => void;
+  /** Consentimiento de la cuenta: hasta que esté 'ok' la app muestra /consentimiento. */
+  consent: 'loading' | 'ok' | 'missing';
+  consentError: string | null;
+  refreshConsent: () => void;
   signInDemo: (userId: string) => void;
   signOut: () => Promise<void>;
   refresh: () => void;
@@ -42,6 +48,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [version, setVersion] = useState(0);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [flash, setFlash] = useState<Flash | null>(null);
+  const [consent, setConsent] = useState<'loading' | 'ok' | 'missing'>('loading');
+  const [consentError, setConsentError] = useState<string | null>(null);
+  const [consentTick, setConsentTick] = useState(0);
 
   useEffect(() => {
     initAnalytics();
@@ -89,6 +98,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       active = false;
     };
   }, [repo, userId, version]);
+
+  // Consentimiento: si la persona aceptó en la entrada antes de ir a Google, se guarda ahora en el servidor.
+  useEffect(() => {
+    if (!repo || !userId) {
+      setConsent('loading');
+      return;
+    }
+    let active = true;
+    void (async () => {
+      try {
+        let current = await repo.getConsent(userId);
+        const pending = readPendingConsent();
+        if (!current && pending && checkConsent(pending).ok) {
+          await repo.recordConsent(userId, pending);
+          current = await repo.getConsent(userId);
+        }
+        if (pending) writePendingConsent(null);
+        if (!active) return;
+        setConsentError(null);
+        setConsent(current ? 'ok' : 'missing');
+      } catch (cause) {
+        if (!active) return;
+        setConsentError(cause instanceof Error ? cause.message : 'No pudimos guardar tu consentimiento.');
+        setConsent('missing');
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [repo, userId, consentTick]);
 
   useEffect(() => {
     if (!repo || !userId) {
@@ -213,6 +252,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       markNoticesRead,
       flash,
       showFlash: setFlash,
+      consent,
+      consentError,
+      refreshConsent() {
+        setConsentTick((n) => n + 1);
+      },
       signInDemo(nextId: string) {
         writeDemoSession(nextId);
         setUserId(nextId);
@@ -224,6 +268,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           await getSupabase().auth.signOut({ scope: 'local' });
         }
         writeDemoSession(null);
+        writePendingConsent(null);
         setUserId(null);
         setProfile(null);
       },
@@ -231,7 +276,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setVersion((current) => current + 1);
       },
     };
-  }, [flash, markNoticesRead, mode, notices, profile, ready, repo, userId, version]);
+  }, [consent, consentError, flash, markNoticesRead, mode, notices, profile, ready, repo, userId, version]);
 
   if (mode === 'invalid' || !value) {
     return <InvalidEnv />;
