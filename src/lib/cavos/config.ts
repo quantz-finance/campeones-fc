@@ -1,9 +1,13 @@
 // Configuración pública de Cavos (se incrusta en el bundle).
 import { Platform } from 'react-native';
+import { resolveRpId } from './rp-id';
 
 export const CAVOS_APP_ID = (process.env.EXPO_PUBLIC_CAVOS_APP_ID ?? '').trim();
 /** rpId para passkeys. No se cambia después de lanzar sin migrar passkeys. */
-export const CAVOS_RP_ID = (process.env.EXPO_PUBLIC_CAVOS_RP_ID ?? 'campeones-fc.vercel.app').trim();
+const ENV_RP_ID = (process.env.EXPO_PUBLIC_CAVOS_RP_ID ?? 'campeones-fc.vercel.app').trim();
+/** En web sale del host (partido.campeonesfc.app -> campeonesfc.app); en nativo, siempre el del entorno. */
+export const CAVOS_RP_ID =
+  Platform.OS === 'web' && typeof window !== 'undefined' ? resolveRpId(window.location?.hostname, ENV_RP_ID) : ENV_RP_ID;
 export const STELLAR_NETWORK: 'testnet' | 'mainnet' = process.env.EXPO_PUBLIC_STELLAR_NETWORK === 'mainnet' ? 'mainnet' : 'testnet';
 /** Ranura de la llave del dispositivo y sal de HKDF de la billetera. NUNCA cambiarla: cambiaría la dirección. */
 export const APP_SALT = 'campeones-fc';
