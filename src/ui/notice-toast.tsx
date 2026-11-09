@@ -1,7 +1,7 @@
 // Aviso flotante (abajo) cuando llega algo nuevo: amigo que entró por tu enlace, reto, resultado por confirmar…
 import { Ionicons } from '@expo/vector-icons';
 import { usePathname } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { noticeCopy } from '../data/notices';
@@ -17,6 +17,12 @@ const slideFrames = {
   to: { opacity: 1, transform: [{ translateY: 0 }] },
 };
 
+const leaveFrames = {
+  from: { opacity: 1, transform: [{ translateY: 0 }, { scale: 1 }] },
+  to: { opacity: 0, transform: [{ translateY: 18 }, { scale: 0.97 }] },
+};
+const LEAVE_MS = 180;
+
 type Toast = { id: string; noticeId?: string; title: string; body?: string; href?: string; tone?: 'accent' | 'danger'; more: number };
 
 const FRESH_MS = 10 * 60_000;
@@ -31,7 +37,26 @@ export function NoticeToast() {
   const seen = useRef<Set<string> | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [settledId, setSettledId] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState(false);
   const web = Platform.OS === 'web';
+
+  // Salida corta (opacity + transform) antes de quitar el aviso; sin animación si se pidió menos movimiento.
+  const dismiss = useCallback(() => {
+    if (reduced || !web) {
+      setToast(null);
+      return;
+    }
+    setLeaving(true);
+  }, [reduced, web]);
+
+  useEffect(() => {
+    if (!leaving) return;
+    const t = setTimeout(() => {
+      setToast(null);
+      setLeaving(false);
+    }, LEAVE_MS);
+    return () => clearTimeout(t);
+  }, [leaving]);
 
   useEffect(() => {
     const unread = notices.filter((n) => !n.readAt);
@@ -57,9 +82,10 @@ export function NoticeToast() {
 
   useEffect(() => {
     if (!toast) return;
-    const timer = setTimeout(() => setToast(null), SHOW_MS);
+    setLeaving(false);
+    const timer = setTimeout(dismiss, SHOW_MS);
     return () => clearTimeout(timer);
-  }, [toast]);
+  }, [toast, dismiss]);
 
   useEffect(() => {
     if (!toast || reduced || !web) return;
@@ -73,13 +99,16 @@ export function NoticeToast() {
   const sliding = !reduced && web && settledId !== toast.id;
   return (
     <View style={[styles.wrap, { bottom }]} pointerEvents="box-none">
-      <View key={toast.id} style={sliding ? cssAnim(slideFrames, 280) : null}>
+      <View
+        key={toast.id}
+        style={leaving ? cssAnim(leaveFrames, LEAVE_MS, 0, { animationFillMode: 'forwards' }) : sliding ? cssAnim(slideFrames, 280) : null}
+      >
         <Pressable
           accessibilityRole="alert"
           style={[styles.card, { borderLeftColor: danger ? colors.danger : colors.accent }]}
           onPress={() => {
             if (toast.noticeId) markNoticesRead([toast.noticeId]);
-            setToast(null);
+            dismiss();
             if (toast.href) push(toast.href as never);
           }}
         >
@@ -99,7 +128,7 @@ export function NoticeToast() {
               </T>
             ) : null}
           </View>
-          <Pressable accessibilityLabel="Cerrar aviso" hitSlop={10} onPress={() => setToast(null)}>
+          <Pressable accessibilityLabel="Cerrar aviso" hitSlop={10} onPress={dismiss}>
             <Ionicons name="close" size={18} color={colors.muted} />
           </Pressable>
         </Pressable>
@@ -121,7 +150,7 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderWidth: 1,
     borderLeftWidth: 4,
-    borderRadius: 2,
+    borderRadius: 14,
   },
   copy: { flex: 1, gap: 2 },
 });

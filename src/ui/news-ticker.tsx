@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  AccessibilityInfo,
   Animated,
   Easing,
   Platform,
@@ -9,6 +8,7 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import { Toro } from './broadcast';
+import { cssAnim, useReducedMotion } from './motion';
 import { colors } from './theme';
 import { T } from './text';
 
@@ -20,21 +20,9 @@ export const TICKER_SPACE = TICKER_BAR;
 const SPEED = 40; // px por segundo, ritmo de cinta de tele
 const ROTATE_MS = 6000;
 
-function useReduceMotion(): boolean {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((value) => alive && setReduce(value))
-      .catch(() => {});
-    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', (value: boolean) => setReduce(value));
-    return () => {
-      alive = false;
-      sub?.remove?.();
-    };
-  }, []);
-  return reduce;
-}
+const web = Platform.OS === 'web';
+// En web basta un View: el movimiento lo hace el CSS, no `Animated`.
+const Row = (web ? View : Animated.View) as typeof Animated.View;
 
 function Items({ items }: { items: string[] }) {
   return (
@@ -57,13 +45,15 @@ function Items({ items }: { items: string[] }) {
  * Cinta de noticias tipo tele, fija abajo del inicio: los titulares corriendo de derecha a izquierda.
  */
 export function NewsTicker({ items }: { items: string[] }) {
-  const reduce = useReduceMotion();
+  const reduce = useReducedMotion();
   const shift = useRef(new Animated.Value(0)).current;
   const [copyWidth, setCopyWidth] = useState(0);
   const [index, setIndex] = useState(0);
   const key = items.join('|');
 
   useEffect(() => {
+    // En web la cinta corre con una animación CSS en el compositor (ver `cssLoop`), no en JS.
+    if (web) return;
     if (reduce || copyWidth <= 0) {
       shift.setValue(0);
       return;
@@ -115,18 +105,29 @@ export function NewsTicker({ items }: { items: string[] }) {
               </T>
             </View>
           ) : (
-            <Animated.View style={[styles.row, { transform: [{ translateX: shift }] }]}>
+            <Row style={[styles.row, web ? cssLoop(copyWidth) : { transform: [{ translateX: shift }] }]}>
               <View style={styles.copy} onLayout={onCopy}>
                 <Items items={items} />
               </View>
               <View style={styles.copy} aria-hidden importantForAccessibility="no-hide-descendants">
                 <Items items={items} />
               </View>
-            </Animated.View>
+            </Row>
           )}
         </View>
       </View>
     </View>
+  );
+}
+
+/** Bucle infinito de la cinta en CSS: solo transform, corre en el hilo del compositor. */
+function cssLoop(width: number) {
+  if (width <= 0) return null;
+  return cssAnim(
+    { from: { transform: [{ translateX: 0 }] }, to: { transform: [{ translateX: -width }] } },
+    Math.round((width / SPEED) * 1000),
+    0,
+    { animationTimingFunction: 'linear', animationIterationCount: 'infinite', animationFillMode: 'none' },
   );
 }
 

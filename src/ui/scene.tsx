@@ -86,7 +86,7 @@ export function BroadcastSlash() {
           style={[
             styles.slash,
             { backgroundColor: color, top: 72 + index * 86 },
-            cssAnim(slashFrames, EXIT_MS + 40, index * 28, { animationTimingFunction: EASE_IN }),
+            cssAnim(slashFrames, EXIT_MS + 40, index * 28, { animationTimingFunction: EASE_IN, animationFillMode: 'both' }),
           ]}
         />
       ))}

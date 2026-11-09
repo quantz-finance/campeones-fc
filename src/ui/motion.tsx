@@ -111,20 +111,83 @@ const growKeyframes = {
   to: { opacity: 1, transform: [{ scaleX: 1 }, { skewX: '0deg' }] },
 };
 
-export function cssAnim(keyframes: object, ms: number, delay = 0, extra: object = {}) {
+/*
+ * react-native-web descarta `animationKeyframes` en estilos en línea: sin nombre, el CSS nunca corría.
+ * Registramos nosotros los @keyframes (una vez por forma) y pasamos solo `animationName`.
+ */
+const UNITLESS = new Set(['opacity', 'scale', 'scaleX', 'scaleY', 'zIndex', 'flex']);
+const kfCache = new Map<string, string>();
+let kfSheet: CSSStyleSheet | null = null;
+
+function cssValue(prop: string, value: unknown): string {
+  return typeof value === 'number' && !UNITLESS.has(prop) ? `${value}px` : String(value);
+}
+
+function cssTransform(list: Record<string, unknown>[]): string {
+  return list
+    .map((part) => Object.entries(part).map(([fn, value]) => `${fn}(${cssValue(fn, value)})`).join(' '))
+    .join(' ');
+}
+
+function hash(text: string): string {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+function keyframesName(keyframes: object, salt: string): string | undefined {
+  if (!web || typeof document === 'undefined') return undefined;
+  const key = JSON.stringify(keyframes) + salt;
+  const known = kfCache.get(key);
+  if (known) return known;
+  const name = `cfc-${hash(key)}`;
+  try {
+    if (!kfSheet) {
+      const tag = document.createElement('style');
+      tag.id = 'cfc-motion';
+      document.head.appendChild(tag);
+      kfSheet = tag.sheet;
+    }
+    const steps = Object.entries(keyframes as Record<string, Record<string, unknown>>)
+      .map(([at, frame]) => {
+        const body = Object.entries(frame)
+          .map(([prop, value]) =>
+            prop === 'transform'
+              ? `transform:${cssTransform(value as Record<string, unknown>[])}`
+              : `${prop.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}:${cssValue(prop, value)}`,
+          )
+          .join(';');
+        return `${at}{${body}}`;
+      })
+      .join('');
+    kfSheet?.insertRule(`@keyframes ${name}{${steps}}`, kfSheet.cssRules.length);
+  } catch {
+    return undefined;
+  }
+  kfCache.set(key, name);
+  return name;
+}
+
+/**
+ * Animación CSS (solo web): transform/opacity en el compositor.
+ * `salt` cambia el nombre de la animación para volver a correrla sin remontar.
+ */
+export function cssAnim(keyframes: object, ms: number, delay = 0, extra: object = {}, salt = '') {
   return {
-    animationKeyframes: keyframes,
+    animationName: keyframesName(keyframes, salt),
     animationDuration: `${ms}ms`,
     animationDelay: `${delay}ms`,
     animationTimingFunction: EASE_OUT,
-    animationFillMode: 'both',
+    // backwards: oculto durante el retardo y, al terminar, vuelve al estilo normal (identidad).
+    // Así el navegador suelta la capa del compositor en vez de dejarla "llenando" para siempre.
+    animationFillMode: 'backwards',
     ...extra,
   } as unknown as ViewStyle;
 }
 
 /**
  * Pieza de transmisión. Entra sesgada desde la izquierda y, al cambiar de pantalla, sale hacia la derecha.
- * `replay` cambia el retardo en una fracción de milisegundo para reiniciar el CSS sin remontar hijos.
+ * `replay` cambia el nombre de la animación para reiniciar el CSS sin remontar hijos.
  */
 export function BroadcastView({
   index = 0,
@@ -171,12 +234,14 @@ export function BroadcastView({
     if (!web || reduced) return null;
     const exiting = mode === 'exit';
     const delay = exiting ? staggerDelay(index, EXIT_STAGGER_MS, EXIT_STAGGER_CAP) : staggerDelay(index);
-    // El replay entra en el retardo para que el nombre de la animación cambie y el CSS vuelva a correr.
-    const nudged = delay + replay * 0.01;
+    // El replay cambia el nombre de la animación (salt) para que el CSS vuelva a correr.
+    const nudged = delay;
     return cssAnim(exiting ? exitFrames(variant) : enterFrames(variant), exiting ? EXIT_MS : ENTER_MS, nudged, {
       animationTimingFunction: exiting ? EASE_IN : EASE_OUT,
       animationDelay: `${nudged}ms`,
-    });
+      // La salida sí se queda en su último cuadro (fuera de la vista) hasta desmontar.
+      animationFillMode: exiting ? 'both' : 'backwards',
+    }, `${mode}${replay % 2}`);
   }, [mode, reduced, index, variant, replay]);
 
   if (reduced) return <View style={style}>{children}</View>;
@@ -259,9 +324,88 @@ export function GrowX({ style }: { style?: StyleProp<ViewStyle> }) {
   return <View style={[style, cssAnim(growKeyframes, 520), web ? ({ transformOrigin: 'left center' } as object) : null]} />;
 }
 
+// ── Conteos ────────────────────────────────────────────────────────────────────
+// En web no re-renderizamos React en cada frame: se pinta el valor final y un único
+// reloj compartido (un solo requestAnimationFrame para todos los contadores) reescribe
+// el nodo de texto. Así 20 filas del ranking contando no generan 20 re-renders × 40 frames.
+
+type RollTask = { start: number; step: (eased: number) => void; done: () => void };
+const rollTasks = new Set<RollTask>();
+let rollFrame = 0;
+
+function rollLoop(now: number) {
+  rollFrame = 0;
+  for (const task of rollTasks) {
+    const p = Math.min(1, (now - task.start) / COUNT_MS);
+    if (p >= 1) {
+      rollTasks.delete(task);
+      task.done();
+    } else task.step(1 - (1 - p) ** 3);
+  }
+  if (rollTasks.size) rollFrame = requestAnimationFrame(rollLoop);
+}
+
+function startRoll(task: RollTask): () => void {
+  rollTasks.add(task);
+  if (!rollFrame) rollFrame = requestAnimationFrame(rollLoop);
+  return () => {
+    rollTasks.delete(task);
+  };
+}
+
+/** Busca el nodo de texto que muestra `text` dentro de `root`. */
+function findTextNode(root: unknown, text: string): Text | null {
+  if (!root || typeof document === 'undefined' || !(root instanceof Node)) return null;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) if (n.nodeValue === text) return n as Text;
+  return null;
+}
+
+const contents = web ? ({ display: 'contents' } as unknown as ViewStyle) : undefined;
+
+/** Contador web: renderiza `final` una vez y anima el texto en el DOM. */
+function DomRoll({ final, at, children }: { final: string; at: (eased: number) => string; children: ReactNode }) {
+  const ref = useRef<unknown>(null);
+  const atRef = useRef(at);
+  atRef.current = at;
+  useEffect(() => {
+    const node = findTextNode(ref.current, final);
+    if (!node) return;
+    node.nodeValue = atRef.current(0);
+    const stop = startRoll({
+      start: performance.now(),
+      step: (e) => {
+        node.nodeValue = atRef.current(e);
+      },
+      done: () => {
+        node.nodeValue = final;
+      },
+    });
+    return () => {
+      stop();
+      node.nodeValue = final;
+    };
+  }, [final]);
+  return (
+    <View ref={ref as never} style={contents}>
+      {children}
+    </View>
+  );
+}
+
 /** Cuenta un número de 0 al valor, o deja el texto quieto si no es una cifra simple. */
 export function CountUp({ value, children }: { value: string; children: (shown: string) => ReactNode }) {
   const reduced = useReducedMotion();
+  const roll = rollTarget(value);
+  if (!web || reduced || !roll) return <NativeCountUp value={value} reduced={reduced}>{children}</NativeCountUp>;
+  return (
+    <DomRoll final={value} at={(e) => `${roll.prefix}${formatRoll(roll.target, e, roll.decimals, roll.decimalComma)}${roll.suffix}`}>
+      {children(value)}
+    </DomRoll>
+  );
+}
+
+function NativeCountUp({ value, reduced, children }: { value: string; reduced: boolean; children: (shown: string) => ReactNode }) {
   const roll = rollTarget(value);
   const [progress, setProgress] = useState(reduced || !roll ? 1 : 0);
   useEffect(() => {
@@ -271,15 +415,7 @@ export function CountUp({ value, children }: { value: string; children: (shown: 
       return;
     }
     setProgress(0);
-    const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
-    let frame = 0;
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - start) / COUNT_MS);
-      setProgress(1 - (1 - p) ** 3);
-      if (p < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    return startRoll({ start: performance.now(), step: setProgress, done: () => setProgress(1) });
   }, [value, reduced]);
   if (!roll) return <>{children(value)}</>;
   const shown = `${roll.prefix}${formatRoll(roll.target, progress, roll.decimals, roll.decimalComma)}${roll.suffix}`;
@@ -297,22 +433,36 @@ export function CountRoll({
   children: (shown: string) => ReactNode;
 }) {
   const reduced = useReducedMotion();
+  const ok = Number.isFinite(value);
+  if (web && !reduced && ok) {
+    return (
+      <DomRoll final={format(value)} at={(e) => format(value * e)}>
+        {children(format(value))}
+      </DomRoll>
+    );
+  }
+  return <NativeCountRoll value={value} format={format} reduced={reduced || !ok}>{children}</NativeCountRoll>;
+}
+
+function NativeCountRoll({
+  value,
+  format,
+  reduced,
+  children,
+}: {
+  value: number;
+  format: (n: number) => string;
+  reduced: boolean;
+  children: (shown: string) => ReactNode;
+}) {
   const [progress, setProgress] = useState(reduced ? 1 : 0);
   useEffect(() => {
-    if (reduced || !Number.isFinite(value)) {
+    if (reduced) {
       setProgress(1);
       return;
     }
     setProgress(0);
-    const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
-    let frame = 0;
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - start) / COUNT_MS);
-      setProgress(1 - (1 - p) ** 3);
-      if (p < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    return startRoll({ start: performance.now(), step: setProgress, done: () => setProgress(1) });
   }, [value, reduced]);
   return <>{children(format(value * progress))}</>;
 }

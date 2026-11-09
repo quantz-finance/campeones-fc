@@ -61,7 +61,7 @@ export function SportPress({
       }}
       style={({ pressed }) => {
         const base = typeof style === 'function' ? style(pressed, hover) : style;
-        return [base, !reduced && hover && !pressed && !disabled ? styles.hover : null, !reduced && pressed && !disabled ? styles.pressed : null];
+        return [base, !reduced && web ? styles.ease : null, !reduced && hover && !pressed && !disabled ? styles.hover : null, !reduced && pressed && !disabled ? styles.pressed : null];
       }}
     >
       {({ pressed }) => (typeof children === 'function' ? children({ pressed, glint }) : children)}
@@ -69,7 +69,11 @@ export function SportPress({
   );
 }
 
+const web = Platform.OS === 'web';
+
 const styles = StyleSheet.create({
+  // Respuesta al toque suave: el navegador interpola el transform en el compositor.
+  ease: { transitionProperty: 'transform', transitionDuration: '140ms', transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' } as object,
   hover: { transform: [{ translateY: -2 }] },
   pressed: { transform: [{ scale: 0.97 }, { translateY: 1 }] },
   shine: {
