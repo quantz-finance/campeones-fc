@@ -14,12 +14,28 @@ export const POPUP_CLOSED = 'Cerraste la ventana antes de terminar. Vuelve a int
 export const RELOGIN = 'Tu sesión de Cavos terminó. Vuelve a entrar con la misma cuenta.';
 export const PASSKEY = 'No pudimos crear tu passkey en este navegador. Puedes saltar este paso y seguir.';
 export const GENERIC = 'No pudimos completar la entrada con Cavos. Vuelve a intentarlo en un momento.';
+export const ENCLAVE = 'Cavos está actualizando su seguridad y no pudimos verificar tu código. Pide un código nuevo en unos minutos; si sigue pasando, avísale al equipo de Campeones FC.';
+
+/** Texto técnico apto para el log del servidor: sin correos, sin tokens largos, recortado. */
+export function sanitizeAuthError(raw: unknown): string {
+  return String(raw ?? '')
+    .replace(/[^\s@"'<>]+@[^\s@"'<>]+\.[a-z]{2,}/gi, '<correo>')
+    .replace(/[A-Za-z0-9_\-]{32,}(\.[A-Za-z0-9_\-]{8,}){0,2}/g, '<largo>')
+    .slice(0, 300);
+}
+
+/** ¿Este error se tradujo a un texto genérico o de infraestructura y conviene reportar el crudo? */
+export function shouldReportAuthError(raw: string, text: string): boolean {
+  return !!raw && (text === GENERIC || text === ENCLAVE || text === NETWORK || text === RELOGIN);
+}
 
 /** Error del kit (o nuestro) -> texto para la persona. */
 export function authErrorText(raw: string | null | undefined): string {
   const m = String(raw ?? '');
   if (!m) return GENERIC;
   if (/invalid_nonce/i.test(m)) return OTP_STALE;
+  // Atestación del enclave de Cavos (kit/nitro, kit/social-recovery): imagen nueva, documento viejo, etc.
+  if (/kit\/nitro|attestation|enclave image|kit\/social-recovery/i.test(m)) return ENCLAVE;
   // Los de Cavos van antes que OTP_INVALID: «Too many attempts. Try again in a few minutes.» es su rate_limited.
   if (/code_cooldown|code was just sent|wait a minute/i.test(m)) return OTP_COOLDOWN;
   if (/rate_limited|try again in a few minutes/i.test(m)) return OTP_RATE;

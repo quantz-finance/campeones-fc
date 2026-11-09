@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error módulo .mjs sin tipos
-import { PATCH_MARK, patchKitSource } from './patch-cavos-kit.mjs';
+import { ATTESTATION_MARK, ENCLAVE_PCR0, PATCH_MARK, patchAttestationSource, patchKitSource } from './patch-cavos-kit.mjs';
 
 describe('parche del modal de @cavos/kit', () => {
   it('el kit instalado quedó parchado (postinstall) en index.js e index.mjs', () => {
@@ -44,5 +44,30 @@ describe('parche del modal de @cavos/kit', () => {
   it('es idempotente', () => {
     const src = readFileSync('node_modules/@cavos/kit/dist/react/index.mjs', 'utf8');
     expect(patchKitSource(src).applied).toEqual([]);
+  });
+
+  it('el kit instalado acepta las releases v1 y v2 del enclave de Cavos (chunk ESM y copias CJS)', () => {
+    for (const f of ['chunk-T2ZMQHFD.mjs', 'index.js', 'react/index.js']) {
+      const src = readFileSync(`node_modules/@cavos/kit/dist/${f}`, 'utf8');
+      expect(src).toContain(ATTESTATION_MARK);
+      expect(src).toContain(ENCLAVE_PCR0.v2);
+      expect(src).toContain(ENCLAVE_PCR0.v1);
+    }
+  });
+
+  it('parche del enclave: idempotente, ignora archivos sin la lista y deja las medidas viejas', () => {
+    const src = readFileSync('node_modules/@cavos/kit/dist/chunk-T2ZMQHFD.mjs', 'utf8');
+    expect(patchAttestationSource(src)).toEqual({ out: src, applied: false });
+    expect(patchAttestationSource('const x = 1;')).toBeNull();
+    const old = 'var D = {\n  pcr0: [\n    "f388b0bf627bdad34968ebab083688b999da2aaa369a65323a3085725de0fc79d7cf0fab6527d57e06b4b10950a150f9",\n    "5ec163560006f105b5448c2db77ecf5ec442e00abd475f65349d6d93e837279652708770c50b3aa2e8676f553f572825"\n  ]\n};';
+    const r = patchAttestationSource(old)!;
+    expect(r.applied).toBe(true);
+    const list = JSON.parse(r.out.replace(ATTESTATION_MARK, '').match(/pcr0: (\[[\s\S]*?\])/)![1]);
+    expect(list).toEqual([
+      'f388b0bf627bdad34968ebab083688b999da2aaa369a65323a3085725de0fc79d7cf0fab6527d57e06b4b10950a150f9',
+      '5ec163560006f105b5448c2db77ecf5ec442e00abd475f65349d6d93e837279652708770c50b3aa2e8676f553f572825',
+      ENCLAVE_PCR0.v2,
+      ENCLAVE_PCR0.v1,
+    ]);
   });
 });

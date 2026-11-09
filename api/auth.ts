@@ -22,6 +22,21 @@ import { env, missingEnv } from './_lib/env';
 import { bearer, body, fail, HttpError, json } from './_lib/http';
 import { bindMessage, ProofError, verifyBindProof } from './_lib/proof';
 import { deviceNotAuthorized, walletOutcome } from './_lib/loginPolicy';
+import { clientIp, createLimiter } from './_lib/rateLimit';
+
+// Errores del login que el cliente solo ve como texto amable: el crudo (ya sin correo ni tokens) se deja en el log.
+const clientErrorLimiter = createLimiter({ limit: 10, windowMs: 60_000 });
+export function clientErrorLine(b: any): string | null {
+  const clean = (v: unknown, n: number) =>
+    String(v ?? '')
+      .replace(/[^\s@"'<>]+@[^\s@"'<>]+\.[a-z]{2,}/gi, '<correo>')
+      .replace(/[A-Za-z0-9_\-]{32,}/g, '<largo>')
+      .replace(/[\r\n]+/g, ' ')
+      .slice(0, n);
+  const message = clean(b?.message, 300);
+  if (!message) return null;
+  return JSON.stringify({ message, path: clean(b?.path, 60) || null });
+}
 
 const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'CAVOS_JWT_ISSUERS', 'CAVOS_JWT_AUDIENCE', 'EXPO_PUBLIC_CAVOS_APP_ID'];
 
@@ -32,6 +47,12 @@ export default async function handler(req: any, res: any) {
       return json(res, 200, { configured: missing.length === 0, missing, network: env.stellarNetwork() });
     }
     if (req.method !== 'POST') return json(res, 405, { error: 'method' });
+    const pre = body(req);
+    if (pre?.step === 'client_error') {
+      const line = clientErrorLine(pre);
+      if (line && clientErrorLimiter.hit(clientIp(req)).ok) console.warn('[auth] error en el cliente', line);
+      return json(res, 202, { ok: true });
+    }
     const missing = missingEnv(REQUIRED);
     if (missing.length) throw new HttpError(503, 'Cavos todavía no está configurado en el servidor.', 'cavos_not_configured', { missing });
 

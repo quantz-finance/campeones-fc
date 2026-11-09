@@ -276,6 +276,7 @@ export const en: Record<string, string> = {
   "No pudimos abrir el usuario de prueba. Intenta de nuevo en un momento.": "We couldn't open the test user. Try again in a moment.",
   "No pudimos abrir tu sesión. Vuelve a intentarlo.": "We couldn't open your session. Please try again.",
   "No pudimos cargar el partido.": "We couldn't load the match.",
+  "Cavos está actualizando su seguridad y no pudimos verificar tu código. Pide un código nuevo en unos minutos; si sigue pasando, avísale al equipo de Campeones FC.": "Cavos is updating its security and we couldn't verify your code. Request a new code in a few minutes; if it keeps happening, let the Campeones FC team know.",
   "No pudimos completar la entrada con Cavos. Vuelve a intentarlo en un momento.": "We couldn't finish signing in with Cavos. Try again in a moment.",
   "No pudimos crear tu passkey en este navegador. Puedes saltar este paso y seguir.": "We couldn't create your passkey in this browser. You can skip this step and continue.",
   "No puedes jugar contra ti.": "You can't play against yourself.",

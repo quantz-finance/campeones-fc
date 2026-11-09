@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { authErrorText, EMAIL_UNSUPPORTED, GENERIC, OTP_COOLDOWN, OTP_INVALID, OTP_RATE, otpFill, otpGuard, otpRecordFailure, otpRecordSent, otpWait, otpWaitText, PASSKEY, RELOGIN } from './auth-ux';
+import { authErrorText, EMAIL_UNSUPPORTED, ENCLAVE, GENERIC, OTP_COOLDOWN, OTP_INVALID, OTP_RATE, otpFill, otpGuard, otpRecordFailure, otpRecordSent, otpWait, otpWaitText, PASSKEY, RELOGIN, sanitizeAuthError, shouldReportAuthError } from './auth-ux';
 
 describe('textos del login Cavos', () => {
   it('nunca muestra errores técnicos crudos', () => {
@@ -76,5 +76,16 @@ describe('códigos por correo seguidos (429 de Cavos)', () => {
     const broken = { getItem: () => '{oops', setItem: () => { throw new Error('quota'); } };
     expect(otpWait(broken, 'a@b.co')).toBe(0);
     expect(() => otpRecordSent(broken, 'a@b.co')).not.toThrow();
+  });
+
+  it('atestación del enclave: texto propio y se reporta el crudo sin correo ni tokens', () => {
+    expect(authErrorText('kit/nitro: enclave image measurement is not accepted')).toBe(ENCLAVE);
+    expect(authErrorText('kit/social-recovery: the session carried no attestation')).toBe(ENCLAVE);
+    expect(shouldReportAuthError('kit/nitro: x', ENCLAVE)).toBe(true);
+    expect(shouldReportAuthError('invalid_code', OTP_INVALID)).toBe(false);
+    const s = sanitizeAuthError('fallo para rolando.prueba@gmail.com token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9abcdef.eyJzdWIiOiIxMjM0NTY3ODkwIn0x');
+    expect(s).not.toMatch(/@gmail|eyJ/);
+    expect(s).toContain('<correo>');
+    expect(sanitizeAuthError('x'.repeat(1000)).length).toBeLessThanOrEqual(300);
   });
 });

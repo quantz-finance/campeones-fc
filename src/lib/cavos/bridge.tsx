@@ -3,7 +3,7 @@ import '../polyfills';
 import { CavosProvider, useCavos } from '@cavos/kit/react';
 import { useEffect, useRef } from 'react';
 import { colors } from '../../ui/theme';
-import { authErrorText, otpFill, otpGuard } from './auth-ux';
+import { authErrorText, otpFill, otpGuard, sanitizeAuthError, shouldReportAuthError } from './auth-ux';
 import { APP_SALT, CAVOS_APP_ID, CAVOS_ENVIRONMENT, CAVOS_RP_ID, CAVOS_SOCIAL_RECOVERY, STELLAR_NETWORK } from './config';
 import { cavosStore, type CavosBridged } from './store';
 import { clearCavosToken, currentCavosToken, persistCavosToken, rehydrateCavosToken } from './token-persist';
@@ -11,9 +11,32 @@ import { clearCavosToken, currentCavosToken, persistCavosToken, rehydrateCavosTo
 // ANTES de montar CavosProvider: reponer el token guardado (iOS borra sessionStorage al cerrar la app).
 if (typeof window !== 'undefined') rehydrateCavosToken(CAVOS_APP_ID);
 
+// El texto amable oculta la causa: el error crudo (sin correo ni tokens) va al log del servidor (/api/auth client_error).
+let lastReport = '';
+function reportAuthError(raw: string) {
+  const message = sanitizeAuthError(raw);
+  if (!message || message === lastReport) return;
+  lastReport = message;
+  console.error('[cavos] error de entrada', message);
+  try {
+    void fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ step: 'client_error', message, path: window.location.pathname }),
+      keepalive: true,
+    }).catch(() => void 0);
+  } catch {
+    /* sin red: queda en la consola */
+  }
+}
+
 // Modal del kit (parche en scripts/patch-cavos-kit.mjs): errores en español y autofill del código.
 if (typeof window !== 'undefined') {
-  (globalThis as any).__cfcAuthError = authErrorText;
+  (globalThis as any).__cfcAuthError = (raw: string) => {
+    const text = authErrorText(raw);
+    if (shouldReportAuthError(raw, text)) reportAuthError(raw);
+    return text;
+  };
   (globalThis as any).__cfcOtpFill = otpFill;
   // Salir de Cavos no borra la llave de la billetera de este navegador (si no, la billetera queda huérfana).
   (globalThis as any).__cfcKeepDeviceKey = true;

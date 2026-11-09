@@ -11,6 +11,10 @@
 //  6) Pausa entre códigos por correo que sobrevive a cerrar el modal o recargar (globalThis.__cfcOtpGuard, ver
 //     src/lib/cavos/auth-ux.ts): si hay un código vigente no se pide otro, y el contador arranca con lo que falta.
 //  7) «Revisa tu carpeta de Spam» en la pantalla del código.
+//  8) Medidas aceptadas del enclave de Cavos (PCR0). 0.4.4 solo acepta las imágenes viejas; Cavos publicó y puso en
+//     producción la release v2 (cavos-labs/cavos-recovery, 2026-11-05) y el código por correo fallaba con
+//     "kit/nitro: enclave image measurement is not accepted". Se agregan v1 y v2 de las releases firmadas de Cavos
+//     (las mismas que acepta @cavos/kit 0.5.x) en los chunks del kit. La firma de AWS Nitro se sigue verificando.
 // Falla fuerte si 1), 2), 4), 5), 6) o 7) ya no calzan (el kit cambió): hay que revisar el parche antes de subir de versión.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -110,6 +114,29 @@ const COPY = [
   ['"Continue with email"', '"Continuar con correo"'],
 ];
 
+/** PCR0 de las releases firmadas de cavos-labs/cavos-recovery (ver measurements.json de cada release). */
+export const ENCLAVE_PCR0 = {
+  v1: '7f32a8b51fabf733339db5425d31851ad2919322581fe21793db17975c44a33702fa9be0c81a391b32049a0daf220cdb',
+  v2: '36d3ceb0759af00c1c1b3f055c271b4fe628235036c67b6e3234199454167f41bfc0c6387061481ba3331740891974ea',
+};
+export const ATTESTATION_MARK = '/* campeones-patch:enclave-pcr0 v2 */';
+const PCR0_044 = /(pcr0: \[\n\s*"f388b0bf627bdad34968ebab083688b999da2aaa369a65323a3085725de0fc79d7cf0fab6527d57e06b4b10950a150f9",\n\s*"5ec163560006f105b5448c2db77ecf5ec442e00abd475f65349d6d93e837279652708770c50b3aa2e8676f553f572825")(\n\s*\])/g;
+
+/** Agrega las medidas v1/v2 del enclave a DEFAULT_SOCIAL_RECOVERY_ATTESTATION. null = el archivo no la tiene. */
+export function patchAttestationSource(src) {
+  if (src.includes(ATTESTATION_MARK)) return { out: src, applied: false };
+  PCR0_044.lastIndex = 0;
+  const hits = src.match(PCR0_044)?.length ?? 0;
+  if (!hits) return null;
+  if (hits !== 1) throw new Error(`patch-cavos-kit: "enclave-pcr0" calzó ${hits} veces (esperaba 1). ¿Cambió @cavos/kit?`);
+  PCR0_044.lastIndex = 0;
+  const out = src.replace(PCR0_044, (_m, head, tail) => `${head}, ${ATTESTATION_MARK} "${ENCLAVE_PCR0.v2}", "${ENCLAVE_PCR0.v1}"${tail}`);
+  return { out, applied: true };
+}
+
+/** Archivos del kit que llevan su propia copia de la lista (ESM comparte el chunk; CJS la duplica). */
+export const ATTESTATION_FILES = ['chunk-T2ZMQHFD.mjs', 'index.js', 'react/index.js', 'vault/index.js', 'react-native/index.js'];
+
 /** Devuelve el fuente parchado. Idempotente; lanza si falta un punto requerido. */
 export function patchKitSource(src) {
   if (src.includes(PATCH_MARK)) return { out: src, applied: [], missingCopy: [] };
@@ -137,6 +164,20 @@ export function patchKitSource(src) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const dist = new URL('../node_modules/@cavos/kit/dist/', import.meta.url);
+  let pcrHits = 0;
+  for (const f of ATTESTATION_FILES) {
+    const p = fileURLToPath(new URL(f, dist));
+    if (!existsSync(p)) continue;
+    const r = patchAttestationSource(readFileSync(p, 'utf8'));
+    if (!r) continue;
+    pcrHits++;
+    if (r.applied) {
+      writeFileSync(p, r.out);
+      console.log(`[patch-cavos-kit] ${f}: medidas del enclave v1/v2`);
+    }
+  }
+  if (existsSync(fileURLToPath(dist)) && !pcrHits) throw new Error('patch-cavos-kit: no encontré la lista PCR0 del enclave. ¿Cambió @cavos/kit?');
   const base = new URL('../node_modules/@cavos/kit/dist/react/', import.meta.url);
   for (const f of ['index.js', 'index.mjs']) {
     const p = fileURLToPath(new URL(f, base));
