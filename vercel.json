@@ -22,6 +22,9 @@
     },
     "api/stake.ts": {
       "maxDuration": 60
+    },
+    "api/demo.ts": {
+      "maxDuration": 20
     }
   },
   "crons": [

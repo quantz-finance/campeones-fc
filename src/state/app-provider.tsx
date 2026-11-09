@@ -1,3 +1,4 @@
+import { signInTestUser } from '../lib/demo-login';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState, Platform, StyleSheet, View } from 'react-native';
 import { T } from '../ui/text';
@@ -31,6 +32,8 @@ type AppValue = {
   flash: Flash | null;
   showFlash: (next: Flash | null) => void;
   signInDemo: (userId: string) => void;
+  /** Entra con la cuenta de prueba compartida (en modo local, la primera cuenta de ejemplo). */
+  signInTestUser: () => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => void;
 };
@@ -223,6 +226,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         writeDemoSession(nextId);
         setUserId(nextId);
         track('sign_in', { method: 'demo' });
+      },
+      async signInTestUser() {
+        if (mode === 'demo') {
+          const first = repo.demoAccounts()[0];
+          if (!first) throw new Error('No hay cuentas de ejemplo.');
+          writeDemoSession(first.id);
+          setUserId(first.id);
+        } else {
+          await signInTestUser();
+        }
+        track('sign_in', { method: 'test_user' });
       },
       async signOut() {
         if (mode === 'supabase') {
