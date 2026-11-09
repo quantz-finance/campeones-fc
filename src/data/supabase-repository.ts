@@ -1,6 +1,7 @@
 import { hideDemo, joinDemo } from './demo-filter';
 import { trophyCatalog } from '../content/trophies';
 import { DomainError } from '../domain/errors';
+import { parseBirthDate, PRIVACY_VERSION, TERMS_VERSION } from '../domain/consent';
 import type { Match, MatchReport, ReportDraft, Slot } from '../domain/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabase } from '../lib/supabase';
@@ -21,6 +22,7 @@ import type { TrophyView } from './snapshots';
 import {
   emptyWorld,
   type Achievement,
+  type Consent,
   type Friendship,
   type Group,
   type GroupMember,
@@ -274,6 +276,44 @@ export function createSupabaseRepository(): Repository {
       const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
       fail(error);
       return data ? mapUser(data as Row) : null;
+    },
+    async getConsent(userId) {
+      // La cuenta de prueba compartida (api/demo.ts) no pide consentimiento: no es de una persona.
+      const { data: auth } = await supabase.auth.getSession();
+      if (auth.session?.user.app_metadata?.demo_login === true) {
+        return { termsVersion: 'demo', privacyVersion: 'demo', acceptedAt: new Date(0).toISOString(), ageBand: '18_plus', parentalAckAt: null };
+      }
+      const { data, error } = await supabase
+        .from('user_consents')
+        .select('terms_version, privacy_version, terms_accepted_at, age_band, parental_ack_at')
+        .eq('user_id', userId)
+        .maybeSingle();
+      fail(error);
+      if (!data) return null;
+      const row = data as Row;
+      // Textos nuevos: hay que volver a aceptar.
+      if (String(row.terms_version) !== TERMS_VERSION || String(row.privacy_version) !== PRIVACY_VERSION) return null;
+      return {
+        termsVersion: String(row.terms_version),
+        privacyVersion: String(row.privacy_version),
+        acceptedAt: String(row.terms_accepted_at),
+        ageBand: row.age_band as Consent['ageBand'],
+        parentalAckAt: (row.parental_ack_at as string | null) ?? null,
+      };
+    },
+    async recordConsent(_userId, draft) {
+      const birthDate = parseBirthDate(draft.birthDate);
+      if (!birthDate) throw new Error('Escribe tu fecha de nacimiento como DD/MM/AAAA.');
+      const { data, error } = await supabase.rpc('record_consent', {
+        p_birth_date: birthDate,
+        p_terms: draft.terms,
+        p_privacy: draft.privacy,
+        p_parental_ack: draft.parentalAck,
+        p_terms_version: TERMS_VERSION,
+        p_privacy_version: PRIVACY_VERSION,
+      });
+      fail(error);
+      return data as Consent['ageBand'] | 'under_13_deleted';
     },
     async uploadPhoto(kind, targetId, photo) {
       // La versión en la ruta rompe la caché: una foto nueva se ve al instante en todos lados.

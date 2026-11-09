@@ -1,4 +1,5 @@
-import type { Profile } from './types';
+import type { Consent, Profile } from './types';
+import type { ConsentDraft } from '../domain/consent';
 import type { Notice } from './notices';
 import type { PhotoKind, PhotoPayload } from '../lib/photos';
 import type { ReportDraft } from '../domain/types';
@@ -19,6 +20,10 @@ import type {
 export type Repository = {
   mode: 'demo' | 'supabase';
   getProfile(userId: string): Promise<Profile | null>;
+  /** Consentimiento de la cuenta (null si todavía no aceptó). */
+  getConsent(userId: string): Promise<Consent | null>;
+  /** Guarda el consentimiento; el servidor valida edad y casillas. Menor de 13: borra la cuenta ('under_13_deleted'). */
+  recordConsent(userId: string, draft: ConsentDraft): Promise<Consent['ageBand'] | 'under_13_deleted'>;
   updateProfile(
     userId: string,
     patch: { displayName?: string; username?: string; avatarKey?: string; showDemo?: boolean },

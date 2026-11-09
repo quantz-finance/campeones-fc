@@ -13,6 +13,7 @@ import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
 import { TestUserButton } from '../ui/test-user';
 import { HeroPhoto, HeroPhotoNote } from '../ui/hero-photo';
+import { LegalLinks } from '../ui/legal-links';
 
 export default function Login() {
   const app = useApp();
@@ -111,6 +112,7 @@ export default function Login() {
       {!configured && app.mode !== 'demo' ? <TestUserButton /> : null}
 
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
+      <LegalLinks />
     </Screen>
   );
 }
