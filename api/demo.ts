@@ -4,8 +4,13 @@ import { adminClient, mintSession, userByEmail } from './_lib/db';
 import { DEMO_LOGIN_EMAIL, demoLogin, demoLoginEnabled } from './_lib/demoLogin';
 import { missingEnv } from './_lib/env';
 import { fail, HttpError, json } from './_lib/http';
+import { clientIp, createLimiter } from './_lib/rateLimit';
 
 const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
+
+// 5 entradas por minuto por IP y 60 por minuto en total por instancia.
+const perIp = createLimiter({ limit: 5, windowMs: 60_000 });
+const overall = createLimiter({ limit: 60, windowMs: 60_000 });
 
 export default async function handler(req: any, res: any) {
   try {
@@ -16,6 +21,12 @@ export default async function handler(req: any, res: any) {
     }
     if (req.method !== 'POST') return json(res, 405, { error: 'method' });
     if (!enabled) throw new HttpError(403, 'La entrada de prueba está apagada.', 'demo_disabled');
+    const gate = perIp.hit(clientIp(req));
+    const total = gate.ok ? overall.hit('all') : gate;
+    if (!total.ok) {
+      res.setHeader('Retry-After', String(total.retryAfter));
+      throw new HttpError(429, `Muchos intentos seguidos. Espera ${total.retryAfter} s y vuelve a intentar.`, 'rate_limited', { retryAfter: total.retryAfter });
+    }
     const missing = missingEnv(REQUIRED);
     if (missing.length) throw new HttpError(503, 'El servidor todavía no tiene acceso a la base de datos.', 'config_missing', { missing });
 
