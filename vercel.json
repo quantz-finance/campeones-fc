@@ -3,6 +3,17 @@
   "outputDirectory": "dist",
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "campeones-fc.vercel.app"
+        }
+      ],
+      "destination": "https://partido.campeonesfc.app/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {
