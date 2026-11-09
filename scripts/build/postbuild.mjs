@@ -1,7 +1,6 @@
 // Post-export (vercel buildCommand), mismo enfoque que Meteorito (scripts/build/preload.mjs).
 // Los nombres llevan hash de contenido, por eso se buscan en dist/.
-// 1) Fuentes: <link rel=preload> de Anton, Barlow y Archivo Etiqueta + @font-face con font-display: swap
-//    (se bajan en paralelo con el JS; expo-font las encuentra ya cargadas).
+// 1) Fuentes: <link rel=preload> de Outfit (los @font-face por peso van en public/index.html).
 // 2) __common diferido si el bundle inicial no lo necesita (si lo necesita, el HTML queda igual).
 // 3) Preconnect al origen de Supabase si EXPO_PUBLIC_SUPABASE_URL está en el build.
 // 4) Service worker: versión + lista de precache del shell.
@@ -15,24 +14,11 @@ const files = walk(dist);
 const url = (f) => '/' + relative(dist, f).split('\\').join('/');
 const fail = (m) => { console.error('[postbuild]', m); process.exit(1); };
 
-// 1) Fuentes: [familia que registra useFonts, regex del archivo, precargar]
-const FONTS = [
-  ['Anton_400Regular', /\/Anton_400Regular\.[0-9a-f]+\.ttf$/, true],
-  ['Barlow_400Regular', /\/Barlow-Regular\.[0-9a-f]+\.ttf$/, true],
-  ['Barlow_500Medium', /\/Barlow-Medium\.[0-9a-f]+\.ttf$/, false],
-  ['Barlow_600SemiBold', /\/Barlow-SemiBold\.[0-9a-f]+\.ttf$/, true],
-  ['ArchivoEtiqueta_600SemiBold', /\/ArchivoEtiqueta-SemiBold\.[0-9a-f]+\.ttf$/, false],
-  ['ArchivoEtiqueta_700Bold', /\/ArchivoEtiqueta-Bold\.[0-9a-f]+\.ttf$/, false],
-  ['ArchivoEtiqueta_800ExtraBold', /\/ArchivoEtiqueta-ExtraBold\.[0-9a-f]+\.ttf$/, true],
-];
-const fonts = FONTS.map(([family, re, preload]) => {
-  const f = files.find((x) => re.test(x.split('\\').join('/')));
-  if (!f) fail('no encontré la fuente ' + family);
-  return { family, href: url(f), preload };
-});
-const fontTags =
-  fonts.filter((f) => f.preload).map((f) => `<link rel="preload" as="font" type="font/ttf" href="${f.href}" crossorigin>`).join('') +
-  `<style id="font-swap">${fonts.map((f) => `@font-face{font-family:"${f.family}";src:url("${f.href}") format("truetype");font-display:swap}`).join('')}</style>`;
+// 1) Fuentes: Outfit autoalojada en /fonts (public/), con un @font-face por peso en public/index.html.
+//    Aquí solo se precarga para que llegue en paralelo con el JS.
+const fonts = [{ family: 'Outfit', href: '/fonts/Outfit.woff2', preload: true }];
+if (!files.some((x) => x.split('\\').join('/').endsWith('/fonts/Outfit.woff2'))) fail('no encontré public/fonts/Outfit.woff2 en dist');
+const fontTags = `<link rel="preload" as="font" type="font/woff2" href="/fonts/Outfit.woff2" crossorigin>`;
 
 // 3) Preconnect
 let preconnect = '';
@@ -84,7 +70,7 @@ for (const f of files.filter((x) => x.endsWith('.html'))) {
     }
   }
   // Expo agrega un <link rel=icon> a favicon.ico y un theme-color repetido; dejamos los nuestros.
-  h = h.replace(/<meta name="theme-color" content="#080B13">\s*/g, '');
+  h = h.replace(/<meta name="theme-color" content="#(080B13|37003C)">\s*/gi, '');
   h = h.replace('</head>', `${preconnect}${fontTags}<meta name="postbuild" data-postbuild="1"></head>`);
   writeFileSync(f, h);
   n++;

@@ -4,7 +4,7 @@ import { Animated, StyleSheet, View, type DimensionValue } from 'react-native';
 import { FadeIn, useShimmerStyle } from './motion';
 import { colors, space } from './theme';
 
-const BONE = 'rgba(255,255,255,0.09)';
+const BONE = colors.wash;
 
 function Shimmer({ children }: { children: React.ReactNode }) {
   const pulse = useShimmerStyle();
@@ -37,7 +37,7 @@ export const Bone = memo(function Bone({
         height: h,
         backgroundColor: color,
         borderRadius: round ? 999 : 2,
-        transform: skew ? [{ skewX: '-8deg' }] : undefined,
+        transform: skew ? [{ skewX: '0deg' }] : undefined,
       }}
     />
   );
@@ -173,14 +173,14 @@ const styles = StyleSheet.create({
   brandLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   flexGap: { flex: 1, gap: 6 },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.sm, minHeight: 56 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, minHeight: 92, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  hero: { flexDirection: 'row', minHeight: 184, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  heroLeft: { width: '38%', backgroundColor: 'rgba(255,90,31,0.22)', padding: 12, gap: 8 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, minHeight: 92, borderWidth: 1, borderColor: colors.line },
+  hero: { flexDirection: 'row', minHeight: 184, borderWidth: 1, borderColor: colors.line },
+  heroLeft: { width: '38%', backgroundColor: 'rgba(255,90,31,0.22)', padding: 12, gap: 8, borderRadius: 14 },
   heroRight: { flex: 1, padding: 12, gap: 10, justifyContent: 'center' },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  scorebar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, minHeight: 64, backgroundColor: colors.surface },
+  scorebar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, minHeight: 64, backgroundColor: colors.surface, borderRadius: 14 },
   scorebarBig: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingVertical: 20 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  tile: { width: '48%', flexGrow: 1, minHeight: 84, padding: 12, gap: 8, backgroundColor: 'rgba(255,255,255,0.05)' },
-  panel: { padding: 12, gap: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  tile: { width: '48%', flexGrow: 1, minHeight: 84, padding: 12, gap: 8, backgroundColor: colors.wash, borderRadius: 14 },
+  panel: { padding: 12, gap: 8, borderWidth: 1, borderColor: colors.line },
 });

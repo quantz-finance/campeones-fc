@@ -15,11 +15,12 @@ import { useDelayed } from '../../../ui/motion';
 import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
 import { push } from '../../../ui/nav';
+import { ThemeToggle } from '../../../ui/theme-toggle';
 
 const stickerMeta = {
-  first_win: { title: 'Primera', icon: 'flash' as const, color: colors.yellow, tilt: '-6deg' },
-  streak_5: { title: 'En fuego', icon: 'flame' as const, color: colors.red, tilt: '4deg' },
-  tournament_champion: { title: 'Campeón', icon: 'ribbon' as const, color: colors.blue, tilt: '-3deg' },
+  first_win: { title: 'Primera', icon: 'flash' as const, color: colors.accentText, tilt: '0deg' },
+  streak_5: { title: 'En fuego', icon: 'flame' as const, color: colors.red, tilt: '0deg' },
+  tournament_champion: { title: 'Campeón', icon: 'ribbon' as const, color: colors.blue, tilt: '0deg' },
 };
 
 export default function Profile() {
@@ -63,11 +64,12 @@ export default function Profile() {
             Ficha del jugador
           </T>
         </View>
+        <ThemeToggle />
         <Pressable accessibilityLabel="Compartir ficha" style={styles.iconBtn} onPress={() => push('/estadisticas')}>
-          <Ionicons name="share-outline" size={18} color="#fff" />
+          <Ionicons name="share-outline" size={18} color={colors.text} />
         </Pressable>
         <Pressable accessibilityLabel="Editar ficha" style={styles.iconBtn} onPress={() => setEditing((value) => !value)}>
-          <Ionicons name={editing ? 'close' : 'sunny-outline'} size={18} color="#fff" />
+          <Ionicons name={editing ? 'close' : 'sunny-outline'} size={18} color={colors.text} />
         </Pressable>
       </View>
       <View style={styles.card}>
@@ -75,7 +77,7 @@ export default function Profile() {
           <InitialsMark name={displayName || profile.displayName} avatarKey={avatarKey} photoUrl={profile.photoUrl} size={132} fontSize={48} />
         </View>
         <View style={styles.cardBody}>
-          <T variant="tiny" color={colors.yellow}>
+          <T variant="tiny" color={colors.accentText}>
             Tu ficha
           </T>
           <PhotoButton kind="users" targetId={profile.id} label={profile.photoUrl ? 'Cambiar foto' : 'Subir foto'} />
@@ -112,7 +114,7 @@ export default function Profile() {
                 <T variant="tiny" color={colors.muted}>
                   {pct(data.record.winRate)} de victorias
                 </T>
-                <T variant="tiny" color={colors.yellow}>
+                <T variant="tiny" color={colors.accentText}>
                   {data.record.wins} ganados
                 </T>
               </View>
@@ -184,7 +186,7 @@ export default function Profile() {
           <SectionHead title="Editar ficha" />
           <Field label="Nombre" value={displayName} onChangeText={setDisplayName} autoCapitalize="words" />
           <Field label="Usuario" value={username} onChangeText={setUsername} placeholder="sin espacios" />
-          <T variant="label" color={colors.yellow}>
+          <T variant="label" color={colors.accentText}>
             Avatar
           </T>
           <View style={styles.avatars}>
@@ -214,7 +216,7 @@ export default function Profile() {
         </View>
       ) : null}
       <View style={styles.modeBox}>
-        <T variant="label" color={colors.yellow}>
+        <T variant="label" color={colors.accentText}>
           Modo
         </T>
         <View style={styles.segment} accessibilityRole="radiogroup">
@@ -270,10 +272,10 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  modeBox: { gap: 8, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
-  segment: { flexDirection: 'row', transform: [{ skewX: '-8deg' }], borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  modeBox: { gap: 8, padding: 12, borderWidth: 1, borderColor: colors.line },
+  segment: { flexDirection: 'row', transform: [{ skewX: '0deg' }], borderWidth: 1, borderColor: colors.lineStrong },
   segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, minHeight: 48 },
-  segOn: { backgroundColor: colors.yellow },
+  segOn: { backgroundColor: colors.yellow, borderRadius: 14 },
   segOff: { opacity: 0.5 },
   top: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   flex: { flex: 1 },
@@ -283,23 +285,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
-    transform: [{ skewX: '-12deg' }],
+    borderColor: colors.line,
+    transform: [{ skewX: '0deg' }],
   },
   card: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  photo: { width: 132, height: 150, backgroundColor: colors.red, alignItems: 'center', justifyContent: 'flex-end', overflow: 'hidden' },
+  photo: { width: 132, height: 150, backgroundColor: colors.red, alignItems: 'center', justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 14 },
   cardBody: { flex: 1, gap: 4 },
-  name: { fontSize: 30, fontStyle: 'italic', lineHeight: 30 },
+  name: { fontSize: 30, fontStyle: 'normal', lineHeight: 30 },
   plain: { textTransform: 'none', letterSpacing: 0 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
-  tagY: { backgroundColor: colors.yellow, paddingHorizontal: 6, paddingVertical: 3 },
-  tagR: { backgroundColor: colors.red, paddingHorizontal: 6, paddingVertical: 3 },
+  tagY: { backgroundColor: colors.yellow, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
+  tagR: { backgroundColor: colors.red, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
   level: { flexDirection: 'row', justifyContent: 'space-between' },
-  track: { height: 8, backgroundColor: 'rgba(255,255,255,0.08)' },
+  track: { height: 8, backgroundColor: colors.line, borderRadius: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   album: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   rivals: { flexDirection: 'row', gap: 8 },
-  rival: { flex: 1, backgroundColor: 'rgba(19,26,42,0.8)', borderLeftWidth: 4, padding: 10, gap: 4 },
+  rival: { flex: 1, backgroundColor: colors.card, borderLeftWidth: 4, padding: 10, gap: 4, borderRadius: 14 },
   edit: { gap: 12 },
   avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   avatar: {
@@ -309,8 +311,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(19,26,42,0.8)',
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderRadius: 14,
   },
   avatarOn: { borderColor: colors.yellow },
   links: { gap: 8 },

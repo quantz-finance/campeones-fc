@@ -29,7 +29,7 @@ export default function NewTournament() {
 
   return (
     <Screen>
-      <Top title="Nuevo torneo" kicker="Bracket" back />
+      <Top title="Nuevo torneo" kicker="Llaves" back icon="tournaments" />
       <Field label="Nombre" value={name} onChangeText={setName} placeholder="Copa relámpago" autoCapitalize="sentences" />
       <View style={styles.row}>
         <Chip label="Eliminación" active={format === 'single_elim'} onPress={() => setFormat('single_elim')} />
@@ -96,5 +96,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
   },
-  on: { borderColor: colors.accent, backgroundColor: colors.bg },
+  on: { borderColor: colors.accent, backgroundColor: colors.bg, borderRadius: 14 },
 });

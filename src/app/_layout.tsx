@@ -1,13 +1,14 @@
-import { Anton_400Regular } from '@expo-google-fonts/anton';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { startPwaUpdates } from '../lib/pwa-update';
 import { AppProvider, useAppMaybe } from '../state/app-provider';
 import { colors } from '../ui/theme';
+import { useThemeMode } from '../ui/theme-mode';
 import { TransitionHost } from '../ui/transition';
 
 void SplashScreen.preventAutoHideAsync();
@@ -15,21 +16,20 @@ void SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   useEffect(() => startPwaUpdates(), []);
 
-  const [loaded, error] = useFonts({
-    Anton_400Regular,
-    Barlow_400Regular: require('../../assets/fonts/Barlow-Regular.ttf'),
-    Barlow_500Medium: require('../../assets/fonts/Barlow-Medium.ttf'),
-    Barlow_600SemiBold: require('../../assets/fonts/Barlow-SemiBold.ttf'),
-    ArchivoEtiqueta_600SemiBold: require('../../assets/fonts/ArchivoEtiqueta-SemiBold.ttf'),
-    ArchivoEtiqueta_700Bold: require('../../assets/fonts/ArchivoEtiqueta-Bold.ttf'),
-    ArchivoEtiqueta_800ExtraBold: require('../../assets/fonts/ArchivoEtiqueta-ExtraBold.ttf'),
-  });
+  // Web: Outfit autoalojada con un @font-face por peso (public/index.html). Nativo: la variable en assets.
+  const outfit = require('../../assets/fonts/Outfit-Variable.ttf');
+  const [loaded, error] = useFonts(
+    Platform.OS === 'web'
+      ? {}
+      : { Outfit_400: outfit, Outfit_500: outfit, Outfit_600: outfit, Outfit_700: outfit, Outfit_800: outfit },
+  );
+  const mode = useThemeMode();
 
   if (!loaded && !error) return null;
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
+      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <AppProvider>
         <TransitionHost>
           <BootSplash />

@@ -11,6 +11,7 @@ import { transit } from '../ui/nav';
 import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
+import { TestUserButton } from '../ui/test-user';
 
 export default function Login() {
   const app = useApp();
@@ -30,15 +31,10 @@ export default function Login() {
     >
       <View style={styles.hero}>
         <Wordmark size={30} />
-        <T variant="label" color={colors.yellow}>
-          {branding.company} · {branding.country}
+        <T variant="display" style={styles.title}>
+          Entra a tu cuenta
         </T>
         <T color={colors.muted}>{branding.tagline}</T>
-      </View>
-      <View style={styles.stripe} pointerEvents="none">
-        <View style={[styles.bit, { backgroundColor: colors.red }]} />
-        <View style={[styles.bit, { backgroundColor: colors.yellow }]} />
-        <View style={[styles.bit, { backgroundColor: colors.blue }]} />
       </View>
 
       {app.mode === 'demo' ? (
@@ -48,8 +44,9 @@ export default function Login() {
             title="Modo demostración"
             body="Los datos viven en este navegador. Abre otra ventana e inicia sesión con otra cuenta para confirmar un partido entre los dos."
           />
+          <TestUserButton tone="accent" />
           <View style={styles.list}>
-            <T variant="label" color={colors.yellow}>
+            <T variant="label" color={colors.accentText}>
               Cuentas de ejemplo
             </T>
             {accounts.map((account) => (
@@ -90,6 +87,7 @@ export default function Login() {
             <>
               <Button label={label} disabled={busy} onPress={openCavos} />
               <SpamHint />
+              <TestUserButton />
             </>
           )}
           <T color={colors.muted}>
@@ -107,6 +105,7 @@ export default function Login() {
           }
         />
       )}
+      {!configured && app.mode !== 'demo' ? <TestUserButton /> : null}
 
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
     </Screen>
@@ -124,9 +123,8 @@ function SpamHint() {
 
 const styles = StyleSheet.create({
   hintText: { fontSize: 14, lineHeight: 20 },
-  hero: { gap: space.md, paddingTop: space.lg, paddingRight: 62 },
-  stripe: { flexDirection: 'row', height: 4 },
-  bit: { flex: 1 },
+  hero: { gap: space.md, paddingTop: space.lg, paddingRight: 92 },
+  title: { fontSize: 34, lineHeight: 38 },
   list: { gap: space.sm },
   account: {
     flexDirection: 'row',
@@ -134,9 +132,10 @@ const styles = StyleSheet.create({
     gap: space.md,
     paddingVertical: space.sm,
     paddingHorizontal: space.sm,
-    backgroundColor: 'rgba(19,26,42,0.72)',
+    borderRadius: 16,
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.line,
   },
   flex: { flex: 1 },
   plain: { textTransform: 'none', letterSpacing: 0 },
@@ -144,6 +143,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: colors.bg,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.08)',
+    borderTopColor: colors.line,
+    borderRadius: 14,
   },
 });

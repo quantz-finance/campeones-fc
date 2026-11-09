@@ -8,7 +8,7 @@ import { Toro } from './broadcast';
 import { matchDelta } from '../domain/elo';
 import type { Match } from '../domain/types';
 import type { Profile } from '../data/types';
-import { colors, font, space } from './theme';
+import { colors, font, hex, radius, space } from './theme';
 import { elo, firstName, formatWhen, scoreText, signed, statusLabel, statusTone, streakLabel, tagOf } from './format';
 import type { SideRecord } from '../domain/stats';
 import { Avatar } from './avatar';
@@ -27,10 +27,10 @@ const toneColor = {
 export function Mark({ size = 42 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 64 64">
-      <Rect x="2" y="2" width="60" height="60" fill={colors.ink} />
-      <Path d="M6 10 H34 L28 54 H0 Z" fill={colors.red} />
-      <Path d="M30 16 H58 L52 48 H24 Z" fill={colors.yellow} />
-      <Circle cx="46" cy="30" r="5" fill={colors.ink} />
+      <Rect x="2" y="2" width="60" height="60" rx="14" fill={hex.bg} />
+      <Path d="M6 10 H34 L28 54 H0 Z" fill={hex.red} />
+      <Path d="M30 16 H58 L52 48 H24 Z" fill={hex.yellow} />
+      <Circle cx="46" cy="30" r="5" fill={hex.ink} />
     </Svg>
   );
 }
@@ -41,16 +41,13 @@ export function Wordmark() {
       <Toro size={40} />
       <View>
         <View style={styles.lockup}>
-          <T variant="title" style={{ fontStyle: 'italic' }}>
+          <T variant="title" style={{ fontStyle: 'normal' }}>
             {branding.name.split(' ')[0]}
           </T>
-          <T style={{ fontFamily: font.body, fontSize: 11, color: colors.yellow, marginLeft: 4, marginBottom: 3, letterSpacing: 0.4 }}>
+          <T style={{ fontFamily: font.body, fontSize: 11, color: colors.accentText, marginLeft: 4, marginBottom: 3, letterSpacing: 0.4 }}>
             {branding.name.split(' ').slice(1).join(' ')}
           </T>
         </View>
-        <T variant="tiny" color={colors.faint}>
-          {branding.company} · {branding.country}
-        </T>
       </View>
     </View>
   );
@@ -60,7 +57,7 @@ export function Pill({ label, tone = 'muted' }: { label: string; tone?: keyof ty
   const color = toneColor[tone];
   return (
     <View style={[styles.pill, { backgroundColor: color }]}>
-      <T variant="tiny" color={tone === 'warn' || tone === 'gold' || tone === 'accent' ? colors.ink : '#fff'}>
+      <T variant="tiny" color={tone === 'warn' || tone === 'gold' || tone === 'accent' || tone === 'up' ? colors.ink : '#fff'}>
         {label}
       </T>
     </View>
@@ -70,10 +67,10 @@ export function Pill({ label, tone = 'muted' }: { label: string; tone?: keyof ty
 export function Stat({ value, label }: { value: string; label: string }) {
   return (
     <View style={styles.stat}>
-      <T variant="title" style={{ fontStyle: 'italic' }}>
+      <T variant="title" style={{ fontStyle: 'normal' }}>
         {value}
       </T>
-      <T variant="tiny" color={colors.yellow}>
+      <T variant="tiny" color={colors.accentText}>
         {label}
       </T>
     </View>
@@ -94,7 +91,7 @@ export function Spark({ values, color = colors.red }: { values: number[]; color?
             height: Math.max(8, ((value - min) / span) * 72 + 8),
             backgroundColor: color,
             opacity: 0.45 + (index / Math.max(values.length - 1, 1)) * 0.55,
-            transform: [{ skewX: '-8deg' }],
+            borderRadius: 6,
           }}
         />
       ))}
@@ -144,7 +141,7 @@ export function MatchRow({
             ) : null}
             {` · ${formatWhen(match.confirmedAt ?? match.createdAt)}`}
             {match.chainStatus === 'anchored' && (!match.chainNetwork || match.chainNetwork === STELLAR_NETWORK) ? (
-              <T variant="tiny" color={colors.cyan} accessibilityLabel="Verificado en Stellar">
+              <T variant="tiny" color={colors.accentText} accessibilityLabel="Verificado en Stellar">
                 {' · ✓ Stellar'}
               </T>
             ) : null}
@@ -152,7 +149,7 @@ export function MatchRow({
         </View>
         <View style={styles.end}>
           {score ? (
-            <T variant="title" style={{ fontStyle: 'italic' }}>
+            <T variant="title" style={{ fontStyle: 'normal' }}>
               {score}
             </T>
           ) : (
@@ -206,7 +203,7 @@ export function EloBadge({ value }: { value: number }) {
       <T variant="tiny" color={colors.ink}>
         ELO
       </T>
-      <T variant="title" color={colors.ink} style={{ fontStyle: 'italic' }}>
+      <T variant="title" color={colors.ink} style={{ fontStyle: 'normal' }}>
         {elo(value)}
       </T>
     </View>
@@ -220,7 +217,7 @@ export function names(people: Record<string, Profile>, id: string) {
 const styles = StyleSheet.create({
   word: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   lockup: { flexDirection: 'row', alignItems: 'flex-end' },
-  pill: { paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  pill: { paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start', borderRadius: radius.pill },
   stat: { flex: 1, gap: 2 },
   spark: { height: 80, flexDirection: 'row', alignItems: 'flex-end', gap: 5 },
   match: {
@@ -228,15 +225,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.sm,
     minHeight: 58,
-    backgroundColor: 'rgba(19,26,42,0.55)',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.line,
+    borderRadius: radius.card,
+    overflow: 'hidden',
+    paddingLeft: 8,
   },
-  side: { width: 54, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
-  sideText: { fontSize: 14, color: colors.redInk },
+  side: { width: 42, height: 42, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  sideText: { fontSize: 13, color: colors.redInk },
   mid: { flex: 1, gap: 2, paddingVertical: 8 },
   flex: { flex: 1 },
   end: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 8 },
   record: { flexDirection: 'row', gap: space.sm },
-  elo: { backgroundColor: colors.yellow, paddingHorizontal: 10, paddingVertical: 6, alignItems: 'flex-end' },
+  elo: { backgroundColor: colors.yellow, paddingHorizontal: 12, paddingVertical: 6, alignItems: 'flex-end', borderRadius: radius.md },
 });

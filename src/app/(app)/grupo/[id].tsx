@@ -29,6 +29,7 @@ export default function GroupDetail() {
           return (
             <>
               <Top
+                icon="friends"
                 title={data.group.name}
                 kicker={`${data.members.length} jugadores · ${matchesPlayed} partidos`}
                 back
@@ -61,7 +62,7 @@ export default function GroupDetail() {
                   <T variant="tiny" color={colors.ink}>
                     Quién manda
                   </T>
-                  <T variant="display" style={{ fontSize: 26, color: colors.ink, fontStyle: 'italic' }} numberOfLines={1}>
+                  <T variant="display" style={{ fontSize: 26, color: colors.ink, fontStyle: 'normal' }} numberOfLines={1}>
                     {data.leader ? firstName(data.leader.displayName) : 'Nadie'}
                   </T>
                   <T variant="tiny" color={colors.ink} style={styles.plain}>
@@ -69,10 +70,10 @@ export default function GroupDetail() {
                   </T>
                 </View>
                 <View style={styles.kingRight}>
-                  <T variant="display" style={{ fontSize: 28, color: '#fff', fontStyle: 'italic' }}>
+                  <T variant="display" style={{ fontSize: 28, color: colors.text, fontStyle: 'normal' }}>
                     {leaderRow ? elo(leaderRow.rating) : '—'}
                   </T>
-                  <T variant="tiny" color={colors.yellow}>
+                  <T variant="tiny" color={colors.accentText}>
                     ELO
                   </T>
                 </View>
@@ -147,7 +148,7 @@ export default function GroupDetail() {
                         const cell = data.matrix[row.id]?.[col.id];
                         const wins = cell?.wins ?? 0;
                         const losses = cell?.losses ?? 0;
-                        const tone = wins > losses ? colors.red : losses > wins ? colors.blue : 'rgba(255,255,255,0.08)';
+                        const tone = wins > losses ? colors.red : losses > wins ? colors.blue : colors.line;
                         return (
                           <View key={col.id} style={[styles.matrixCell, { backgroundColor: tone }]}>
                             <T variant="tiny" color={wins > losses ? colors.redInk : colors.text}>
@@ -172,7 +173,7 @@ export default function GroupDetail() {
               ) : (
                 data.tournaments.map((tournament) => (
                   <Pressable key={tournament.id} style={styles.tour} onPress={() => push(`/torneo/${tournament.id}`)}>
-                    <BracketIcon size={18} color={colors.yellow} />
+                    <BracketIcon size={18} color={colors.accentText} />
                     <View style={styles.flex}>
                       <T variant="strong">{tournament.name}</T>
                       <T variant="tiny" color={colors.muted}>
@@ -202,12 +203,12 @@ function formOf(playerId: string, recent: Match[]): ('w' | 'd' | 'l')[] {
 const styles = StyleSheet.create({
   identity: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: -8 },
   king: { flexDirection: 'row', minHeight: 84, overflow: 'hidden' },
-  kingLeft: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', transform: [{ skewX: '-6deg' }], marginRight: -12 },
-  kingRight: { width: 110, backgroundColor: colors.navy, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 12, borderLeftWidth: 4, borderLeftColor: colors.red },
+  kingLeft: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', transform: [{ skewX: '0deg' }], marginRight: -12, borderRadius: 14 },
+  kingRight: { width: 110, backgroundColor: colors.navy, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 12, borderLeftWidth: 4, borderLeftColor: colors.red, borderRadius: 14 },
   plain: { textTransform: 'none', letterSpacing: 0 },
   table: { gap: 2 },
   headRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
-  bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(19,26,42,0.72)', paddingVertical: 6 },
+  bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, paddingVertical: 6 },
   leaderRow: { borderLeftWidth: 3, borderLeftColor: colors.yellow },
   name: { flex: 1.4 },
   cell: { width: 28, textAlign: 'center', fontSize: 13 },
@@ -215,19 +216,20 @@ const styles = StyleSheet.create({
   player: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   form: { width: 44, flexDirection: 'row', gap: 2, justifyContent: 'flex-end' },
   formHead: { width: 44, textAlign: 'right' },
-  matrix: { backgroundColor: 'rgba(19,26,42,0.72)', padding: 8, gap: 4 },
+  matrix: { backgroundColor: colors.card, padding: 8, gap: 4, borderRadius: 14 },
   matrixRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   matrixName: { width: 36 },
   matrixCell: { width: 46, height: 32, alignItems: 'center', justifyContent: 'center' },
-  hatch: { backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  hatch: { backgroundColor: colors.wash, borderWidth: 1, borderColor: colors.line, borderRadius: 14 },
   tour: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     padding: 10,
-    backgroundColor: 'rgba(19,26,42,0.72)',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.line,
+    borderRadius: 14,
   },
   flex: { flex: 1 },
 });

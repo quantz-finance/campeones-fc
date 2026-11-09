@@ -37,7 +37,7 @@ export default function Friends() {
 
   return (
     <Screen>
-      <Top title="Amigos" kicker="Tu círculo" back />
+      <Top title="Amigos" kicker="Tu círculo" back icon="friends" />
       <Gate query={query} skeleton={<ListSkeleton />}>
         {(data) => (
           <>
@@ -78,7 +78,7 @@ export default function Friends() {
               }
             />
             {note ? (
-              <T color={colors.yellow} style={{ textTransform: 'none' }}>
+              <T color={colors.accentText} style={{ textTransform: 'none' }}>
                 {note}
               </T>
             ) : null}

@@ -10,7 +10,7 @@ export function inviteUrl(code: string): string {
 }
 
 export function inviteMessage(code: string): string {
-  return `Armemos el pique en ${branding.name}: ${inviteUrl(code)}`;
+  return `Juguemos nuestros partidos en ${branding.name}: ${inviteUrl(code)}`;
 }
 
 export async function copyText(value: string): Promise<boolean> {

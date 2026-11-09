@@ -3,9 +3,10 @@ import { colors, font } from './theme';
 
 type Variant = 'display' | 'title' | 'body' | 'medium' | 'strong' | 'label' | 'tiny';
 
+// Jerarquía de la landing: títulos Outfit 800/700 en tipo oración, etiquetas 700 en mayúsculas.
 const family: Record<Variant, string> = {
   display: font.display,
-  title: font.display,
+  title: font.heading,
   body: font.body,
   medium: font.medium,
   strong: font.strong,
@@ -14,8 +15,8 @@ const family: Record<Variant, string> = {
 };
 
 const size: Record<Variant, number> = {
-  display: 34,
-  title: 22,
+  display: 32,
+  title: 20,
   body: 16,
   medium: 16,
   strong: 16,
@@ -29,8 +30,8 @@ export function T({
   style,
   ...props
 }: TextProps & { variant?: Variant; color?: string; style?: StyleProp<TextStyle> }) {
-  const anton = variant === 'display' || variant === 'title';
-  const upper = variant === 'display' || variant === 'title' || variant === 'label' || variant === 'tiny';
+  const heading = variant === 'display' || variant === 'title';
+  const upper = variant === 'label' || variant === 'tiny';
   return (
     <RNText
       {...props}
@@ -39,8 +40,8 @@ export function T({
           fontFamily: family[variant],
           fontSize: size[variant],
           color,
-          lineHeight: anton ? size[variant] * 1.02 : Math.round(size[variant] * (variant === 'label' || variant === 'tiny' ? 1.35 : 1.4)),
-          letterSpacing: variant === 'label' ? 1.1 : variant === 'tiny' ? 0.6 : anton ? 0.3 : 0.1,
+          lineHeight: heading ? Math.round(size[variant] * 1.15) : Math.round(size[variant] * (upper ? 1.35 : 1.4)),
+          letterSpacing: variant === 'label' ? 0.9 : variant === 'tiny' ? 0.5 : heading ? -0.3 : 0,
           textTransform: upper ? 'uppercase' : 'none',
         },
         style,

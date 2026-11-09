@@ -4,13 +4,14 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AudioToggle } from './audio-toggle';
-import { Backdrop, tabBarSpace } from './broadcast';
+import { ThemeToggle } from './theme-toggle';
+import { Backdrop, FeatureBadge, tabBarSpace, type FeatureIconName } from './broadcast';
 import { useGlobalExit } from './motion-context';
 import { back as goBack } from './nav';
 import { SportPress } from './press';
 import { BroadcastSlash, Scene } from './scene';
 import { TabReplica } from './tabs';
-import { colors, space } from './theme';
+import { colors, radius, space } from './theme';
 import { T } from './text';
 
 /** Aire extra bajo el notch / Dynamic Island / barra de Safari (también en PWA standalone). */
@@ -51,6 +52,7 @@ export function Screen({
       <Backdrop />
       {exiting && focused ? <BroadcastSlash /> : null}
       <View pointerEvents="box-none" style={[styles.sound, { top: insets.top + 8 }]}>
+        {docked ? null : <ThemeToggle />}
         <AudioToggle />
       </View>
       <View style={[styles.safe, { paddingTop: insets.top + TOP_AIR }]}>
@@ -87,11 +89,14 @@ export function Top({
   kicker,
   back = false,
   right,
+  icon,
 }: {
   title: string;
   kicker?: string;
   back?: boolean;
   right?: ReactNode;
+  /** Ícono propio de la sección (silueta blanca sobre insignia morada). */
+  icon?: FeatureIconName;
 }) {
   return (
     <View style={styles.top}>
@@ -103,9 +108,10 @@ export function Top({
             </View>
           </SportPress>
         ) : null}
+        {icon ? <FeatureBadge name={icon} size={46} /> : null}
         <View style={styles.flex}>
           {kicker ? (
-            <T variant="label" color={colors.muted} style={styles.kicker}>
+            <T variant="label" color={colors.accentText} style={styles.kicker}>
               {kicker}
             </T>
           ) : null}
@@ -138,27 +144,28 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },
-  sound: { position: 'absolute', right: 10, zIndex: 45 },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, minHeight: 44, paddingRight: 62 },
+  sound: { position: 'absolute', right: 10, zIndex: 45, flexDirection: 'row', gap: 8 },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, minHeight: 44, paddingRight: 92 },
   topText: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   back: {
-    width: 44,
-    height: 38,
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-    transform: [{ skewX: '-14deg' }],
+    borderColor: colors.line,
   },
-  unskew: { transform: [{ skewX: '14deg' }] },
+  unskew: {},
   kicker: { fontSize: 11 },
-  title: { fontSize: 28, fontStyle: 'italic' },
+  title: { fontSize: 30, lineHeight: 34 },
   panel: {
-    backgroundColor: 'rgba(19,26,42, 0.88)',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    padding: space.md,
+    borderColor: colors.line,
+    borderRadius: radius.card,
+    padding: space.lg,
     gap: space.md,
   },
 });

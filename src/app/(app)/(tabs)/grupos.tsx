@@ -16,7 +16,7 @@ export default function Groups() {
 
   return (
     <Screen tab>
-      <Top title="Grupos" kicker="La junta" right={<Button label="Crear" onPress={() => push('/grupo/nuevo')} />} />
+      <Top title="Grupos" kicker="La junta" icon="friends" right={<Button label="Crear" onPress={() => push('/grupo/nuevo')} />} />
       <Gate query={query}>
         {(groups) =>
           groups.length === 0 ? (
@@ -31,13 +31,13 @@ export default function Groups() {
               <Pressable style={styles.card} onPress={() => push(`/grupo/${item.group.id}`)}>
                 <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} />
                 <View style={styles.flex}>
-                  <T variant="title" style={{ fontStyle: 'italic' }} numberOfLines={1}>
+                  <T variant="title" style={{ fontStyle: 'normal' }} numberOfLines={1}>
                     {item.group.name}
                   </T>
                   <T variant="tiny" color={colors.muted}>
                     {item.memberCount} jugadores · {item.yourPlace ? `vas ${item.yourPlace}º` : 'aún fuera del ranking'}
                   </T>
-                  <T variant="strong" color={colors.yellow}>
+                  <T variant="strong" color={colors.accentText}>
                     {item.leader ? `Manda ${item.leader.displayName}` : 'Nadie manda todavía'}
                   </T>
                 </View>
@@ -57,9 +57,10 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'center',
     padding: 12,
-    backgroundColor: 'rgba(19,26,42,0.88)',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.line,
+    borderRadius: 14,
   },
   flex: { flex: 1, gap: 4 },
 });

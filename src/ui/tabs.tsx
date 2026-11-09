@@ -10,9 +10,9 @@ import { SportPress } from './press';
 
 const items: { name: string; label: string; icon: BrandIconName; plus?: boolean }[] = [
   { name: 'inicio', label: 'Inicio', icon: 'home' },
-  { name: 'grupos', label: 'Grupos', icon: 'shield' },
+  { name: 'grupos', label: 'Grupos', icon: 'friends' },
   { name: 'jugar', label: 'Registrar', icon: 'add', plus: true },
-  { name: 'torneos', label: 'Torneos', icon: 'bracket' },
+  { name: 'torneos', label: 'Torneos', icon: 'tournaments' },
   { name: 'perfil', label: 'Perfil', icon: 'person' },
 ];
 
@@ -29,11 +29,6 @@ function Bar({
 }) {
   return (
     <View style={[styles.bar, { height, paddingBottom: Math.max(inset, 8) }]}>
-      <View style={styles.stripe} pointerEvents="none">
-        <View style={[styles.stripeBit, { backgroundColor: colors.red }]} />
-        <View style={[styles.stripeBit, { backgroundColor: colors.yellow }]} />
-        <View style={[styles.stripeBit, { backgroundColor: colors.blue }]} />
-      </View>
       {items.map((item) => {
         const on = active === item.name;
         if (item.plus) {
@@ -45,11 +40,10 @@ function Bar({
               onPress={() => onPress(item.name)}
               style={styles.tab}
             >
-              <View style={styles.plusShadow} />
               <View style={styles.plus}>
-                <Ionicons name="add" size={26} color={colors.ink} style={{ transform: [{ skewX: '12deg' }] }} />
+                <Ionicons name="add" size={28} color={colors.accentInk} />
               </View>
-              <T variant="label" color="#fff" style={styles.caption}>
+              <T variant="label" color={colors.text} style={styles.caption}>
                 {item.label}
               </T>
             </SportPress>
@@ -64,8 +58,8 @@ function Bar({
             style={styles.tab}
           >
             {on ? <View style={styles.mark} /> : <View style={styles.markOff} />}
-            <BrandIcon name={item.icon} size={22} color={on ? colors.yellow : colors.faint} />
-            <T variant="label" color={on ? '#fff' : colors.faint} style={styles.caption}>
+            <BrandIcon name={item.icon} size={22} color={on ? colors.accentText : colors.faint} />
+            <T variant="label" color={on ? colors.text : colors.faint} style={styles.caption}>
               {item.label}
             </T>
           </SportPress>
@@ -108,43 +102,37 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#04060a',
+    backgroundColor: colors.bgDeep,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.08)',
+    borderTopColor: colors.line,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
     paddingTop: 10,
     zIndex: 40,
   },
-  stripe: { position: 'absolute', left: 0, right: 0, top: -3, height: 3, flexDirection: 'row' },
-  stripeBit: { flex: 1 },
   tab: { width: 68, alignItems: 'center', gap: 3, paddingBottom: 2, position: 'relative' },
-  caption: { fontSize: 10, fontFamily: font.label, letterSpacing: 0.6 },
+  caption: { fontSize: 10, fontFamily: font.label, letterSpacing: 0.4, textTransform: 'none' },
   mark: {
     position: 'absolute',
     top: -8,
-    width: 28,
+    width: 24,
     height: 4,
+    borderRadius: 999,
     backgroundColor: colors.yellow,
-    transform: [{ skewX: '-20deg' }],
   },
   markOff: { height: 4 },
   plus: {
-    width: 56,
-    height: 36,
+    width: 48,
+    height: 48,
+    borderRadius: 999,
     backgroundColor: colors.yellow,
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ skewX: '-12deg' }],
-    marginTop: -8,
-  },
-  plusShadow: {
-    position: 'absolute',
-    top: -2,
-    width: 56,
-    height: 36,
-    backgroundColor: colors.red,
-    transform: [{ skewX: '-12deg' }, { translateX: 4 }, { translateY: 4 }],
+    marginTop: -18,
+    borderWidth: 4,
+    borderColor: colors.bgDeep,
   },
 });

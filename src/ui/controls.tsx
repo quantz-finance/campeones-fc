@@ -6,7 +6,7 @@ import { useDelayed, useShimmerStyle } from './motion';
 import { Shine, SportPress } from './press';
 import { Scene } from './scene';
 import { CardsSkeleton } from './skeleton';
-import { colors, font, space } from './theme';
+import { colors, font, radius, space } from './theme';
 import { T } from './text';
 
 type Tone = 'accent' | 'ghost' | 'danger' | 'gold';
@@ -27,9 +27,9 @@ export function Button({
   pending?: boolean;
   icon?: ReactNode;
 }) {
-  const fill = tone === 'danger' ? 'transparent' : tone === 'ghost' ? 'rgba(255,255,255,0.04)' : colors.yellow;
-  const ink = tone === 'accent' || tone === 'gold' ? colors.ink : tone === 'danger' ? colors.danger : colors.text;
-  const border = tone === 'ghost' ? 'rgba(255,255,255,0.45)' : tone === 'danger' ? colors.danger : undefined;
+  const fill = tone === 'danger' ? 'transparent' : tone === 'ghost' ? colors.wash : colors.yellow;
+  const ink = tone === 'accent' || tone === 'gold' ? colors.accentInk : tone === 'danger' ? colors.danger : colors.text;
+  const border = tone === 'ghost' ? colors.lineStrong : tone === 'danger' ? colors.danger : undefined;
   return (
     <SportPress
       disabled={disabled || pending}
@@ -43,8 +43,8 @@ export function Button({
             color={fill}
             shadow={tone === 'accent' || tone === 'gold' ? colors.red : undefined}
             border={border}
-            padH={14}
-            padV={12}
+            padH={18}
+            padV={14}
             angle="-8deg"
             fill
             overlay={<Shine tick={glint} />}
@@ -80,7 +80,7 @@ export function Field({
 }) {
   return (
     <View style={styles.field}>
-      <T variant="label" color={colors.yellow}>
+      <T variant="label" color={colors.accentText}>
         {label}
       </T>
       <TextInput
@@ -110,9 +110,9 @@ export function Chip({
     <SportPress onPress={onPress} disabled={!onPress}>
       {({ glint }) => (
         <SkewBlock
-          color={active ? colors.red : 'rgba(255,255,255,0.06)'}
+          color={active ? colors.red : colors.wash}
           shadow={active ? colors.yellow : undefined}
-          border={active ? undefined : 'rgba(255,255,255,0.2)'}
+          border={active ? undefined : colors.lineStrong}
           padH={12}
           padV={8}
           overlay={<Shine tick={glint} />}
@@ -135,7 +135,7 @@ export function Banner({
   body?: string;
   tone?: 'warn' | 'danger' | 'accent';
 }) {
-  const color = tone === 'danger' ? colors.danger : tone === 'accent' ? colors.yellow : colors.yellow;
+  const color = tone === 'danger' ? colors.danger : tone === 'accent' ? colors.accentText : colors.accentText;
   return (
     <View style={[styles.banner, { borderLeftColor: color }]}>
       <T variant="strong">{title}</T>
@@ -157,7 +157,7 @@ export function Empty({ title, body, action }: { title: string; body: string; ac
 export function Loading({ label = 'Cargando el marcador…' }: { label?: string }) {
   return (
     <View style={styles.empty}>
-      <T variant="label" color={colors.yellow}>
+      <T variant="label" color={colors.accentText}>
         {label}
       </T>
     </View>
@@ -218,27 +218,29 @@ const styles = StyleSheet.create({
   stretch: { alignSelf: 'stretch' },
   full: { alignSelf: 'stretch' },
   rowCenter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm },
-  btnLabel: { fontSize: 18, textAlign: 'center' },
+  btnLabel: { fontSize: 17, textAlign: 'center', fontFamily: font.bold, letterSpacing: 0 },
   dim: { opacity: 0.5 },
   pending: { opacity: 0.85 },
   dots: { flexDirection: 'row', gap: 3, marginLeft: 2 },
-  dot: { width: 5, height: 5, transform: [{ skewX: '-8deg' }] },
+  dot: { width: 5, height: 5, borderRadius: 999 },
   field: { gap: 6, alignSelf: 'stretch' },
   input: {
     minHeight: 52,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
-    backgroundColor: 'rgba(8,11,19,0.65)',
+    borderColor: colors.line,
+    backgroundColor: colors.card,
     color: colors.text,
-    paddingHorizontal: space.md,
+    paddingHorizontal: space.lg,
     fontFamily: font.body,
     fontSize: 16,
+    borderRadius: radius.md,
   },
   banner: {
     borderLeftWidth: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(14,19,32,0.9)',
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
     padding: space.md,
     gap: 4,
   },

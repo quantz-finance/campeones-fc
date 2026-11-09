@@ -85,7 +85,7 @@ export function ChainCard({ match, userId, canSign = true }: { match: Match; use
 
   return (
     <View style={styles.card}>
-      <T variant="label" color={colors.cyan}>
+      <T variant="label" color={colors.accentText}>
         Registro en Stellar · {STELLAR_NETWORK === 'mainnet' ? 'red principal' : 'red de prueba'}
       </T>
       <T variant="tiny" color={colors.muted} style={styles.plain}>
@@ -94,7 +94,7 @@ export function ChainCard({ match, userId, canSign = true }: { match: Match; use
       {info.status === 'anchored' && info.tx ? (
         <>
           <Pressable onPress={() => push(`/verificar/${match.id}`)} accessibilityRole="link">
-            <T variant="strong" color={colors.yellow}>
+            <T variant="strong" color={colors.accentText}>
               ✓ Verificado en Stellar
             </T>
           </Pressable>
@@ -131,8 +131,9 @@ const styles = StyleSheet.create({
     gap: space.sm,
     padding: space.md,
     borderWidth: 1,
-    borderColor: 'rgba(34,225,255,0.25)',
-    backgroundColor: 'rgba(8,12,36,0.72)',
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderRadius: 14,
   },
   plain: { textTransform: 'none', letterSpacing: 0 },
 });

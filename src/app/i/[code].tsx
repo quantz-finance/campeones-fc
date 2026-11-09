@@ -27,7 +27,7 @@ export default function InviteScreen() {
       .redeemInvite(userId, value)
       .then((result) => {
         if (!active) return;
-        setMessage(result === 'already' ? 'Ya eran amigos. El pique sigue abierto.' : 'Listo. Ya son amigos, y ya le avisamos que entraste.');
+        setMessage(result === 'already' ? 'Ya eran amigos. Sigan jugando sus partidos.' : 'Listo. Ya son amigos, y ya le avisamos que entraste.');
       })
       .catch((cause: unknown) => {
         if (!active) return;
@@ -40,7 +40,7 @@ export default function InviteScreen() {
 
   return (
     <Screen>
-      <Top title="Invitación" kicker="Amigos" />
+      <Top title="Invitación" kicker="Amigos" icon="friends" />
       {message ? <Banner tone="accent" title={message} /> : null}
       {error ? <Banner tone="danger" title="Ese enlace no sirvió" body={error} /> : null}
       {!message && !error ? <T color={colors.muted}>Estamos uniendo las cuentas…</T> : null}

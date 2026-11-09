@@ -56,7 +56,7 @@ export default function Ranking() {
   );
   return (
     <Screen scroll={false} fill>
-      <Top title="Ranking" kicker="Tu círculo" back />
+      <Top title="Ranking" kicker="Tu círculo" back icon="ranking" />
       <Gate query={query} skeleton={<ListSkeleton rows={9} />} fill>
         {(data) => (
           <FlatList
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     padding: space.sm,
     borderRadius: radius.md,
   },
-  you: { backgroundColor: colors.surface },
+  you: { backgroundColor: colors.surface, borderRadius: 14 },
   place: { width: 28 },
   flex: { flex: 1 },
   list: { gap: 4, paddingBottom: 8 },

@@ -1,6 +1,45 @@
+import { Platform } from 'react-native';
 import { branding } from '../../config/branding';
 
-export const colors = branding.colors;
+export type ColorKey = keyof typeof branding.colors;
+type Palette = Record<ColorKey, string>;
+
+/** Paletas en hex: oscura (por defecto) y clara. Para SVG y otros lugares que no aceptan variables CSS. */
+export const palettes: { dark: Palette; light: Palette } = {
+  dark: branding.colors,
+  light: branding.lightColors,
+};
+
+const web = Platform.OS === 'web';
+const keys = Object.keys(branding.colors) as ColorKey[];
+const cssVar = (key: string) => `--c-${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`;
+
+/**
+ * Colores de la app. En web son variables CSS (var(--c-bg), ...), así el modo claro/oscuro
+ * cambia en vivo en todas las pantallas sin volver a montar nada. En nativo, el tema oscuro en hex.
+ */
+export const colors: Palette = web
+  ? (Object.fromEntries(keys.map((k) => [k, `var(${cssVar(k)})`])) as Palette)
+  : palettes.dark;
+
+/** Hex del tema oscuro (fills de SVG, gráficos). */
+export const hex = palettes.dark;
+
+/** Hoja de estilos con las variables de los dos temas. */
+export function themeCss(): string {
+  const block = (p: Palette) => keys.map((k) => `${cssVar(k)}:${p[k]}`).join(';');
+  const washDark =
+    'radial-gradient(70% 42% at 100% 0%, rgba(149,59,255,.38), transparent 70%), radial-gradient(60% 36% at 0% 100%, rgba(0,255,135,.10), transparent 70%)';
+  const washLight = 'radial-gradient(70% 42% at 100% 0%, rgba(149,59,255,.10), transparent 70%)';
+  return `:root{${block(palettes.dark)};--bg-wash:${washDark};color-scheme:dark}:root[data-theme="light"]{${block(palettes.light)};--bg-wash:${washLight};color-scheme:light}`;
+}
+
+if (web && typeof document !== 'undefined' && !document.getElementById('cfc-theme-vars')) {
+  const style = document.createElement('style');
+  style.id = 'cfc-theme-vars';
+  style.textContent = themeCss();
+  document.head.appendChild(style);
+}
 
 export const space = {
   xs: 4,
@@ -12,20 +51,24 @@ export const space = {
 };
 
 export const radius = {
-  sm: 2,
-  md: 4,
-  lg: 6,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  card: 16,
   pill: 999,
 };
 
+/**
+ * Outfit (OFL, autoalojada en /fonts). Cada familia fija un peso de la fuente variable
+ * (ver public/index.html: @font-face con font-weight por familia).
+ */
 export const font = {
-  display: 'Anton_400Regular',
-  /** Archivo al 78 % de ancho (instancias estáticas en assets/fonts). */
-  label: 'ArchivoEtiqueta_800ExtraBold',
-  labelSoft: 'ArchivoEtiqueta_600SemiBold',
-  /** Barlow (texto/UI): deportiva y legible. Solo 400/500/600, subset latino. */
-  body: 'Barlow_400Regular',
-  medium: 'Barlow_500Medium',
-  strong: 'Barlow_600SemiBold',
-  bold: 'Barlow_600SemiBold',
+  display: 'Outfit_800',
+  heading: 'Outfit_700',
+  label: 'Outfit_700',
+  labelSoft: 'Outfit_600',
+  body: 'Outfit_400',
+  medium: 'Outfit_500',
+  strong: 'Outfit_600',
+  bold: 'Outfit_700',
 };

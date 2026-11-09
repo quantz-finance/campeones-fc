@@ -141,6 +141,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.red,
     paddingLeft: 8,
     overflow: 'hidden',
+    borderRadius: 14,
   },
   chip: {
     flexDirection: 'row',
@@ -149,8 +150,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.yellow,
     paddingHorizontal: 5,
     paddingVertical: 1,
-    transform: [{ skewX: '-10deg' }],
+    transform: [{ skewX: '0deg' }],
     zIndex: 2,
+    borderRadius: 999,
   },
   dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: colors.red },
   chipText: { fontSize: 9, lineHeight: 12, letterSpacing: 0.8 },

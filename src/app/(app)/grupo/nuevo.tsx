@@ -24,7 +24,7 @@ export default function NewGroup() {
 
   return (
     <Screen>
-      <Top title="Nuevo grupo" kicker="Junta" back />
+      <Top title="Nuevo grupo" kicker="Junta" back icon="friends" />
       <Field label="Nombre" value={name} onChangeText={setName} placeholder="La junta del viernes" autoCapitalize="sentences" />
       <Gate query={friends}>
         {(data) => (
@@ -77,5 +77,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  on: { borderColor: colors.accent, backgroundColor: colors.bg },
+  on: { borderColor: colors.accent, backgroundColor: colors.bg, borderRadius: 14 },
 });

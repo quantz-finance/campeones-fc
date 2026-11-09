@@ -5,9 +5,11 @@ import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-s
 import { avatarByKey, branding } from '../../config/branding';
 import { CountRoll, CountUp, GrowX } from './motion';
 import { SportPress } from './press';
-import { colors, font } from './theme';
+import { colors, font, hex } from './theme';
 import { T } from './text';
 import { toroPaths, toroTransform, toroViewBox } from './toro-data';
+import { featureIcons, type FeatureIconName } from './feature-icons-data';
+import { useResolvedColor } from './theme-mode';
 import { Image } from 'expo-image';
 import { PhotoLayer } from './entity-image';
 
@@ -24,14 +26,16 @@ export function Backdrop() {
   );
 }
 
+/**
+ * Bloque de color (antes inclinado). Estilo liga: píldora redondeada, sin inclinación ni sombra desplazada.
+ * Se mantienen las props (shadow, angle) para no tocar a quien lo usa.
+ */
 export function SkewBlock({
   children,
   color,
-  shadow,
   border,
   padH = 12,
   padV = 6,
-  angle = '-10deg',
   fill = false,
   style,
   overlay,
@@ -52,31 +56,19 @@ export function SkewBlock({
     styles.skewFace,
     {
       backgroundColor: color,
-      paddingHorizontal: padH,
+      paddingHorizontal: padH + 4,
       paddingVertical: padV,
       borderWidth: border ? 1.5 : 0,
       borderColor: border,
-      transform: [{ skewX: angle }],
-      overflow: overlay ? ('hidden' as const) : ('visible' as const),
+      borderRadius: 999,
+      overflow: 'hidden' as const,
     },
     style,
   ];
   return (
     <View style={[styles.skewWrap, fill && styles.skewFill]}>
-      {shadow ? (
-        <View
-          pointerEvents="none"
-          style={[
-            styles.skewShadow,
-            {
-              backgroundColor: shadow,
-              transform: [{ skewX: angle }, { translateX: 4 }, { translateY: 4 }],
-            },
-          ]}
-        />
-      ) : null}
       <View style={face as StyleProp<ViewStyle>}>
-        <View style={{ transform: [{ skewX: angle.startsWith('-') ? angle.slice(1) : `-${angle}` }] }}>{children}</View>
+        <View>{children}</View>
         {overlay}
       </View>
     </View>
@@ -98,18 +90,53 @@ export function Toro({ size = 36 }: { size?: number }) {
 
 /** Ícono de cuadro de torneo (llaves), en lugar de una copa. */
 export function BracketIcon({ size = 22, color = colors.text }: { size?: number; color?: string }) {
+  const stroke = useResolvedColor(color);
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 4h5v6H3M3 14h5v6H3M8 7h4v10H8M12 12h9" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+      <Path d="M3 4h5v6H3M3 14h5v6H3M8 7h4v10H8M12 12h9" stroke={stroke} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
     </Svg>
   );
 }
 
-export type BrandIconName = keyof typeof Ionicons.glyphMap | 'bracket';
+export type { FeatureIconName } from './feature-icons-data';
+export type BrandIconName = keyof typeof Ionicons.glyphMap | 'bracket' | FeatureIconName;
+
+const isFeature = (name: string): name is FeatureIconName => name in featureIcons;
+
+/**
+ * Íconos propios de Campeones (siluetas de la landing). `color` en hex: los fills de SVG
+ * no leen variables CSS en todos los navegadores. Por defecto blancos, como en la landing.
+ */
+export function FeatureIcon({ name, size = 24, color = '#FFFFFF' }: { name: FeatureIconName; size?: number; color?: string }) {
+  const icon = featureIcons[name];
+  const fill = useResolvedColor(color);
+  const paths = icon.paths.map((d, i) => <Path key={i} d={d} fill={fill} />);
+  return (
+    <Svg width={size} height={size} viewBox={icon.viewBox}>
+      {icon.transform ? <G transform={icon.transform}>{paths}</G> : paths}
+    </Svg>
+  );
+}
+
+/** Insignia morada con el ícono blanco: igual en modo claro y oscuro (como las tarjetas de la landing). */
+export function FeatureBadge({ name, size = 44, tone = 'purple' }: { name: FeatureIconName; size?: number; tone?: 'purple' | 'lilac' }) {
+  return (
+    <View
+      style={[
+        styles.badge,
+        { width: size, height: size, borderRadius: Math.round(size * 0.3), backgroundColor: tone === 'lilac' ? hex.blue : '#4A0A55' },
+        Platform.OS === 'web' ? ({ backgroundImage: tone === 'lilac' ? 'linear-gradient(150deg,#A855FF,#6A1FD0)' : 'linear-gradient(150deg,#5A1A6E,#37003C)' } as object) : null,
+      ]}
+    >
+      <FeatureIcon name={name} size={Math.round(size * 0.72)} />
+    </View>
+  );
+}
 
 export function BrandIcon({ name, size = 22, color = colors.text }: { name: BrandIconName; size?: number; color?: string }) {
   if (name === 'bracket') return <BracketIcon size={size} color={color} />;
-  return <Ionicons name={name} size={size} color={color} />;
+  if (isFeature(name)) return <FeatureIcon name={name} size={Math.round(size * 1.2)} color={color} />;
+  return <Ionicons name={name as keyof typeof Ionicons.glyphMap} size={size} color={color} />;
 }
 
 export function Wordmark({ size = 22 }: { size?: number }) {
@@ -120,7 +147,7 @@ export function Wordmark({ size = 22 }: { size?: number }) {
     <View style={styles.wordmark}>
       <Toro size={Math.round(size * 2)} />
       <View style={styles.lockup}>
-        <T variant="display" numberOfLines={1} style={{ fontSize: size, color: '#fff', fontStyle: 'italic', lineHeight: size }}>
+        <T variant="display" numberOfLines={1} style={{ fontSize: size, color: colors.text, fontStyle: 'normal', lineHeight: size * 1.05 }}>
           {lead}
         </T>
         {tail ? (
@@ -130,7 +157,7 @@ export function Wordmark({ size = 22 }: { size?: number }) {
               fontFamily: font.bold,
               fontSize: fc,
               lineHeight: fc + 2,
-              color: colors.yellow,
+              color: colors.accentText,
               fontStyle: 'normal',
               letterSpacing: 0.9,
               marginLeft: 5,
@@ -165,15 +192,13 @@ export function SectionHead({
 }) {
   return (
     <View style={styles.head}>
-      <SkewBlock color={colors.text} padH={10} padV={4} angle="-10deg">
-        <T variant="title" style={{ fontSize: 16, color: colors.ink, fontStyle: 'normal' }}>
-          {title}
-        </T>
-      </SkewBlock>
+      <T variant="title" style={{ fontSize: 20 }}>
+        {title}
+      </T>
       <View style={styles.headLine} />
       {action ? (
         <Pressable onPress={onAction} hitSlop={8}>
-          <T variant="label" color={colors.yellow} style={{ fontSize: 12 }}>
+          <T variant="label" color={colors.accentText} style={{ fontSize: 12 }}>
             {action}
           </T>
         </Pressable>
@@ -213,7 +238,7 @@ export function InitialsMark({
           height: size,
           backgroundColor: avatar.background,
         },
-        Platform.OS === 'web' ? styles.markClip : { transform: [{ skewX: '-10deg' }] },
+        Platform.OS === 'web' ? styles.markClip : { transform: [{ skewX: '0deg' }] },
         Platform.OS === 'web'
           ? ({
               backgroundImage: `linear-gradient(160deg, ${avatar.background}, ${avatar.wash})`,
@@ -226,7 +251,7 @@ export function InitialsMark({
         style={{
           fontSize: fontSize ?? Math.round(size * 0.38),
           color: avatar.foreground,
-          transform: Platform.OS === 'web' ? undefined : [{ skewX: '10deg' }],
+          transform: Platform.OS === 'web' ? undefined : [{ skewX: '0deg' }],
         }}
       >
         {letters || '·'}
@@ -237,7 +262,7 @@ export function InitialsMark({
 }
 
 function ScoreFigure({ score }: { score: string }) {
-  const style = { fontSize: 26, color: colors.ink, fontStyle: 'italic' as const };
+  const style = { fontSize: 26, color: colors.ink, fontStyle: 'normal' as const };
   const parts = score.split('–');
   if (parts.length === 2 && parts.every((part) => /^\d+$/.test(part.trim()))) {
     return (
@@ -332,7 +357,7 @@ export function ScoreBar({
       </SportPress>
       {note ? (
         <View style={styles.note}>
-          <T variant="tiny" color="#fff" style={{ letterSpacing: 0.4 }}>
+          <T variant="tiny" color={colors.text} style={{ letterSpacing: 0.4 }}>
             {note}
           </T>
         </View>
@@ -364,7 +389,7 @@ export function QuickTile({
         </T>
         <BrandIcon name={icon} size={22} color={ink} />
       </View>
-      <T variant="display" style={{ fontSize: 26, color: ink, fontStyle: 'italic' }}>
+      <T variant="display" style={{ fontSize: 26, color: ink, fontStyle: 'normal' }}>
         {title}
       </T>
     </SportPress>
@@ -376,12 +401,12 @@ export function StatCell({ value, label, accent = false }: { value: string; labe
     <View style={styles.stat}>
       <CountUp value={value}>
         {(shown) => (
-          <T variant="display" style={{ fontSize: 28, color: accent ? colors.yellow : '#fff', fontStyle: 'italic' }}>
+          <T variant="display" style={{ fontSize: 28, color: accent ? colors.accentText : colors.text, fontStyle: 'normal' }}>
             {shown}
           </T>
         )}
       </CountUp>
-      <T variant="tiny" color={colors.yellow} style={{ fontSize: 10 }}>
+      <T variant="tiny" color={colors.accentText} style={{ fontSize: 10 }}>
         {label}
       </T>
     </View>
@@ -436,6 +461,8 @@ export function EloChart({
   youName: string;
   themName: string;
 }) {
+  const red = useResolvedColor(colors.red);
+  const blue = useResolvedColor(colors.blue);
   const width = 340;
   const height = 150;
   const all = [...you, ...them];
@@ -476,16 +503,16 @@ export function EloChart({
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         <Defs>
           <LinearGradient id="youFill" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={colors.red} stopOpacity="0.45" />
-            <Stop offset="1" stopColor={colors.red} stopOpacity="0" />
+            <Stop offset="0" stopColor={red} stopOpacity="0.45" />
+            <Stop offset="1" stopColor={red} stopOpacity="0" />
           </LinearGradient>
         </Defs>
         <Path d={area(you)} fill="url(#youFill)" />
-        <Path d={line(them)} stroke={colors.blue} strokeWidth={3} fill="none" />
-        <Path d={line(you)} stroke={colors.red} strokeWidth={3} fill="none" />
-        {lastYou != null ? <Circle cx={xOf(you.length - 1, you.length)} cy={yOf(lastYou)} r={5} fill={colors.red} /> : null}
+        <Path d={line(them)} stroke={blue} strokeWidth={3} fill="none" />
+        <Path d={line(you)} stroke={red} strokeWidth={3} fill="none" />
+        {lastYou != null ? <Circle cx={xOf(you.length - 1, you.length)} cy={yOf(lastYou)} r={5} fill={red} /> : null}
         {lastThem != null ? (
-          <Circle cx={xOf(them.length - 1, them.length)} cy={yOf(lastThem)} r={5} fill={colors.blue} />
+          <Circle cx={xOf(them.length - 1, them.length)} cy={yOf(lastThem)} r={5} fill={blue} />
         ) : null}
       </Svg>
     </View>
@@ -537,7 +564,7 @@ export function Shield({ letters, photoUrl, size = 52 }: { letters: string; phot
           accessible={false}
         />
       ) : (
-        <T variant="display" style={{ fontSize: Math.round(size * 0.42), color: colors.yellow }}>
+        <T variant="display" style={{ fontSize: Math.round(size * 0.42), color: colors.accentText }}>
           {letters}
         </T>
       )}
@@ -553,12 +580,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     ...(Platform.OS === 'web'
       ? ({
-          backgroundImage:
-            'radial-gradient(60% 38% at 0% 0%, rgba(255,90,31,.32), transparent 70%), radial-gradient(60% 38% at 100% 18%, rgba(46,75,240,.32), transparent 70%), radial-gradient(80% 50% at 50% 100%, rgba(46,75,240,.14), transparent 70%), linear-gradient(180deg, #12151c, #080B13 60%)',
+          backgroundImage: 'var(--bg-wash)',
         } as object)
       : null),
   },
-  stripes: { backgroundImage: stripe } as object,
+  stripes: { backgroundImage: 'none' } as object,
   wordmark: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   lockup: { flexDirection: 'row', alignItems: 'flex-end', flexShrink: 1 },
   affiliation: { textTransform: 'none', letterSpacing: 0, textAlign: 'center' },
@@ -567,54 +593,55 @@ const styles = StyleSheet.create({
   skewFace: { zIndex: 1, position: 'relative' },
   skewShadow: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 0 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
-  headLine: { flex: 1, height: 2, backgroundColor: 'rgba(255,255,255,0.28)' },
+  headLine: { flex: 1, height: 1, backgroundColor: colors.line },
   mark: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  markClip: { clipPath: 'polygon(14% 0, 100% 0, 86% 100%, 0 100%)' } as object,
-  scoreWrap: { gap: 0 },
+  markClip: { borderRadius: 999, overflow: 'hidden' } as object,
+  scoreWrap: { gap: 0, borderRadius: 16, overflow: 'hidden' },
   scoreShade: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(8,11,19,0.35)' },
   scoreTagOnPhoto: { textShadowColor: 'rgba(0,0,0,0.85)', textShadowRadius: 6, textShadowOffset: { width: 0, height: 1 } },
-  scoreRow: { flexDirection: 'row', alignItems: 'stretch', minHeight: 58, gap: 0 },
+  scoreRow: { flexDirection: 'row', alignItems: 'stretch', minHeight: 62, gap: 0, borderRadius: 16, overflow: 'hidden' },
   scoreSide: {
     width: 64,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    transform: [{ skewX: '-8deg' }],
+    transform: [{ skewX: '0deg' }],
   },
-  scoreTag: { fontSize: 18, color: '#fff', transform: [{ skewX: '8deg' }] },
-  scoreMid: { flex: 1, backgroundColor: colors.text, alignItems: 'center', justifyContent: 'center' },
+  scoreTag: { fontSize: 18, color: '#fff', transform: [{ skewX: '0deg' }] },
+  scoreMid: { flex: 1, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center' },
   scoreFigure: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  scoreActionHit: { justifyContent: 'center', marginLeft: 6 },
+  scoreActionHit: { justifyContent: 'center', paddingHorizontal: 8, backgroundColor: colors.card },
   ghostAction: {
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.35)',
-    paddingHorizontal: 10,
+    borderColor: colors.lineStrong,
+    paddingHorizontal: 12,
     paddingVertical: 10,
-    transform: [{ skewX: '-8deg' }],
+    borderRadius: 999,
   },
-  note: { backgroundColor: '#04060a', paddingHorizontal: 10, paddingVertical: 6, marginTop: 0 },
-  tile: { width: '48%', flexGrow: 1, minHeight: 92, padding: 12, justifyContent: 'space-between' },
+  note: { backgroundColor: colors.bgDeep, paddingHorizontal: 10, paddingVertical: 6, marginTop: 0 },
+  tile: { width: '48%', flexGrow: 1, minHeight: 96, padding: 14, justifyContent: 'space-between', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: colors.line },
   tileTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   stat: {
     width: '31%',
     flexGrow: 1,
-    backgroundColor: 'rgba(19,26,42,0.72)',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    borderColor: colors.line,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
     gap: 2,
+    borderRadius: 16,
   },
   compare: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  compareNum: { width: 54, fontSize: 22, color: '#fff', fontStyle: 'italic' },
+  compareNum: { width: 54, fontSize: 22, color: colors.text, fontStyle: 'normal' },
   compareTrack: { flex: 1, gap: 4 },
   compareBars: { flexDirection: 'row', height: 10, alignItems: 'center' },
-  compareLeft: { height: 10, backgroundColor: colors.red, transform: [{ skewX: '-18deg' }] },
-  compareRight: { height: 10, backgroundColor: colors.blue, transform: [{ skewX: '-18deg' }] },
+  compareLeft: { height: 10, backgroundColor: colors.red, borderRadius: 999 },
+  compareRight: { height: 10, backgroundColor: colors.blue, borderRadius: 999 },
   compareLabel: { textAlign: 'center' },
   legend: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginBottom: 4 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dot: { width: 8, height: 8 },
+  dot: { width: 8, height: 8, borderRadius: 999 },
   sticker: {
     width: '47%',
     minHeight: 118,
@@ -622,7 +649,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
+    borderRadius: 16,
   },
-  stickerLocked: { borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.28)' },
+  stickerLocked: { borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.lineStrong },
   shield: { alignItems: 'center', justifyContent: 'center' },
+  badge: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
 });

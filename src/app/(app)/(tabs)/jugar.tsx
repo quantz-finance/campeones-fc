@@ -25,7 +25,7 @@ export default function Play() {
 
   return (
     <Screen tab>
-      <Top title="Registrar" kicker="Nuevo partido" />
+      <Top title="Registrar" kicker="Nuevo partido" icon="matches" />
       <T color={colors.muted}>
         Tú lo propones y tu rival lo acepta. Al terminar, cada uno marca quién ganó. Si coinciden, el resultado cuenta.
       </T>
@@ -86,7 +86,7 @@ export default function Play() {
       </Gate>
       {stakesOn ? (
         <Panel>
-          <T variant="label" color={colors.yellow}>
+          <T variant="label" color={colors.accentText}>
             Apuesta · USDC de prueba
           </T>
           <View style={styles.stakes}>
@@ -146,9 +146,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  on: { borderColor: colors.accent, backgroundColor: colors.bg },
+  on: { borderColor: colors.accent, backgroundColor: colors.bg, borderRadius: 14 },
   flex: { flex: 1 },
   stakes: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  stake: { paddingHorizontal: space.md, paddingVertical: space.sm, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', transform: [{ skewX: '-8deg' }] },
-  stakeOn: { backgroundColor: colors.yellow, borderColor: colors.yellow },
+  stake: { paddingHorizontal: space.md, paddingVertical: space.sm, borderWidth: 1, borderColor: colors.lineStrong, transform: [{ skewX: '0deg' }] },
+  stakeOn: { backgroundColor: colors.yellow, borderColor: colors.yellow, borderRadius: 14 },
 });

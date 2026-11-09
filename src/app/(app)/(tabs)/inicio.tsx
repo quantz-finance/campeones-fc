@@ -75,7 +75,7 @@ export default function Home() {
                   onPress={() => push('/avisos')}
                   style={styles.bell}
                 >
-                  <Ionicons name={unread ? 'notifications' : 'notifications-outline'} size={20} color="#fff" />
+                  <Ionicons name={unread ? 'notifications' : 'notifications-outline'} size={20} color={colors.text} />
                   {unread + home.actionMatches.length > 0 ? (
                     <View style={styles.badge}>
                       <Pop value={unread + home.actionMatches.length}>
@@ -100,18 +100,6 @@ export default function Home() {
               <Rise index={0}>
               <SportPress style={styles.hero} onPress={() => push('/perfil')}>
                 <View style={styles.heroLeft}>
-                  <View
-                    style={[
-                      styles.stripes,
-                      Platform.OS === 'web'
-                        ? ({
-                            backgroundImage:
-                              'repeating-linear-gradient(-58deg, transparent 0 7px, rgba(0,0,0,0.22) 7px 11px)',
-                          } as object)
-                        : { backgroundColor: 'rgba(0,0,0,0.15)' },
-                    ]}
-                    pointerEvents="none"
-                  />
                   <CountRoll value={played} format={(n) => String(Math.round(n))}>
                     {(shown) => (
                       <T variant="display" style={styles.bigNum}>
@@ -127,7 +115,7 @@ export default function Home() {
                   </View>
                 </View>
                 <View style={styles.heroRight}>
-                  <T variant="tiny" color={colors.yellow}>
+                  <T variant="tiny" color={colors.accentText}>
                     Tu ficha
                   </T>
                   <T variant="display" style={styles.heroName} numberOfLines={2}>
@@ -143,7 +131,7 @@ export default function Home() {
                       <Pop value={home.rating}>
                         <CountRoll value={home.rating} format={(n) => elo(Math.round(n))}>
                           {(shown) => (
-                            <T variant="display" style={{ fontSize: 28, color: colors.ink, fontStyle: 'italic' }}>
+                            <T variant="display" style={{ fontSize: 28, color: colors.ink, fontStyle: 'normal' }}>
                               {shown}
                             </T>
                           )}
@@ -154,7 +142,7 @@ export default function Home() {
                   <View style={styles.tags}>
                     {group?.yourPlace ? (
                       <View style={styles.tagDark}>
-                        <T variant="tiny" color={colors.yellow}>
+                        <T variant="tiny" color={colors.accentText}>
                           #{group.yourPlace} {group.group.name}
                         </T>
                       </View>
@@ -174,7 +162,7 @@ export default function Home() {
                       <View style={{ flex: draw / total, backgroundColor: colors.yellow }} />
                       <View style={{ flex: loss / total, backgroundColor: colors.blue }} />
                     </View>
-                    <T variant="tiny" color={colors.yellow}>
+                    <T variant="tiny" color={colors.accentText}>
                       {pct(home.record.winRate)} victorias
                     </T>
                   </View>
@@ -227,23 +215,23 @@ export default function Home() {
               )}
               <SectionHead title="Accesos rápidos" />
               <Rise index={4} style={styles.grid}>
-                <QuickTile kicker="Nuevo partido" title="Registrar" color={colors.yellow} ink={colors.ink} icon="add" onPress={() => push('/jugar')} />
+                <QuickTile kicker="Nuevo partido" title="Registrar" color={colors.yellow} ink={colors.ink} icon="matches" onPress={() => push('/jugar')} />
                 <QuickTile
                   kicker="Cara a cara"
                   title="Versus"
                   color={colors.red}
                   ink={colors.redInk}
-                  icon="git-compare"
+                  icon="versus"
                   onPress={() => (rivalId ? push(`/versus/${rivalId}`) : push('/amigos'))}
                 />
                 <QuickTile
                   kicker={group?.group.name ?? 'Tu grupo'}
                   title="Tabla"
                   color={colors.blue}
-                  icon="stats-chart"
+                  icon="ranking"
                   onPress={() => (group ? push(`/grupo/${group.group.id}`) : push('/grupos'))}
                 />
-                <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="bracket" onPress={() => push('/torneos')} />
+                <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="tournaments" onPress={() => push('/torneos')} />
               </Rise>
             </>
           );
@@ -256,17 +244,18 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   brandLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  modeChip: { paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: colors.yellow, transform: [{ skewX: '-8deg' }] },
-  modeChipFake: { backgroundColor: colors.yellow },
+  modeChip: { paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: colors.accentText, borderRadius: 999 },
+  modeChipFake: { backgroundColor: colors.yellow, borderRadius: 14 },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 62 },
   bell: {
     width: 42,
     height: 42,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: colors.line,
+    backgroundColor: colors.wash,
   },
   badge: {
     position: 'absolute',
@@ -275,12 +264,13 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     paddingHorizontal: 4,
+    borderRadius: 999,
     backgroundColor: colors.yellow,
     alignItems: 'center',
     justifyContent: 'center',
   },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  hero: { flexDirection: 'row', minHeight: 220, overflow: 'hidden', backgroundColor: colors.navy },
+  hero: { flexDirection: 'row', minHeight: 220, overflow: 'hidden', backgroundColor: colors.navy, borderRadius: 20, borderWidth: 1, borderColor: colors.line },
   heroLeft: { width: '38%', backgroundColor: colors.red, paddingTop: 14, paddingLeft: 12, paddingBottom: 12, justifyContent: 'flex-start', overflow: 'hidden' },
   stripes: {
     position: 'absolute',
@@ -290,17 +280,17 @@ const styles = StyleSheet.create({
     left: 0,
     opacity: 0.45,
   },
-  bigNum: { fontSize: 68, fontStyle: 'italic', color: colors.redInk, lineHeight: 70 },
+  bigNum: { fontSize: 68, fontStyle: 'normal', color: colors.redInk, lineHeight: 70 },
   heroMark: { position: 'absolute', right: -16, bottom: 8, opacity: 0.9 },
   heroRight: { flex: 1, padding: 12, gap: 6, justifyContent: 'center' },
-  heroName: { fontSize: 36, fontStyle: 'italic', lineHeight: 36 },
+  heroName: { fontSize: 36, fontStyle: 'normal', lineHeight: 36 },
   eloRow: { flexDirection: 'row', alignItems: 'stretch' },
-  eloTag: { backgroundColor: colors.yellow, paddingHorizontal: 6, justifyContent: 'center' },
-  eloNum: { backgroundColor: '#fff', paddingHorizontal: 8, justifyContent: 'center' },
+  eloTag: { backgroundColor: colors.yellow, paddingHorizontal: 6, justifyContent: 'center', borderRadius: 14 },
+  eloNum: { backgroundColor: '#fff', paddingHorizontal: 8, justifyContent: 'center', borderRadius: 14 },
   tags: { gap: 4 },
-  tagDark: { alignSelf: 'flex-start', backgroundColor: '#04060a', paddingHorizontal: 6, paddingVertical: 3 },
-  tagRed: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.red, paddingHorizontal: 6, paddingVertical: 3 },
+  tagDark: { alignSelf: 'flex-start', backgroundColor: colors.bgDeep, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
+  tagRed: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.red, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
   barRow: { gap: 4, marginTop: 4 },
-  bar: { flexDirection: 'row', height: 8, backgroundColor: 'rgba(255,255,255,0.08)' },
+  bar: { flexDirection: 'row', height: 8, backgroundColor: colors.line, borderRadius: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 });

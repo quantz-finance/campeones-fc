@@ -12,7 +12,7 @@ export default function Trophies() {
   const query = useQuery(() => repo.trophies(userId!), [repo, userId, version]);
   return (
     <Screen>
-      <Top title="Trofeos" kicker="Vitrina" back />
+      <Top title="Trofeos" kicker="Vitrina" back icon="trophies" />
       <Gate query={query}>
         {(trophies) => (
           <>
@@ -49,6 +49,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  locked: { backgroundColor: colors.surface2 },
+  locked: { backgroundColor: colors.surface2, borderRadius: 14 },
   flex: { flex: 1, gap: 4 },
 });

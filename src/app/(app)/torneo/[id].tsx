@@ -46,6 +46,7 @@ export default function TournamentScreen() {
           return (
             <>
               <Top
+                icon="tournaments"
                 title={data.tournament.name}
                 kicker={formatLabel}
                 back
@@ -53,7 +54,7 @@ export default function TournamentScreen() {
                   <View style={styles.topRight}>
                   <Shield letters={monogram(data.tournament.name)} photoUrl={data.tournament.photoUrl} size={40} />
                   <View style={[styles.badge, { backgroundColor: data.tournament.status === 'completed' ? colors.up : colors.yellow }]}>
-                    <T variant="tiny" color={data.tournament.status === 'completed' ? '#fff' : colors.ink}>
+                    <T variant="tiny" color={colors.ink}>
                       {data.tournament.status === 'completed' ? 'Finalizado' : 'En juego'}
                     </T>
                   </View>
@@ -75,7 +76,7 @@ export default function TournamentScreen() {
                     <T variant="tiny" color={colors.ink}>
                       {champion ? 'Campeón' : 'Sin campeón único'}
                     </T>
-                    <T variant="display" style={{ fontSize: 32, color: colors.ink, fontStyle: 'italic' }} numberOfLines={2}>
+                    <T variant="display" style={{ fontSize: 32, color: colors.ink, fontStyle: 'normal' }} numberOfLines={2}>
                       {champion ? firstName(champion.displayName) : 'Empatados arriba'}
                     </T>
                     {champion && finalMatch ? (
@@ -95,7 +96,7 @@ export default function TournamentScreen() {
                       </View>
                       {unbeaten ? (
                         <View style={[styles.pill, { backgroundColor: colors.ink }]}>
-                          <T variant="tiny" color={colors.yellow}>
+                          <T variant="tiny" color={colors.accentText}>
                             Invicto
                           </T>
                         </View>
@@ -133,7 +134,7 @@ export default function TournamentScreen() {
                   {rounds.map((round) => (
                     <View key={round} style={styles.column}>
                       <View style={[styles.roundTag, round === data.totalRounds && { backgroundColor: colors.yellow }]}>
-                        <T variant="tiny" color={round === data.totalRounds ? colors.ink : '#fff'}>
+                        <T variant="tiny" color={round === data.totalRounds ? colors.ink : colors.text}>
                           {roundLabel(round, data.totalRounds, 'single_elim')}
                         </T>
                       </View>
@@ -179,9 +180,9 @@ export default function TournamentScreen() {
               )}
               {scorer ? (
                 <View style={styles.scorer}>
-                  <Ionicons name="football" size={16} color="#fff" />
+                  <Ionicons name="football" size={16} color={colors.text} />
                   <View>
-                    <T variant="tiny" color={colors.yellow}>
+                    <T variant="tiny" color={colors.accentText}>
                       Goleador
                     </T>
                     <T variant="strong">
@@ -226,10 +227,10 @@ function Fixture({
 function SlotLine({ name, score, winner }: { name: string | null; score: number | null; winner: boolean }) {
   return (
     <View style={[styles.slot, winner && styles.slotWin]}>
-      <T numberOfLines={1} variant="strong" color={winner ? colors.ink : name ? '#fff' : colors.faint} style={styles.flex}>
+      <T numberOfLines={1} variant="strong" color={winner ? colors.ink : name ? colors.text : colors.faint} style={styles.flex}>
         {name ? firstName(name) : 'Por definir'}
       </T>
-      <T variant="strong" color={winner ? colors.ink : '#fff'}>
+      <T variant="strong" color={winner ? colors.ink : colors.text}>
         {score ?? ''}
       </T>
     </View>
@@ -255,28 +256,29 @@ const styles = StyleSheet.create({
   topRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   badge: { paddingHorizontal: 8, paddingVertical: 5 },
   champ: { flexDirection: 'row', minHeight: 150, overflow: 'hidden' },
-  cupBox: { width: '36%', backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center', gap: 6, padding: 8 },
-  champBody: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', gap: 4 },
+  cupBox: { width: '36%', backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center', gap: 6, padding: 8, borderRadius: 14 },
+  champBody: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', gap: 4, borderRadius: 14 },
   plain: { textTransform: 'none', letterSpacing: 0 },
   pills: { flexDirection: 'row', gap: 6, marginTop: 4 },
-  pill: { backgroundColor: colors.ink, paddingHorizontal: 8, paddingVertical: 3 },
+  pill: { backgroundColor: '#1A0A1C', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   table: { gap: 8 },
   line: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   place: { width: 24, color: colors.muted },
   flex: { flex: 1 },
   bracket: { gap: 16, paddingVertical: 8, alignItems: 'stretch' },
   column: { width: 168, gap: 10, justifyContent: 'space-around' },
-  roundTag: { alignSelf: 'flex-start', backgroundColor: colors.navy, paddingHorizontal: 8, paddingVertical: 3 },
+  roundTag: { alignSelf: 'flex-start', backgroundColor: colors.navy, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   block: { gap: 8 },
-  fixture: { backgroundColor: 'rgba(19,26,42,0.8)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  fixture: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 14 },
   finalFix: { borderColor: colors.yellow, borderWidth: 2 },
   slot: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 7, gap: 6 },
-  slotWin: { backgroundColor: '#fff' },
+  slotWin: { backgroundColor: '#fff', borderRadius: 14 },
   scorer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     padding: 12,
     backgroundColor: colors.blue,
+    borderRadius: 14,
   },
 });

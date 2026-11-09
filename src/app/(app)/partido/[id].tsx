@@ -143,6 +143,7 @@ export default function MatchScreen() {
           return (
             <>
               <Top
+                icon="matches"
                 title="Confirmar resultado"
                 kicker={snap.tournamentName ?? snap.groupName ?? `Partido · ${formatWhen(snap.match.createdAt)}`}
                 back
@@ -321,7 +322,7 @@ export default function MatchScreen() {
                     <ChoiceButton label={firstName(them.displayName)} active={shown === 'them'} onPress={() => pick('them')} />
                   </View>
                   <Pressable onPress={() => setWithGoals((value) => !value)}>
-                    <T variant="label" color={colors.yellow}>
+                    <T variant="label" color={colors.accentText}>
                       {withGoals ? 'Quitar el marcador' : 'Anotar goles'}
                     </T>
                   </Pressable>
@@ -332,7 +333,7 @@ export default function MatchScreen() {
                   ) : null}
                   <View style={styles.review}>
                     <View style={styles.reviewHead}>
-                      <T variant="label" color={colors.yellow}>
+                      <T variant="label" color={colors.accentText}>
                         Revisión del resultado
                       </T>
                       <T variant="tiny" color={colors.muted}>
@@ -359,7 +360,7 @@ export default function MatchScreen() {
                     onPress={() => pick(shown === 'them' ? 'me' : 'them')}
                    
                   >
-                    <T variant="label" color={colors.cyan}>
+                    <T variant="label" color={colors.accentText}>
                       ¿No coincide? Reportar diferencia
                     </T>
                   </Pressable>
@@ -446,7 +447,7 @@ function MiniStep({ value, onDec, onInc }: { value: number; onDec: () => void; o
 function ChoiceButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={styles.choiceHit}>
-      <SkewBlock color={active ? colors.red : 'rgba(255,255,255,0.06)'} shadow={active ? colors.yellow : undefined} border={active ? undefined : 'rgba(255,255,255,0.16)'} padH={8} padV={10} fill>
+      <SkewBlock color={active ? colors.red : colors.wash} shadow={active ? colors.yellow : undefined} border={active ? undefined : colors.line} padH={8} padV={10} fill>
         <T variant="label" color={active ? colors.redInk : colors.text} style={{ textAlign: 'center' }}>
           {label}
         </T>
@@ -485,7 +486,7 @@ function VoteRow({
         </T>
       </View>
       <View style={[styles.voteState, { backgroundColor: report ? colors.up : colors.yellow }]}>
-        <T variant="tiny" color={report ? '#fff' : colors.ink}>
+        <T variant="tiny" color={colors.ink}>
           {report ? 'Confirmado' : 'Pendiente'}
         </T>
       </View>
@@ -496,43 +497,44 @@ function VoteRow({
 const styles = StyleSheet.create({
   face: { position: 'absolute', top: 10, left: 10, zIndex: 2 },
   faceRight: { left: undefined, right: 10 },
-  live: { backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 5 },
+  live: { backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 14 },
   pitch: { height: 168, flexDirection: 'row', overflow: 'hidden', position: 'relative' },
   half: { flex: 1, justifyContent: 'flex-end', padding: 10, overflow: 'hidden' },
-  ghost: { position: 'absolute', top: 8, left: 4, fontSize: 54, color: 'rgba(255,255,255,0.18)', fontStyle: 'italic' },
-  cut: { width: 18, backgroundColor: colors.yellow, transform: [{ skewX: '-14deg' }], marginHorizontal: -6 },
-  nameTag: { backgroundColor: '#fff', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4 },
+  ghost: { position: 'absolute', top: 8, left: 4, fontSize: 54, color: 'rgba(255,255,255,0.18)', fontStyle: 'normal' },
+  cut: { width: 18, backgroundColor: colors.yellow, transform: [{ skewX: '0deg' }], marginHorizontal: -6, borderRadius: 14 },
+  nameTag: { backgroundColor: '#fff', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
   nameRight: { alignSelf: 'flex-end' },
   vs: { position: 'absolute', left: 0, right: 0, top: 36, alignItems: 'center' },
   vsText: {
     fontSize: 54,
-    fontStyle: 'italic',
-    color: colors.yellow,
+    fontStyle: 'normal',
+    color: colors.accentText,
     textShadowColor: '#000',
     textShadowOffset: { width: 3, height: 3 },
     textShadowRadius: 0,
   },
   board: { flexDirection: 'row', minHeight: 92, backgroundColor: '#fff' },
   boardSide: { width: 74, alignItems: 'center', justifyContent: 'center', gap: 2 },
-  boardScore: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
-  boardNum: { fontSize: 42, color: colors.ink, fontStyle: 'italic' },
+  boardScore: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 14 },
+  boardNum: { fontSize: 42, color: colors.ink, fontStyle: 'normal' },
   steppers: { flexDirection: 'row', gap: 28 },
   mini: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   block: { gap: 12 },
   choices: { flexDirection: 'row', gap: 8 },
   choiceHit: { flex: 1 },
   review: {
-    backgroundColor: 'rgba(19,26,42,0.9)',
+    backgroundColor: colors.card,
     borderLeftWidth: 4,
     borderLeftColor: colors.yellow,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.line,
     padding: 12,
     gap: 10,
+    borderRadius: 14,
   },
   reviewHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   vote: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  voteTag: { width: 36, height: 36, backgroundColor: colors.blue, alignItems: 'center', justifyContent: 'center' },
+  voteTag: { width: 36, height: 36, backgroundColor: colors.blue, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
   voteState: { paddingHorizontal: 8, paddingVertical: 4 },
   flex: { flex: 1 },
   plain: { textTransform: 'none', letterSpacing: 0 },

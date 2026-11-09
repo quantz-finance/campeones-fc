@@ -4,9 +4,9 @@ import { playClick, unlockAudio } from './audio';
 import { cssAnim, useReducedMotion } from './motion';
 
 const shineFrames = {
-  from: { opacity: 0, transform: [{ translateX: -180 }, { skewX: '-18deg' }] },
+  from: { opacity: 0, transform: [{ translateX: -180 }, { skewX: '0deg' }] },
   '30%': { opacity: 0.85 },
-  to: { opacity: 0, transform: [{ translateX: 420 }, { skewX: '-18deg' }] },
+  to: { opacity: 0, transform: [{ translateX: 420 }, { skewX: '0deg' }] },
 };
 
 /** Barrido de luz al pulsar. Solo web: es un transform. */

@@ -28,7 +28,7 @@ export default function TournamentsTab() {
 
   return (
     <Screen tab>
-      <Top title="Torneos" kicker="Cuadros y copas" />
+      <Top title="Torneos" kicker="Cuadros y copas" icon="tournaments" />
       <Gate query={query}>
         {(list) =>
           list.length === 0 ? (
@@ -42,14 +42,14 @@ export default function TournamentsTab() {
               <Pressable key={item.id} style={styles.card} onPress={() => push(`/torneo/${item.id}`)}>
                 <Shield letters={monogram(item.name)} photoUrl={item.photoUrl} size={44} />
                 <View style={styles.flex}>
-                  <T variant="title" style={{ fontStyle: 'italic' }} numberOfLines={1}>
+                  <T variant="title" style={{ fontStyle: 'normal' }} numberOfLines={1}>
                     {item.name}
                   </T>
                   <T variant="tiny" color={colors.muted}>
                     {item.groupName}
                   </T>
                 </View>
-                <T variant="tiny" color={item.status === 'completed' ? colors.up : colors.yellow}>
+                <T variant="tiny" color={item.status === 'completed' ? colors.up : colors.accentText}>
                   {item.status === 'completed' ? 'Finalizado' : 'En juego'}
                 </T>
               </Pressable>
@@ -67,9 +67,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     padding: 12,
-    backgroundColor: 'rgba(19,26,42,0.88)',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.line,
+    borderRadius: 14,
   },
   flex: { flex: 1, gap: 2 },
 });

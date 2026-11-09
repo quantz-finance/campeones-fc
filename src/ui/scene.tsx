@@ -68,8 +68,8 @@ export function Scene({ children }: { children: ReactNode }) {
 (Scene as { passthrough?: boolean }).passthrough = true;
 
 const slashFrames = {
-  from: { opacity: 0, transform: [{ translateX: -420 }, { skewX: '-22deg' }] },
-  to: { opacity: 1, transform: [{ translateX: 520 }, { skewX: '-22deg' }] },
+  from: { opacity: 0, transform: [{ translateX: -420 }, { skewX: '0deg' }] },
+  to: { opacity: 1, transform: [{ translateX: 520 }, { skewX: '0deg' }] },
 };
 
 /** Tres cortes de color que cruzan la pantalla al salir. No tapan el contenido por completo. */

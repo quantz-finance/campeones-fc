@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { playClick, playConfirm, toggleMuted, unlockAudio, useMuted } from './audio';
 import { useReducedMotion } from './motion';
 import { colors } from './theme';
-import { T } from './text';
 
 /** Interruptor siempre visible. El silencio se guarda en el navegador. */
 export function AudioToggle() {
@@ -25,31 +24,26 @@ export function AudioToggle() {
           toggleMuted();
         }
       }}
-      style={({ pressed }) => [!reduced && pressed && styles.pressed]}
+      style={({ pressed }) => [styles.face, muted ? styles.off : styles.on, !reduced && pressed && styles.pressed]}
     >
-      <View style={[styles.face, muted ? styles.off : styles.on]}>
-        <View style={styles.unskew}>
-          <Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={15} color={muted ? colors.text : colors.ink} />
-          <T variant="tiny" color={muted ? colors.text : colors.ink} style={styles.caption}>
-            {muted ? 'MUTE' : 'SONIDO'}
-          </T>
-        </View>
-      </View>
+      <Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={17} color={muted ? colors.text : colors.accentInk} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+export const toggleStyles = StyleSheet.create({
   face: {
-    minWidth: 52,
-    paddingHorizontal: 6,
-    paddingVertical: 5,
-    transform: [{ skewX: '-12deg' }],
+    width: 38,
+    height: 38,
+    borderRadius: 999,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  unskew: { alignItems: 'center', gap: 1, transform: [{ skewX: '12deg' }] },
+});
+
+const styles = StyleSheet.create({
+  face: toggleStyles.face,
   on: { backgroundColor: colors.yellow },
-  off: { backgroundColor: 'rgba(8,11,19,0.88)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' },
-  caption: { fontSize: 8, letterSpacing: 0.4 },
+  off: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.lineStrong },
   pressed: { transform: [{ scale: 0.94 }] },
 });

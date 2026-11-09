@@ -79,14 +79,14 @@ function enterFrames(variant: Variant) {
   const move = travel[variant];
   if (variant === 'logo') {
     return {
-      '0%': { opacity: 0, transform: [{ translateY: move.enterY }, { skewX: '-18deg' }, { scale: move.enterScale }] },
-      '58%': { opacity: 1, transform: [{ translateY: -8 }, { skewX: '6deg' }, { scale: 1.08 }] },
+      '0%': { opacity: 0, transform: [{ translateY: move.enterY }, { skewX: '0deg' }, { scale: move.enterScale }] },
+      '58%': { opacity: 1, transform: [{ translateY: -8 }, { skewX: '0deg' }, { scale: 1.08 }] },
       '100%': { opacity: 1, transform: [{ translateY: 0 }, { skewX: '0deg' }, { scale: 1 }] },
     };
   }
   return {
-    '0%': { opacity: 0, transform: [{ translateX: move.enterX }, { translateY: move.enterY }, { skewX: '-14deg' }, { scale: 0.96 }] },
-    '68%': { opacity: 1, transform: [{ translateX: 8 }, { translateY: 0 }, { skewX: '3deg' }, { scale: 1.015 }] },
+    '0%': { opacity: 0, transform: [{ translateX: move.enterX }, { translateY: move.enterY }, { skewX: '0deg' }, { scale: 0.96 }] },
+    '68%': { opacity: 1, transform: [{ translateX: 8 }, { translateY: 0 }, { skewX: '0deg' }, { scale: 1.015 }] },
     '100%': { opacity: 1, transform: [{ translateX: 0 }, { translateY: 0 }, { skewX: '0deg' }, { scale: 1 }] },
   };
 }
@@ -95,7 +95,7 @@ function exitFrames(variant: Variant) {
   const move = travel[variant];
   return {
     '0%': { opacity: 1, transform: [{ translateX: 0 }, { skewX: '0deg' }, { scale: 1 }] },
-    '100%': { opacity: 0, transform: [{ translateX: move.exitX }, { skewX: '-16deg' }, { scale: 0.94 }] },
+    '100%': { opacity: 0, transform: [{ translateX: move.exitX }, { skewX: '0deg' }, { scale: 0.94 }] },
   };
 }
 
@@ -107,8 +107,8 @@ const popKeyframes = {
 const shimmerKeyframes = { from: { opacity: 0.45 }, to: { opacity: 0.9 } };
 const fadeKeyframes = { from: { opacity: 0, transform: [{ translateY: 10 }] }, to: { opacity: 1, transform: [{ translateY: 0 }] } };
 const growKeyframes = {
-  from: { opacity: 0.35, transform: [{ scaleX: 0.15 }, { skewX: '-18deg' }] },
-  to: { opacity: 1, transform: [{ scaleX: 1 }, { skewX: '-18deg' }] },
+  from: { opacity: 0.35, transform: [{ scaleX: 0.15 }, { skewX: '0deg' }] },
+  to: { opacity: 1, transform: [{ scaleX: 1 }, { skewX: '0deg' }] },
 };
 
 export function cssAnim(keyframes: object, ms: number, delay = 0, extra: object = {}) {

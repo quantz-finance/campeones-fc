@@ -45,7 +45,7 @@ function Mono({ children }: { children: string }) {
 function Link({ label, url }: { label: string; url: string }) {
   return (
     <Pressable onPress={() => void Linking.openURL(url)} accessibilityRole="link">
-      <T variant="strong" color={colors.yellow}>
+      <T variant="strong" color={colors.accentText}>
         {label}
       </T>
     </Pressable>
@@ -55,7 +55,7 @@ function Link({ label, url }: { label: string; url: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.card}>
-      <T variant="label" color={colors.cyan}>
+      <T variant="label" color={colors.accentText}>
         {title}
       </T>
       {children}
@@ -186,8 +186,9 @@ const styles = StyleSheet.create({
     gap: space.sm,
     padding: space.md,
     borderWidth: 1,
-    borderColor: 'rgba(34,225,255,0.25)',
-    backgroundColor: 'rgba(8,12,36,0.72)',
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderRadius: 14,
   },
   row: { gap: 2 },
   mono: { fontSize: 12, lineHeight: 17, color: colors.text },

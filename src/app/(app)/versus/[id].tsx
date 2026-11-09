@@ -34,6 +34,7 @@ export default function Versus() {
           return (
             <>
               <Top
+                icon="versus"
                 title="Cara a cara"
                 kicker={`Historial completo · 1 vs 1`}
                 back
@@ -47,7 +48,7 @@ export default function Versus() {
                       void Share.share({ message: text });
                     }}
                   >
-                    <Ionicons name="share-outline" size={18} color="#fff" />
+                    <Ionicons name="share-outline" size={18} color={colors.text} />
                   </Pressable>
                 }
               />
@@ -197,7 +198,7 @@ function ResultChip({
   const label = draw ? 'Empate' : win ? `Gana ${tagOf(you)}` : `Gana ${tagOf(them)}`;
   return (
     <View style={[styles.chip, { backgroundColor: bg }]}>
-      <T variant="display" style={{ fontSize: 18, color: ink, fontStyle: 'italic' }}>
+      <T variant="display" style={{ fontSize: 18, color: ink, fontStyle: 'normal' }}>
         {score}
       </T>
       <T variant="tiny" color={ink} style={{ fontSize: 9 }}>
@@ -218,25 +219,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
-    transform: [{ skewX: '-12deg' }],
+    borderColor: colors.line,
+    transform: [{ skewX: '0deg' }],
   },
   banner: { flexDirection: 'row', minHeight: 168, overflow: 'hidden' },
   half: { flex: 1, padding: 10, gap: 2, overflow: 'hidden' },
   tag: { fontSize: 13, color: 'rgba(255,255,255,0.8)' },
-  bannerName: { fontSize: 18, fontStyle: 'italic', maxWidth: 120 },
-  wins: { fontSize: 52, fontStyle: 'italic', lineHeight: 52, marginTop: 6 },
+  bannerName: { fontSize: 18, fontStyle: 'normal', maxWidth: 120 },
+  wins: { fontSize: 52, fontStyle: 'normal', lineHeight: 52, marginTop: 6 },
   mark: { position: 'absolute', top: 36, left: 8, opacity: 0.9 },
   center: {
     width: 78,
     backgroundColor: colors.yellow,
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ skewX: '-10deg' }],
+    transform: [{ skewX: '0deg' }],
     marginHorizontal: -10,
     zIndex: 2,
+    borderRadius: 14,
   },
-  played: { fontSize: 32, color: colors.ink, fontStyle: 'italic' },
+  played: { fontSize: 32, color: colors.ink, fontStyle: 'normal' },
   legendBar: { flexDirection: 'row', justifyContent: 'space-between' },
   chips: { flexDirection: 'row', gap: 6 },
   chip: { flex: 1, minHeight: 72, padding: 6, alignItems: 'center', justifyContent: 'center', gap: 2 },

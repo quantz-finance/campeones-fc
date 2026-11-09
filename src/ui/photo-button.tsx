@@ -47,7 +47,7 @@ export function PhotoButton({ kind, targetId, label = 'Cambiar foto' }: { kind: 
 
 const styles = StyleSheet.create({
   wrap: { gap: 4, alignItems: 'flex-start' },
-  btn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.yellow, paddingHorizontal: 10, paddingVertical: 6, transform: [{ skewX: '-8deg' }] },
+  btn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.yellow, paddingHorizontal: 10, paddingVertical: 6, transform: [{ skewX: '0deg' }], borderRadius: 14 },
   busy: { opacity: 0.7 },
   plain: { textTransform: 'none', letterSpacing: 0 },
 });

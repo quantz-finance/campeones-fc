@@ -126,7 +126,7 @@ export function StakeCard({ match, userId, youAre, names }: { match: Match; user
           {youAre !== 'other' && !mine ? (
             <Button label={busy === 'fund' ? 'Firmando con tu billetera…' : `Depositar ${amount} USDC`} disabled={!!busy} onPress={() => void run('fund', () => depositStake(match.id))} />
           ) : youAre !== 'other' ? (
-            <T variant="strong" color={colors.yellow}>✓ Tu depósito está en custodia</T>
+            <T variant="strong" color={colors.accentText}>✓ Tu depósito está en custodia</T>
           ) : null}
         </>
       ) : null}
@@ -148,7 +148,7 @@ export function StakeCard({ match, userId, youAre, names }: { match: Match; user
       ) : null}
       {(stake.status === 'paid' || stake.status === 'refunded') && stake.settle_tx && stake.settle_tx !== 'onchain' ? (
         <Pressable onPress={() => void Linking.openURL(payoutUrl(stake.settle_tx!))} accessibilityRole="link">
-          <T variant="strong" color={colors.yellow}>
+          <T variant="strong" color={colors.accentText}>
             ✓ Verificado en Stellar
           </T>
           <T variant="tiny" color={colors.muted} style={styles.plain}>
@@ -169,8 +169,9 @@ const styles = StyleSheet.create({
     gap: space.sm,
     padding: space.md,
     borderWidth: 1,
-    borderColor: 'rgba(255,214,0,0.35)',
-    backgroundColor: 'rgba(8,12,36,0.72)',
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderRadius: 14,
   },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
   amount: { fontSize: 16, color: colors.ink, fontStyle: 'normal' },
