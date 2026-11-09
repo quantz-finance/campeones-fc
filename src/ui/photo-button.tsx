@@ -8,10 +8,10 @@ import { colors } from './theme';
 import { T } from './text';
 
 export function PhotoButton({ kind, targetId, label = 'Cambiar foto' }: { kind: PhotoKind; targetId: string; label?: string }) {
-  const { repo, mode } = useApp();
+  const { repo, mode, spectator } = useApp();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  if (mode !== 'supabase') return null;
+  if (mode !== 'supabase' || spectator) return null;
   return (
     <View style={styles.wrap}>
       <Pressable

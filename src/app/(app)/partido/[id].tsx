@@ -23,7 +23,7 @@ type Choice = 'me' | 'them' | 'draw';
 
 export default function MatchScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { repo, userId, version, mode, profile } = useApp();
+  const { repo, userId, version, mode, profile, spectator } = useApp();
   const query = useQuery(() => repo.matchSnapshot(String(id), userId!), [repo, userId, version, id]);
   const [choice, setChoice] = useState<Choice>('me');
   const [withGoals, setWithGoals] = useState(true);
@@ -274,7 +274,7 @@ export default function MatchScreen() {
                   />
                 </View>
               ) : null}
-              {mode === 'supabase' && stakesEnabled() && profile?.showDemo !== true ? (
+              {!spectator && mode === 'supabase' && stakesEnabled() && profile?.showDemo !== true ? (
                 <StakeCard
                   match={snap.match}
                   userId={userId!}
@@ -405,7 +405,7 @@ export default function MatchScreen() {
                   }
                 />
               ) : null}
-              {mode === 'supabase' && snap.match.status === 'confirmed' ? (
+              {!spectator && mode === 'supabase' && snap.match.status === 'confirmed' ? (
                 <ChainCard match={snap.match} userId={userId!} canSign={snap.youAre !== 'other'} />
               ) : null}
               {snap.match.status === 'confirmed' && snap.youAre !== 'other' ? (

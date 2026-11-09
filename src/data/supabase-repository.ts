@@ -1,7 +1,8 @@
 import { hideDemo, joinDemo } from './demo-filter';
 import { trophyCatalog } from '../content/trophies';
 import { DomainError } from '../domain/errors';
-import type { Match, MatchReport, ReportDraft, Slot } from '../domain/types';
+import type { ReportDraft } from '../domain/types';
+import { asNullable, asString, mapMatch, mapUser, worldFromRows, type Row } from './rows';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabase } from '../lib/supabase';
 import type { Notice } from './notices';
@@ -18,78 +19,10 @@ import {
 } from './project';
 import type { Repository } from './repository';
 import type { TrophyView } from './snapshots';
-import {
-  emptyWorld,
-  type Achievement,
-  type Friendship,
-  type Group,
-  type GroupMember,
-  type Invite,
-  type Tournament,
-  type UserAccount,
-  type World,
-} from './types';
-
-type Row = Record<string, unknown>;
-
-function asString(value: unknown): string {
-  return typeof value === 'string' ? value : '';
-}
-
-function asNullable(value: unknown): string | null {
-  return typeof value === 'string' ? value : null;
-}
-
-function asNumber(value: unknown): number | null {
-  return typeof value === 'number' ? value : null;
-}
-
-function asBool(value: unknown): boolean {
-  return value === true;
-}
+import type { World } from './types';
 
 function fail(error: { message: string } | null): void {
   if (error) throw new DomainError('remote', error.message);
-}
-
-function mapUser(row: Row): UserAccount {
-  return {
-    id: asString(row.id),
-    username: asString(row.username),
-    displayName: asString(row.display_name),
-    avatarKey: asString(row.avatar_key || 'rayo'),
-    photoUrl: asNullable(row.photo_url),
-    isDemo: row.is_demo === true,
-    showDemo: row.show_demo === true,
-    email: '',
-  };
-}
-
-function mapMatch(row: Row): Match {
-  return {
-    id: asString(row.id),
-    playerAId: asString(row.player_a_id),
-    playerBId: asString(row.player_b_id),
-    status: asString(row.status) as Match['status'],
-    groupId: asNullable(row.group_id),
-    tournamentId: asNullable(row.tournament_id),
-    tournamentSlotId: asNullable(row.tournament_slot_id),
-    winnerId: asNullable(row.winner_id),
-    isDraw: asBool(row.is_draw),
-    goalsA: asNumber(row.goals_a),
-    goalsB: asNumber(row.goals_b),
-    createdAt: asString(row.created_at),
-    expiresAt: asString(row.expires_at),
-    acceptedAt: asNullable(row.accepted_at),
-    confirmedAt: asNullable(row.confirmed_at),
-    ratingABefore: asNumber(row.rating_a_before),
-    ratingBBefore: asNumber(row.rating_b_before),
-    ratingDeltaA: asNumber(row.rating_delta_a),
-    ratingDeltaB: asNumber(row.rating_delta_b),
-    chainStatus: asNullable(row.chain_status) as Match['chainStatus'],
-    chainTx: asNullable(row.chain_tx),
-    chainNetwork: asNullable(row.chain_network) as Match['chainNetwork'],
-  };
 }
 
 async function pullWorld(userId: string): Promise<World> {
@@ -110,91 +43,18 @@ async function pullWorld(userId: string): Promise<World> {
   for (const result of [profiles, friendships, matches, reports, groups, members, tournaments, slots, achievements, invites]) {
     fail(result.error);
   }
-  const world = emptyWorld();
-  world.users = ((profiles.data ?? []) as Row[]).map(mapUser);
-  world.friendships = ((friendships.data ?? []) as Row[]).map(
-    (row): Friendship => ({
-      id: asString(row.id),
-      requesterId: asString(row.requester_id),
-      addresseeId: asString(row.addressee_id),
-      status: asString(row.status) as Friendship['status'],
-      createdAt: asString(row.created_at),
-      respondedAt: asNullable(row.responded_at),
-    }),
-  );
-  world.matches = ((matches.data ?? []) as Row[]).map(mapMatch);
-  world.reports = ((reports.data ?? []) as Row[]).map(
-    (row): MatchReport => ({
-      matchId: asString(row.match_id),
-      reporterId: asString(row.reporter_id),
-      winnerId: asNullable(row.winner_id),
-      isDraw: asBool(row.is_draw),
-      goalsA: asNumber(row.goals_a),
-      goalsB: asNumber(row.goals_b),
-      updatedAt: asString(row.updated_at),
-    }),
-  );
-  world.groups = ((groups.data ?? []) as Row[]).map(
-    (row): Group => ({
-      id: asString(row.id),
-      name: asString(row.name),
-      createdBy: asString(row.created_by),
-      createdAt: asString(row.created_at),
-      photoUrl: asNullable(row.photo_url),
-    }),
-  );
-  world.groupMembers = ((members.data ?? []) as Row[]).map(
-    (row): GroupMember => ({
-      groupId: asString(row.group_id),
-      userId: asString(row.user_id),
-      role: asString(row.role) as GroupMember['role'],
-      joinedAt: asString(row.joined_at),
-    }),
-  );
-  world.tournaments = ((tournaments.data ?? []) as Row[]).map(
-    (row): Tournament => ({
-      id: asString(row.id),
-      groupId: asString(row.group_id),
-      name: asString(row.name),
-      format: asString(row.format) as Tournament['format'],
-      size: asNumber(row.size),
-      status: asString(row.status) as Tournament['status'],
-      createdBy: asString(row.created_by),
-      winnerId: asNullable(row.winner_id),
-      createdAt: asString(row.created_at),
-      playerIds: Array.isArray(row.player_ids) ? row.player_ids.map(asString) : [],
-      photoUrl: asNullable(row.photo_url),
-    }),
-  );
-  world.slots = ((slots.data ?? []) as Row[]).map(
-    (row): Slot => ({
-      id: asString(row.id),
-      tournamentId: asString(row.tournament_id),
-      round: asNumber(row.round) ?? 1,
-      position: asNumber(row.position) ?? 0,
-      playerAId: asNullable(row.player_a_id),
-      playerBId: asNullable(row.player_b_id),
-      winnerId: asNullable(row.winner_id),
-      matchId: asNullable(row.match_id),
-    }),
-  );
-  world.achievements = ((achievements.data ?? []) as Row[]).map(
-    (row): Achievement => ({
-      id: asString(row.id),
-      userId: asString(row.user_id),
-      code: asString(row.code) as Achievement['code'],
-      earnedAt: asString(row.earned_at),
-      refId: asNullable(row.ref_id),
-    }),
-  );
-  world.invites = ((invites.data ?? []) as Row[]).map(
-    (row): Invite => ({
-      code: asString(row.code),
-      creatorId: asString(row.creator_id),
-      createdAt: asString(row.created_at),
-      expiresAt: asString(row.expires_at),
-    }),
-  );
+  const world = worldFromRows({
+    profiles: profiles.data as Row[] | null,
+    friendships: friendships.data as Row[] | null,
+    matches: matches.data as Row[] | null,
+    reports: reports.data as Row[] | null,
+    groups: groups.data as Row[] | null,
+    members: members.data as Row[] | null,
+    tournaments: tournaments.data as Row[] | null,
+    slots: slots.data as Row[] | null,
+    achievements: achievements.data as Row[] | null,
+    invites: invites.data as Row[] | null,
+  });
   // Modo prueba apagado (default): sin jugadores, partidos, grupos ni torneos de demo.
   const me = ((profiles.data ?? []) as Row[]).find((row) => row.id === userId);
   const ids = (rows: unknown[] | null) => new Set(((rows ?? []) as Row[]).filter((row) => row.is_demo === true).map((row) => asString(row.id)));

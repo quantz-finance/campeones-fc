@@ -15,8 +15,21 @@ import { CountRoll, Pop, Rise } from '../../../ui/motion';
 import { HomeSkeleton } from '../../../ui/skeleton';
 import { push } from '../../../ui/nav';
 import { SportPress } from '../../../ui/press';
+import { SpectatorHome } from '../../../ui/spectator';
 
 export default function Home() {
+  const { spectator } = useApp();
+  if (spectator) {
+    return (
+      <Screen tab>
+        <SpectatorHome />
+      </Screen>
+    );
+  }
+  return <PlayerHome />;
+}
+
+function PlayerHome() {
   const { repo, userId, version, mode, profile, unread } = useApp();
   const modeNow = appModeOf(profile, mode !== 'supabase');
   const query = useQuery(() => repo.homeSnapshot(userId!), [repo, userId, version]);

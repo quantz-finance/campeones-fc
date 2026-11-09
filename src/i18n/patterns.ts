@@ -1,5 +1,7 @@
 // Frases con datos (nombres, números): patrón en español → plantilla en inglés.
 export const enPatterns: [RegExp, string][] = [
+  [/^Campeón: (.+)$/, 'Champion: $1'],
+  [/^(\d+)\/(\d+) cruces$/, '$1/$2 matchups'],
   [/^lo propusiste hace (.+)$/i, 'you proposed it $1 ago'],
   [/^Racha actual: (.+)\. Mejor racha: (.+)\.$/, 'Current streak: $1. Best streak: $2.'],
   [/^Diferencia de gol (.+) en (\d+) partidos con marcador\.$/, 'Goal diff. $1 in $2 matches with a score.'],

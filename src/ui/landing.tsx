@@ -8,7 +8,7 @@ import { useApp } from '../state/app-provider';
 import { playIntro } from './audio';
 import { Avatar } from './avatar';
 import { Affiliation, FeatureBadge, SkewBlock, Toro, type FeatureIconName } from './broadcast';
-import { TestUserButton } from './test-user';
+import { SpectatorButton } from './spectator';
 import { HeroPhoto, HeroPhotoNote } from './hero-photo';
 import { Banner, Button } from './controls';
 import { BroadcastView, cssAnim, useReducedMotion } from './motion';
@@ -103,7 +103,7 @@ export function Landing() {
 
       {app.mode === 'demo' ? (
         <View style={styles.ctas}>
-          <TestUserButton tone="accent" />
+          <SpectatorButton tone="accent" />
         </View>
       ) : configured ? (
         phase === 'approve' ? (
@@ -131,7 +131,7 @@ export function Landing() {
             <T variant="tiny" color={colors.faint} style={styles.note}>
               Google, Apple o correo. Si todavía no tienes cuenta, se crea en el mismo paso. El código puede caer en Spam.
             </T>
-            <TestUserButton />
+            <SpectatorButton />
           </View>
         )
       ) : (
@@ -145,7 +145,7 @@ export function Landing() {
                 : 'Por ahora la entrada con Cavos funciona en la versión web. Ábrela desde el navegador.'
             }
           />
-          <TestUserButton />
+          <SpectatorButton />
         </>
       )}
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}

@@ -17,6 +17,7 @@ import { PhotoButton } from '../../../ui/photo-button';
 import { push } from '../../../ui/nav';
 import { ThemeToggle } from '../../../ui/theme-toggle';
 import { LangToggle } from '../../../ui/lang-toggle';
+import { SpectatorInvite } from '../../../ui/spectator';
 
 const stickerMeta = {
   first_win: { title: 'Primera', icon: 'flash' as const, color: colors.accentText, tilt: '0deg' },
@@ -24,7 +25,29 @@ const stickerMeta = {
   tournament_champion: { title: 'Campeón', icon: 'ribbon' as const, color: colors.blue, tilt: '0deg' },
 };
 
-export default function Profile() {
+export default function ProfileTab() {
+  const { spectator } = useApp();
+  if (spectator) {
+    return (
+      <Screen tab>
+        <View style={[styles.top, { paddingRight: 56 }]}>
+          <View style={styles.flex}>
+            <T variant="label" color={colors.muted}>
+              Tu perfil
+            </T>
+          </View>
+          <LangToggle />
+          <ThemeToggle />
+        </View>
+        <SpectatorInvite />
+        <Affiliation />
+      </Screen>
+    );
+  }
+  return <Profile />;
+}
+
+function Profile() {
   const app = useApp();
   const profile = app.profile;
   const personal = useQuery(() => app.repo.personalSnapshot(app.userId!), [app.repo, app.userId, app.version]);

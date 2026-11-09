@@ -11,8 +11,22 @@ import { colors, radius, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { ensureWalletReady, netPot, proposeStake, STAKE_OPTIONS, stakesEnabled } from '../../../lib/payments/stake';
 import { push } from '../../../ui/nav';
+import { SpectatorInvite } from '../../../ui/spectator';
 
-export default function Play() {
+export default function PlayTab() {
+  const { spectator } = useApp();
+  if (spectator) {
+    return (
+      <Screen tab>
+        <Top title="Registrar" kicker="Nuevo partido" icon="matches" />
+        <SpectatorInvite title="Para registrar un partido, crea tu perfil" />
+      </Screen>
+    );
+  }
+  return <Play />;
+}
+
+function Play() {
   const { repo, userId, version, mode, profile } = useApp();
   const friends = useQuery(() => repo.friendsSnapshot(userId!), [repo, userId, version]);
   const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);

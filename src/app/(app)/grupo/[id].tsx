@@ -17,7 +17,7 @@ import { push } from '../../../ui/nav';
 
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { repo, userId, version } = useApp();
+  const { repo, userId, version, spectator } = useApp();
   const query = useQuery(() => repo.groupSnapshot(String(id), userId!), [repo, userId, version, id]);
 
   return (
@@ -34,7 +34,7 @@ export default function GroupDetail() {
                 kicker={`${data.members.length} jugadores · ${matchesPlayed} partidos`}
                 back
                 right={
-                  <Pressable
+                  spectator ? undefined : <Pressable
                    
                     onPress={() => {
                       void repo.createInvite(userId!).then((invite) => {
@@ -53,7 +53,7 @@ export default function GroupDetail() {
               />
               <View style={styles.identity}>
                 <Shield letters={monogram(data.group.name)} photoUrl={data.group.photoUrl} />
-                {data.yourRole === 'owner' || data.group.createdBy === userId ? (
+                {!spectator && (data.yourRole === 'owner' || data.group.createdBy === userId) ? (
                   <PhotoButton kind="groups" targetId={data.group.id} label="Foto del grupo" />
                 ) : null}
               </View>
@@ -167,7 +167,11 @@ export default function GroupDetail() {
               ) : (
                 data.recent.map((match) => <MatchRow key={match.id} match={match} me={userId!} people={data.people} />)
               )}
-              <SectionHead title="Torneos" action="Crear" onAction={() => push(`/torneo/nuevo?grupo=${data.group.id}`)} />
+              <SectionHead
+                title="Torneos"
+                action={spectator ? undefined : 'Crear'}
+                onAction={spectator ? undefined : () => push(`/torneo/nuevo?grupo=${data.group.id}`)}
+              />
               {data.tournaments.length === 0 ? (
                 <T color={colors.muted}>Puedes armar una eliminación de 4, 8 o 16, o una liga de todos contra todos.</T>
               ) : (
@@ -184,7 +188,11 @@ export default function GroupDetail() {
                   </Pressable>
                 ))
               )}
-              <Button label="Registrar un partido del grupo" onPress={() => push('/jugar')} />
+              {spectator ? (
+                <Button label="Crear mi perfil para jugar" onPress={() => push('/perfil')} />
+              ) : (
+                <Button label="Registrar un partido del grupo" onPress={() => push('/jugar')} />
+              )}
             </>
           );
         }}

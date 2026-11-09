@@ -1,4 +1,3 @@
-import { signInTestUser } from '../lib/demo-login';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState, Platform, StyleSheet, View } from 'react-native';
 import { T } from '../ui/text';
@@ -14,6 +13,8 @@ import { CavosLoader } from '../lib/cavos/loader';
 import { cavosLogout } from '../lib/cavos/session';
 import { cavosConfigured } from '../lib/cavos/config';
 import { cavosStore } from '../lib/cavos/store';
+import { loadSpectatorWorld, readSpectator, writeSpectator } from '../lib/spectator';
+import { createSpectatorRepository, SPECTATOR_ID, type SpectatorRepository } from '../data/spectator';
 
 export type Flash = { id: string; title: string; body?: string; href?: string; tone?: 'accent' | 'danger' };
 
@@ -32,8 +33,12 @@ type AppValue = {
   flash: Flash | null;
   showFlash: (next: Flash | null) => void;
   signInDemo: (userId: string) => void;
-  /** Entra con la cuenta de prueba compartida (en modo local, la primera cuenta de ejemplo). */
-  signInTestUser: () => Promise<void>;
+  /** Modo espectador: sin cuenta, solo lectura, mundo de ejemplo. */
+  spectator: boolean;
+  /** "Solo quiero mirar": abre la app en modo espectador. */
+  enterSpectator: () => Promise<void>;
+  /** Sale del modo espectador (p. ej. para crear su perfil). */
+  leaveSpectator: () => void;
   signOut: () => Promise<void>;
   refresh: () => void;
 };
@@ -42,8 +47,13 @@ const AppContext = createContext<AppValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const mode = backendMode();
-  const repo = useMemo(() => (mode === 'invalid' ? null : createRepository()), [mode]);
-  const [userId, setUserId] = useState<string | null>(null);
+  const baseRepo = useMemo(() => (mode === 'invalid' ? null : createRepository()), [mode]);
+  const [sessionUserId, setUserId] = useState<string | null>(null);
+  const [watchRepo, setWatchRepo] = useState<SpectatorRepository | null>(null);
+  // Con sesión real el modo espectador no aplica; sin sesión, el espectador mira con su repositorio de solo lectura.
+  const spectator = watchRepo != null && sessionUserId == null;
+  const repo = spectator ? watchRepo : baseRepo;
+  const userId = spectator ? SPECTATOR_ID : sessionUserId;
   const [profile, setProfile] = useState<Profile | null>(null);
   const [ready, setReady] = useState(mode === 'invalid');
   const [version, setVersion] = useState(0);
@@ -60,28 +70,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [repo]);
 
   useEffect(() => {
-    if (!repo || mode === 'invalid') return;
+    if (!baseRepo || mode === 'invalid') return;
+    let restoring = readSpectator();
     let active = true;
+    // Si quedó abierto el modo espectador y no hay sesión, se vuelve a abrir antes de quitar el splash.
+    const settle = (id: string | null) => {
+      setUserId(id);
+      if (id || !readSpectator()) {
+        restoring = false;
+        if (id) writeSpectator(false);
+        setReady(true);
+        return;
+      }
+      void loadSpectatorWorld(mode)
+        .then((world) => {
+          if (active) setWatchRepo(createSpectatorRepository(world));
+        })
+        .catch(() => writeSpectator(false))
+        .finally(() => {
+          restoring = false;
+          if (active) setReady(true);
+        });
+    };
     if (mode === 'demo') {
-      setUserId(readDemoSession());
-      setReady(true);
+      settle(readDemoSession());
       return;
     }
     const supabase = getSupabase();
     void supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
-      setUserId(data.session?.user.id ?? null);
-      setReady(true);
+      settle(data.session?.user.id ?? null);
     });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user.id ?? null);
-      setReady(true);
+      const id = session?.user.id ?? null;
+      setUserId(id);
+      // Entró con su cuenta: deja de ser espectador.
+      if (id) {
+        writeSpectator(false);
+        setWatchRepo(null);
+      }
+      if (id || !restoring) setReady(true);
     });
     return () => {
       active = false;
       data.subscription.unsubscribe();
     };
-  }, [mode, repo]);
+  }, [mode, baseRepo]);
 
   useEffect(() => {
     if (!repo || !userId) {
@@ -119,7 +153,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!repo || !userId) return;
     // Con sesión abierta, cargar Cavos de una vez: reconecta la billetera en silencio al abrir la app.
-    if (backendMode() === 'supabase' && cavosConfigured()) cavosStore.want();
+    if (!spectator && backendMode() === 'supabase' && cavosConfigured()) cavosStore.want();
     let last = 0;
     const wake = () => {
       const now = Date.now();
@@ -153,7 +187,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       clearInterval(timer);
       sub.remove();
     };
-  }, [repo, userId]);
+  }, [repo, userId, spectator]);
 
   const markNoticesRead = useCallback(
     (ids?: string[]) => {
@@ -173,7 +207,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [repo, userId]);
 
   useEffect(() => {
-    if (!repo || !userId) return;
+    // El espectador no puede hacerse amigo de nadie: la invitación queda guardada para cuando entre con su cuenta.
+    if (!repo || !userId || spectator) return;
     const code = readPendingInvite();
     if (!code) return;
     let alive = true;
@@ -206,7 +241,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       alive = false;
       if (!finished && readPendingInvite() == null) writePendingInvite(code);
     };
-  }, [repo, userId]);
+  }, [repo, userId, spectator]);
 
   const value = useMemo<AppValue | null>(() => {
     if (!repo || mode === 'invalid') return null;
@@ -227,18 +262,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUserId(nextId);
         track('sign_in', { method: 'demo' });
       },
-      async signInTestUser() {
-        if (mode === 'demo') {
-          const first = repo.demoAccounts()[0];
-          if (!first) throw new Error('No hay cuentas de ejemplo.');
-          writeDemoSession(first.id);
-          setUserId(first.id);
-        } else {
-          await signInTestUser();
-        }
-        track('sign_in', { method: 'test_user' });
+      spectator,
+      async enterSpectator() {
+        const world = await loadSpectatorWorld(mode);
+        writeSpectator(true);
+        setWatchRepo(createSpectatorRepository(world));
+        track('spectator_enter');
+      },
+      leaveSpectator() {
+        writeSpectator(false);
+        setWatchRepo(null);
       },
       async signOut() {
+        if (spectator) {
+          writeSpectator(false);
+          setWatchRepo(null);
+          return;
+        }
         if (mode === 'supabase') {
           await cavosLogout();
           // Solo este dispositivo: cerrar sesión aquí no saca al usuario de su otro teléfono o de la app instalada.
@@ -252,7 +292,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setVersion((current) => current + 1);
       },
     };
-  }, [flash, markNoticesRead, mode, notices, profile, ready, repo, userId, version]);
+  }, [flash, markNoticesRead, mode, notices, profile, ready, repo, spectator, userId, version]);
 
   if (mode === 'invalid' || !value) {
     return <InvalidEnv />;

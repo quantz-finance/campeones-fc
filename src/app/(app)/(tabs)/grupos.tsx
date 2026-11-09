@@ -11,19 +11,19 @@ import { Rise } from '../../../ui/motion';
 import { push } from '../../../ui/nav';
 
 export default function Groups() {
-  const { repo, userId, version } = useApp();
+  const { repo, userId, version, spectator } = useApp();
   const query = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
 
   return (
     <Screen tab>
-      <Top title="Grupos" kicker="La junta" icon="friends" right={<Button label="Crear" onPress={() => push('/grupo/nuevo')} />} />
+      <Top title="Grupos" kicker="La junta" icon="friends" right={spectator ? undefined : <Button label="Crear" onPress={() => push('/grupo/nuevo')} />} />
       <Gate query={query}>
         {(groups) =>
           groups.length === 0 ? (
             <Empty
-              title="Arma tu junta"
-              body="Un grupo tiene tabla, ranking y torneos. Solo entran tus amigos."
-              action={<Button label="Crear grupo" onPress={() => push('/grupo/nuevo')} />}
+              title={spectator ? 'Todavía no hay grupos' : 'Arma tu junta'}
+              body={spectator ? 'Cuando haya grupos con partidos, aparecen aquí.' : 'Un grupo tiene tabla, ranking y torneos. Solo entran tus amigos.'}
+              action={spectator ? undefined : <Button label="Crear grupo" onPress={() => push('/grupo/nuevo')} />}
             />
           ) : (
             groups.map((item, index) => (
@@ -35,7 +35,9 @@ export default function Groups() {
                     {item.group.name}
                   </T>
                   <T variant="tiny" color={colors.muted}>
-                    {item.memberCount} jugadores · {item.yourPlace ? `vas ${item.yourPlace}º` : 'aún fuera del ranking'}
+                    {spectator
+                      ? `${item.memberCount} jugadores`
+                      : `${item.memberCount} jugadores · ${item.yourPlace ? `vas ${item.yourPlace}º` : 'aún fuera del ranking'}`}
                   </T>
                   <T variant="strong" color={colors.accentText}>
                     {item.leader ? `Manda ${item.leader.displayName}` : 'Nadie manda todavía'}

@@ -18,7 +18,7 @@ import { push } from '../../../ui/nav';
 
 export default function TournamentScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { repo, userId, version } = useApp();
+  const { repo, userId, version, spectator } = useApp();
   const query = useQuery(() => repo.tournamentSnapshot(String(id), userId!), [repo, userId, version, id]);
 
   return (
@@ -61,7 +61,7 @@ export default function TournamentScreen() {
                   </View>
                 }
               />
-              {data.tournament.createdBy === userId ? (
+              {!spectator && data.tournament.createdBy === userId ? (
                 <PhotoButton kind="tournaments" targetId={data.tournament.id} label="Foto del torneo" />
               ) : null}
               {data.tournament.status === 'completed' ? (
@@ -191,7 +191,11 @@ export default function TournamentScreen() {
                   </View>
                 </View>
               ) : null}
-              <Button label="Crear nuevo torneo" tone="ghost" onPress={() => push(`/torneo/nuevo?grupo=${data.group.id}`)} />
+              {spectator ? (
+                <Button label="Crear mi perfil para jugar" tone="ghost" onPress={() => push('/perfil')} />
+              ) : (
+                <Button label="Crear nuevo torneo" tone="ghost" onPress={() => push(`/torneo/nuevo?grupo=${data.group.id}`)} />
+              )}
             </>
           );
         }}

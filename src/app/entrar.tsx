@@ -11,7 +11,7 @@ import { transit } from '../ui/nav';
 import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
-import { TestUserButton } from '../ui/test-user';
+import { SpectatorButton } from '../ui/spectator';
 import { HeroPhoto, HeroPhotoNote } from '../ui/hero-photo';
 
 export default function Login() {
@@ -47,7 +47,7 @@ export default function Login() {
             title="Modo demostración"
             body="Los datos viven en este navegador. Abre otra ventana e inicia sesión con otra cuenta para confirmar un partido entre los dos."
           />
-          <TestUserButton tone="accent" />
+          <SpectatorButton tone="accent" />
           <View style={styles.list}>
             <T variant="label" color={colors.accentText}>
               Cuentas de ejemplo
@@ -90,7 +90,7 @@ export default function Login() {
             <>
               <Button label={label} disabled={busy} onPress={openCavos} />
               <SpamHint />
-              <TestUserButton />
+              <SpectatorButton />
             </>
           )}
           <T color={colors.muted}>
@@ -108,7 +108,7 @@ export default function Login() {
           }
         />
       )}
-      {!configured && app.mode !== 'demo' ? <TestUserButton /> : null}
+      {!configured && app.mode !== 'demo' ? <SpectatorButton /> : null}
 
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
     </Screen>
