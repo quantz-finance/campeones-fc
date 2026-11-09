@@ -8,6 +8,7 @@ import { Scene } from './scene';
 import { CardsSkeleton } from './skeleton';
 import { colors, font, radius, space } from './theme';
 import { T } from './text';
+import { translate, useLang } from '../i18n/lang';
 
 type Tone = 'accent' | 'ghost' | 'danger' | 'gold';
 
@@ -78,6 +79,7 @@ export function Field({
   autoCapitalize?: 'none' | 'words' | 'sentences';
   keyboardType?: 'default' | 'email-address' | 'number-pad';
 }) {
+  const lang = useLang();
   return (
     <View style={styles.field}>
       <T variant="label" color={colors.accentText}>
@@ -86,7 +88,7 @@ export function Field({
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
+        placeholder={placeholder ? translate(placeholder, lang) : placeholder}
         placeholderTextColor={colors.faint}
         autoCapitalize={autoCapitalize}
         autoCorrect={false}

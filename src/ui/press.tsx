@@ -78,5 +78,7 @@ const styles = StyleSheet.create({
     bottom: -12,
     width: 28,
     backgroundColor: 'rgba(255,255,255,0.55)',
+    // Invisible en reposo: si la animación termina o se corta, no queda un cuadro pegado.
+    opacity: 0,
   },
 });

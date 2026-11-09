@@ -22,6 +22,7 @@ export const branding = {
     'El marcador oficial de tus partidos con amigos: cada partido, cada serie y cada trofeo, en un solo lugar.',
   shortPitch: 'Cada partido, cada serie y cada trofeo, en un solo lugar.',
   disclaimer: 'No afiliado a EA, Warner Bros., FIFA ni UEFA.',
+  disclaimerEn: 'Not affiliated with EA, Warner Bros., FIFA or UEFA.',
   description:
     'Lleva el marcador de tus partidos con amigos: series, grupos, torneos y trofeos.',
   locale: 'es-CR',

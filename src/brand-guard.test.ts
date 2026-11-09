@@ -39,7 +39,7 @@ describe('marca', () => {
     const extra = [/Champions League/i, /Liga de Campeones/i, /Copa de Campeones/i, /Mortal Kombat/i, /Warner Bros/i];
     const hits: string[] = [];
     for (const path of files(root)) {
-      const text = readFileSync(path, 'utf8').split(branding.disclaimer).join('');
+      const text = readFileSync(path, 'utf8').split(branding.disclaimer).join('').split(branding.disclaimerEn).join('');
       for (const pattern of [...forbidden, ...extra]) {
         if (pattern.test(text)) hits.push(`${path} coincide con ${pattern}`);
       }

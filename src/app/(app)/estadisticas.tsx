@@ -50,7 +50,7 @@ export default function Stats() {
                   <T variant="tiny" color={colors.muted}>
                     Elo
                   </T>
-                  <Spark values={data.evolution.map((point) => point.rating)} color={colors.gold} />
+                  <Spark values={data.evolution.map((point) => point.rating)} color={colors.blue} />
                 </>
               )}
             </Panel>

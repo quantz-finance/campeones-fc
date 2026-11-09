@@ -16,6 +16,7 @@ import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
 import { push } from '../../../ui/nav';
 import { ThemeToggle } from '../../../ui/theme-toggle';
+import { LangToggle } from '../../../ui/lang-toggle';
 
 const stickerMeta = {
   first_win: { title: 'Primera', icon: 'flash' as const, color: colors.accentText, tilt: '0deg' },
@@ -64,6 +65,7 @@ export default function Profile() {
             Ficha del jugador
           </T>
         </View>
+        <LangToggle />
         <ThemeToggle />
         <Pressable accessibilityLabel="Compartir ficha" style={styles.iconBtn} onPress={() => push('/estadisticas')}>
           <Ionicons name="share-outline" size={18} color={colors.text} />

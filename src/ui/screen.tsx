@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AudioToggle } from './audio-toggle';
 import { ThemeToggle } from './theme-toggle';
+import { LangToggle } from './lang-toggle';
 import { Backdrop, FeatureBadge, tabBarSpace, type FeatureIconName } from './broadcast';
 import { useGlobalExit } from './motion-context';
 import { back as goBack } from './nav';
@@ -52,6 +53,7 @@ export function Screen({
       <Backdrop />
       {exiting && focused ? <BroadcastSlash /> : null}
       <View pointerEvents="box-none" style={[styles.sound, { top: insets.top + 8 }]}>
+        {docked ? null : <LangToggle />}
         {docked ? null : <ThemeToggle />}
         <AudioToggle />
       </View>
@@ -150,9 +152,9 @@ const styles = StyleSheet.create({
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },
   sound: { position: 'absolute', right: 10, zIndex: 45, flexDirection: 'row', gap: 8 },
   top: { gap: 12, minHeight: 44 },
-  topLead: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 46, paddingRight: 100 },
+  topLead: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 46, paddingRight: 146 },
   topText: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  topClear: { paddingRight: 100 },
+  topClear: { paddingRight: 146 },
   titleCol: { flex: 1, minWidth: 0 },
   topRight: { flexShrink: 0, alignItems: 'flex-end' },
   back: {
