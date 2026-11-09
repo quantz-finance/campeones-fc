@@ -79,7 +79,11 @@ for (const f of files.filter((x) => x.endsWith('.html'))) {
 // 4) Service worker
 const swPath = join(dist, 'sw.js');
 const shellJs = files.map(url).filter((u) => /^\/_expo\/static\/js\/web\/(entry|__expo-metro-runtime|__common)-/.test(u));
-const pre = ['/', '/manifest.json', '/icon-192.png', '/apple-touch-icon.png', ...shellJs, ...fonts.map((f) => f.href)];
+// Foto del hero (WebP, ~21 KB): se ve apenas abre la app sin sesión, así que va al precache.
+// El JPG de respaldo solo lo piden navegadores sin WebP y lo guarda el cache en tiempo de uso.
+const heroPhoto = '/media/hero-player.webp';
+if (!files.some((x) => x.split('\\').join('/').endsWith(heroPhoto))) fail('no encontré public' + heroPhoto + ' en dist');
+const pre = ['/', '/manifest.json', '/icon-192.png', '/apple-touch-icon.png', ...shellJs, ...fonts.map((f) => f.href), heroPhoto];
 const version = createHash('sha1').update(pre.join()).update(readFileSync(join(dist, 'index.html'))).digest('hex').slice(0, 10);
 writeFileSync(swPath, readFileSync(swPath, 'utf8').replace('__SW_VERSION__', version).replace('[/*__PRECACHE__*/]', JSON.stringify(pre)));
 console.log(`[postbuild] ${fonts.filter((f) => f.preload).length} fuentes precargadas, ${pre.length} archivos en el precache del SW (v${version}) -> ${n} html`);

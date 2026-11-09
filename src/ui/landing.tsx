@@ -9,6 +9,7 @@ import { playIntro } from './audio';
 import { Avatar } from './avatar';
 import { Affiliation, FeatureBadge, SkewBlock, Toro, type FeatureIconName } from './broadcast';
 import { TestUserButton } from './test-user';
+import { HeroPhoto, HeroPhotoNote } from './hero-photo';
 import { Banner, Button } from './controls';
 import { BroadcastView, cssAnim, useReducedMotion } from './motion';
 import { transit } from './nav';
@@ -84,6 +85,7 @@ export function Landing() {
   return (
     <Screen>
       <View style={styles.hero}>
+        <HeroPhoto />
         <LogoMark />
         <View style={styles.lockup}>
           <T variant="label" color={colors.accentText}>
@@ -96,6 +98,7 @@ export function Landing() {
             {branding.tagline}
           </T>
         </View>
+        <HeroPhotoNote />
       </View>
 
       {app.mode === 'demo' ? (
@@ -195,7 +198,7 @@ export function Landing() {
 }
 
 const styles = StyleSheet.create({
-  hero: { gap: space.lg, alignItems: 'flex-start' },
+  hero: { gap: space.lg, alignItems: 'flex-start', minHeight: 300, paddingTop: 4 },
   logoWrap: { alignItems: 'flex-start', marginTop: 8 },
   logoPlate: {
     width: 132,

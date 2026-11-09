@@ -12,6 +12,7 @@ import { Screen } from '../ui/screen';
 import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
 import { TestUserButton } from '../ui/test-user';
+import { HeroPhoto, HeroPhotoNote } from '../ui/hero-photo';
 
 export default function Login() {
   const app = useApp();
@@ -30,11 +31,13 @@ export default function Login() {
       }
     >
       <View style={styles.hero}>
+        <HeroPhoto height={270} />
         <Wordmark size={30} />
         <T variant="display" style={styles.title}>
           Entra a tu cuenta
         </T>
         <T color={colors.muted}>{branding.tagline}</T>
+        <HeroPhotoNote />
       </View>
 
       {app.mode === 'demo' ? (
@@ -123,7 +126,7 @@ function SpamHint() {
 
 const styles = StyleSheet.create({
   hintText: { fontSize: 14, lineHeight: 20 },
-  hero: { gap: space.md, paddingTop: space.lg, paddingRight: 92 },
+  hero: { gap: space.md, paddingTop: 150, minHeight: 250 },
   title: { fontSize: 34, lineHeight: 38 },
   list: { gap: space.sm },
   account: {

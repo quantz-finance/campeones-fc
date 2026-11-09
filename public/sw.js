@@ -38,7 +38,7 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  if (/^\/(icon-[\w-]+|apple-touch-icon|favicon[\w-]*)\.(png|ico)$|^\/manifest\.json$/.test(u.pathname)) {
+  if (/^\/(icon-[\w-]+|apple-touch-icon|favicon[\w-]*)\.(png|ico)$|^\/manifest\.json$|^\/media\/[\w-]+\.(webp|jpg)$/.test(u.pathname)) {
     e.respondWith(
       caches.open(STATIC).then((c) =>
         c.match(r).then((hit) => {
