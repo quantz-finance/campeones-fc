@@ -100,18 +100,22 @@ export function Top({
 }) {
   return (
     <View style={styles.top}>
-      <View style={styles.topText}>
-        {back ? (
-          <SportPress onPress={() => goBack()} hitSlop={8} style={styles.back} accessibilityLabel="Volver">
-            <View style={styles.unskew}>
-              <Ionicons name="chevron-back" size={22} color={colors.text} />
-            </View>
-          </SportPress>
-        ) : null}
-        {icon ? <FeatureBadge name={icon} size={46} /> : null}
-        <View style={styles.flex}>
+      {back || icon ? (
+        <View style={styles.topLead}>
+          {back ? (
+            <SportPress onPress={() => goBack()} hitSlop={8} style={styles.back} accessibilityLabel="Volver">
+              <View style={styles.unskew}>
+                <Ionicons name="chevron-back" size={22} color={colors.text} />
+              </View>
+            </SportPress>
+          ) : null}
+          {icon ? <FeatureBadge name={icon} size={46} /> : null}
+        </View>
+      ) : null}
+      <View style={[styles.topText, !(back || icon) && styles.topClear]}>
+        <View style={styles.titleCol}>
           {kicker ? (
-            <T variant="label" color={colors.accentText} style={styles.kicker}>
+            <T variant="label" color={colors.accentText} style={styles.kicker} numberOfLines={2}>
               {kicker}
             </T>
           ) : null}
@@ -119,8 +123,8 @@ export function Top({
             {title}
           </T>
         </View>
+        {right ? <View style={styles.topRight}>{right}</View> : null}
       </View>
-      {right}
     </View>
   );
 }
@@ -145,8 +149,12 @@ const styles = StyleSheet.create({
   },
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },
   sound: { position: 'absolute', right: 10, zIndex: 45, flexDirection: 'row', gap: 8 },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, minHeight: 44, paddingRight: 92 },
-  topText: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  top: { gap: 12, minHeight: 44 },
+  topLead: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 46, paddingRight: 100 },
+  topText: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  topClear: { paddingRight: 100 },
+  titleCol: { flex: 1, minWidth: 0 },
+  topRight: { flexShrink: 0, alignItems: 'flex-end' },
   back: {
     width: 40,
     height: 40,
