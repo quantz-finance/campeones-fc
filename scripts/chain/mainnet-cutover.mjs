@@ -20,7 +20,7 @@ const opt = (name, def) => {
   const i = rest.indexOf(name);
   return i >= 0 ? rest[i + 1] : def;
 };
-const BASE = opt('--base', 'https://campeones-fc.vercel.app').replace(/\/$/, '');
+const BASE = opt('--base', 'https://partido.campeonesfc.app').replace(/\/$/, '');
 const PROJECT = opt('--project', 'campeones-fc');
 const TEAM = opt('--team', process.env.VERCEL_TEAM_ID ?? '');
 const ADDRESS = opt('--address', process.env.PLATFORM_PUBLIC ?? '');

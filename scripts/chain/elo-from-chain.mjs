@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Recalcula el Elo de Campeones FC desde las actas diarias ancladas en Stellar. Cualquiera puede correrlo:
-//   node scripts/chain/elo-from-chain.mjs [--base https://campeones-fc.vercel.app] [--json] [--no-chain]
+//   node scripts/chain/elo-from-chain.mjs [--base https://partido.campeonesfc.app] [--json] [--no-chain]
 // Para cada acta: (1) el hash del acta coincide con su contenido, (2) cada acta apunta a la anterior,
 // (3) la raíz Merkle sale de los resultados publicados, (4) el memo hash de la transacción en Stellar
 // es el hash del acta. Después repite el Elo FIDE con esos resultados. Sale con código 1 si algo no cuadra.
@@ -11,7 +11,7 @@ const opt = (name, def) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : def;
 };
-const BASE = (opt('--base', process.env.CFC_BASE ?? 'https://campeones-fc.vercel.app')).replace(/\/$/, '');
+const BASE = (opt('--base', process.env.CFC_BASE ?? 'https://partido.campeonesfc.app')).replace(/\/$/, '');
 const asJson = args.includes('--json');
 const checkChain = !args.includes('--no-chain');
 

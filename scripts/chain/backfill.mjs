@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // Pone al día el registro en Stellar: encola los partidos confirmados viejos ("sin firma"), los ancla por lotes
 // y arma/ancla las actas diarias que falten. Llama a los endpoints del servidor con CRON_SECRET (nunca lo imprime).
-//   CRON_SECRET=... node scripts/chain/backfill.mjs [--base https://campeones-fc.vercel.app] [--batch 40] [--max-calls 400]
+//   CRON_SECRET=... node scripts/chain/backfill.mjs [--base https://partido.campeonesfc.app] [--batch 40] [--max-calls 400]
 const args = process.argv.slice(2);
 const opt = (name, def) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : def;
 };
-const BASE = opt('--base', process.env.CFC_BASE ?? 'https://campeones-fc.vercel.app').replace(/\/$/, '');
+const BASE = opt('--base', process.env.CFC_BASE ?? 'https://partido.campeonesfc.app').replace(/\/$/, '');
 const BATCH = Number(opt('--batch', '40'));
 const MAX_CALLS = Number(opt('--max-calls', '400'));
 const secret = (process.env.CRON_SECRET ?? '').trim();

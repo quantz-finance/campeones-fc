@@ -1,6 +1,19 @@
 {
   "buildCommand": "npx expo export -p web && node scripts/build/postbuild.mjs",
   "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "campeones-fc.vercel.app"
+        }
+      ],
+      "destination": "https://partido.campeonesfc.app/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/((?!api/).*)",

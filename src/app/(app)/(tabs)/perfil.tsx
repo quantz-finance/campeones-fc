@@ -257,8 +257,12 @@ export default function Profile() {
         </View>
         <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>
           {showDemo || app.mode !== 'supabase'
-            ? 'Datos falsos: ves el mundo de demostración (jugadores, partidos, grupos). Sin apuestas: nada va a la blockchain.'
-            : 'Testnet: solo jugadores y partidos reales. Apuestas y verificación en Stellar (red de prueba, sin dinero real).'}
+            ? process.env.EXPO_PUBLIC_STAKES_ENABLED === '1'
+              ? 'Datos falsos: ves el mundo de demostración (jugadores, partidos, grupos). Sin apuestas: nada va a la blockchain.'
+              : 'Datos falsos: ves el mundo de demostración (jugadores, partidos, grupos). Nada va a la blockchain.'
+            : process.env.EXPO_PUBLIC_STAKES_ENABLED === '1'
+              ? 'Testnet: solo jugadores y partidos reales. Apuestas y verificación en Stellar (red de prueba, sin dinero real).'
+              : 'Testnet: solo jugadores y partidos reales. Verificación en Stellar (red de prueba, sin dinero real).'}
         </T>
       </View>
       <View style={styles.links}>
