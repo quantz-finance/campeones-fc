@@ -5,6 +5,13 @@ import { branding } from '../../config/branding';
 export const en: Record<string, string> = {
   [branding.disclaimer]: branding.disclaimerEn,
   "Reintentar": "Retry",
+  "Testnet: solo jugadores y partidos reales. Apuestas y verificación en Stellar (red de prueba, sin dinero real).": "Testnet: real players and matches only. Stakes and Stellar verification (test network, no real money).",
+  "Testnet: solo jugadores y partidos reales. Verificación en Stellar (red de prueba, sin dinero real).": "Testnet: real players and matches only. Stellar verification (test network, no real money).",
+  "Datos falsos: ves el mundo de demostración (jugadores, partidos, grupos). Sin apuestas: nada va a la blockchain.": "Fake data: you see the demo world (players, matches, groups). No stakes: nothing goes to the blockchain.",
+  "Datos falsos: ves el mundo de demostración (jugadores, partidos, grupos). Nada va a la blockchain.": "Fake data: you see the demo world (players, matches, groups). Nothing goes to the blockchain.",
+  "La cuenta de prueba no se puede editar. Crea tu cuenta para tener tu propio perfil.": "The test account can't be edited. Create your account to have your own profile.",
+  "Algo se rompió": "Something broke",
+  "Ya nos llegó el aviso. Vuelve a intentarlo; si sigue pasando, recarga la página.": "We've been notified. Try again; if it keeps happening, reload the page.",
   "Sin racha": "No streak",
   "Todas": "All",
   "Tu cliente": "Your favorite victim",

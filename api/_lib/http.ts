@@ -1,3 +1,5 @@
+import { reportServerError } from './report';
+
 export class HttpError extends Error {
   constructor(
     public status: number,
@@ -16,9 +18,10 @@ export function json(res: any, status: number, body: unknown) {
   res.end(JSON.stringify(body));
 }
 
-export function fail(res: any, e: unknown) {
+export async function fail(res: any, e: unknown, req?: any) {
   if (e instanceof HttpError) return json(res, e.status, { error: e.message, code: e.code, ...e.extra });
   console.error('[api] error inesperado', e);
+  await reportServerError(e, { path: String(req?.url ?? '').split('?')[0] || null });
   return json(res, 500, { error: 'Algo falló de nuestro lado. Intenta de nuevo en un momento.', code: 'internal' });
 }
 

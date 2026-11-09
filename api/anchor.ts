@@ -45,6 +45,6 @@ export default async function handler(req: any, res: any) {
     const url = r.state === 'anchored' ? explorerTxUrl(r.tx, r.network) : null;
     return json(res, 200, { ...r, url, network: d.network });
   } catch (e) {
-    return fail(res, e);
+    return fail(res, e, req);
   }
 }

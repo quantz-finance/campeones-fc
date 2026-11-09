@@ -51,6 +51,6 @@ export default async function handler(req: any, res: any) {
     }, DEMO_LOGIN_EMAIL);
     return json(res, 200, { session });
   } catch (e) {
-    return fail(res, e);
+    return fail(res, e, req);
   }
 }

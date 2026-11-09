@@ -21,6 +21,6 @@ export default async function handler(req: any, res: any) {
     const pending = await store.queue(1000, new Date(0));
     return json(res, 200, { ok: true, network: env.stellarNetwork(), ...out, pending: pending.length });
   } catch (e) {
-    return fail(res, e);
+    return fail(res, e, req);
   }
 }

@@ -9,9 +9,16 @@ import { startPwaUpdates } from '../lib/pwa-update';
 import { AppProvider, useAppMaybe } from '../state/app-provider';
 import { colors } from '../ui/theme';
 import { useThemeMode } from '../ui/theme-mode';
+import { ErrorScreen } from '../ui/error-screen';
 import { TransitionHost } from '../ui/transition';
 
 void SplashScreen.preventAutoHideAsync();
+
+/** expo-router: si una pantalla falla al pintar, se muestra esto (con Reintentar) y el error se reporta. */
+export function ErrorBoundary(props: { error: Error; retry: () => Promise<void> }) {
+  if (typeof document !== 'undefined') document.getElementById('boot-splash')?.remove();
+  return <ErrorScreen {...props} />;
+}
 
 export default function RootLayout() {
   useEffect(() => startPwaUpdates(), []);

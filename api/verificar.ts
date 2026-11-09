@@ -175,6 +175,6 @@ export default async function handler(req: any, res: any) {
     }
     throw new HttpError(400, 'Falta ?id=, ?day= o ?index=1.', 'bad_request');
   } catch (e) {
-    return fail(res, e);
+    return fail(res, e, req);
   }
 }

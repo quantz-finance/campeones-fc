@@ -74,6 +74,6 @@ export default async function handler(req: any, res: any) {
       default: throw new HttpError(400, 'Acción no permitida.', 'bad_action');
     }
   } catch (e) {
-    return fail(res, e);
+    return fail(res, e, req);
   }
 }

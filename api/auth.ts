@@ -67,6 +67,6 @@ export default async function handler(req: any, res: any) {
     if (session.user_id !== userId) throw new Error('la sesión acuñada no corresponde al usuario');
     return json(res, 200, { session, wallet: { status: wallet.status, address: proof.address }, linkedBy });
   } catch (e) {
-    return fail(res, e);
+    return fail(res, e, req);
   }
 }
