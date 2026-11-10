@@ -10,17 +10,17 @@ import type { PublicPlayer } from '../../data/public-player';
 import { DEFAULT_NATIVE_API_BASE } from '../../lib/api';
 import { useApp } from '../../state/app-provider';
 import { useQuery } from '../../state/use-query';
-import { FormDots } from '../../ui/billboard';
 import { InitialsMark, SectionHead, Shield } from '../../ui/broadcast';
 import { Button, Gate } from '../../ui/controls';
-import { elo, formatDay, monogram, pct, signed } from '../../ui/format';
-import { CountRoll, Pop, Rise } from '../../ui/motion';
+import { formatDay, monogram, signed } from '../../ui/format';
+import { Rise } from '../../ui/motion';
 import { push } from '../../ui/nav';
 import { SportPress } from '../../ui/press';
 import { Screen, Top } from '../../ui/screen';
 import { copyText } from '../../ui/share';
 import { DetailSkeleton } from '../../ui/skeleton';
 import { AchievementBadge } from '../../ui/achievement-badge';
+import { PlayerCard, cardFromPublic } from '../../ui/player-card';
 import { SocialButtons } from '../../ui/social-icons';
 import { T } from '../../ui/text';
 import { colors, layout, space } from '../../ui/theme';
@@ -28,91 +28,6 @@ import { colors, layout, space } from '../../ui/theme';
 export function playerShareUrl(id: string): string {
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.origin) return `${window.location.origin}/jugador/${id}`;
   return `${DEFAULT_NATIVE_API_BASE}/jugador/${id}`;
-}
-
-function streakText(streak: PublicPlayer['streak']): string {
-  if (streak.type === 'none' || streak.count === 0) return '–';
-  return `${streak.count}${streak.type === 'win' ? 'V' : streak.type === 'draw' ? 'E' : 'D'}`;
-}
-
-function Cell({ value, label, accent }: { value: string; label: string; accent?: boolean }) {
-  return (
-    <View style={styles.cell}>
-      <T variant="display" style={[styles.cellNum, accent && { color: colors.accentText }]} numberOfLines={1} adjustsFontSizeToFit>
-        {value}
-      </T>
-      <T variant="tiny" color={colors.muted} numberOfLines={1}>
-        {label}
-      </T>
-    </View>
-  );
-}
-
-function Scorecard({ data }: { data: PublicPlayer }) {
-  const p = data.profile;
-  const total = Math.max(data.wins + data.draws + data.losses, 1);
-  return (
-    <View style={styles.hero}>
-      <View style={styles.heroTop}>
-        <View style={styles.heroLeft}>
-          <T variant="tiny" color={colors.redInk}>
-            Ranking
-          </T>
-          <T variant="display" style={styles.place}>
-            {data.place ? `#${data.place}` : '—'}
-          </T>
-          <T variant="tiny" color={colors.redInk} style={styles.plain} numberOfLines={2}>
-            {data.place ? `de ${data.rankedPlayers} jugadores` : `Faltan partidos para entrar`}
-          </T>
-          <View style={styles.heroMark} pointerEvents="none">
-            <InitialsMark name={p.displayName} avatarKey={p.avatarKey} photoUrl={p.photoUrl} size={118} fontSize={42} />
-          </View>
-        </View>
-        <View style={styles.heroRight}>
-          <T variant="display" style={styles.name} numberOfLines={2} adjustsFontSizeToFit>
-            {p.displayName}
-          </T>
-          <T variant="strong" color={colors.muted} numberOfLines={1}>
-            @{p.username}
-          </T>
-          <View style={styles.eloRow}>
-            <View style={styles.eloTag}>
-              <T variant="tiny" color={colors.ink}>
-                ELO
-              </T>
-            </View>
-            <View style={styles.eloNum}>
-              <Pop value={data.rating}>
-                <CountRoll value={data.rating} format={(n) => elo(Math.round(n))}>
-                  {(shown) => (
-                    <T variant="display" style={{ fontSize: 30, color: colors.ink, fontStyle: 'normal' }}>
-                      {shown}
-                    </T>
-                  )}
-                </CountRoll>
-              </Pop>
-            </View>
-          </View>
-          <FormDots form={data.form} size={18} />
-        </View>
-      </View>
-      <View style={styles.bar}>
-        <View style={{ flex: data.wins / total, backgroundColor: colors.yellow }} />
-        <View style={{ flex: data.draws / total, backgroundColor: colors.draw }} />
-        <View style={{ flex: data.losses / total, backgroundColor: colors.loss }} />
-      </View>
-      <View style={styles.grid}>
-        <Cell value={String(data.played)} label="Partidos" />
-        <Cell value={`${data.wins}-${data.draws}-${data.losses}`} label="V-E-D" />
-        <Cell value={pct(data.winRate)} label="Victorias" accent />
-        <Cell value={String(data.goalsFor)} label="Goles" />
-        <Cell value={streakText(data.streak)} label="Racha" />
-        <Cell value={String(data.bestWinStreak)} label="Mejor racha" />
-        <Cell value={elo(data.peak)} label="Elo máx." />
-        <Cell value={String(data.titles.length)} label="Títulos" accent={data.titles.length > 0} />
-      </View>
-    </View>
-  );
 }
 
 export default function PlayerPage() {
@@ -155,7 +70,7 @@ export default function PlayerPage() {
             <>
               <Top title="Ficha del jugador" kicker={branding.name} back />
               <Rise index={0}>
-                <Scorecard data={data} />
+                <PlayerCard data={cardFromPublic(data)} kicker={data.place === 1 ? 'Número 1 del ranking' : 'Jugador'} />
               </Rise>
               <Rise index={1}>
                 <View style={styles.actions}>
@@ -305,20 +220,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   section: { gap: layout.title },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  hero: { backgroundColor: colors.navy, borderRadius: 20, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' },
-  heroTop: { flexDirection: 'row', minHeight: 210 },
-  heroLeft: { width: '36%', backgroundColor: colors.red, padding: 12, overflow: 'hidden' },
-  place: { fontSize: 58, lineHeight: 62, fontStyle: 'normal', color: colors.redInk },
-  heroMark: { position: 'absolute', right: -22, bottom: -10, opacity: 0.95 },
-  heroRight: { flex: 1, padding: 12, gap: space.sm, justifyContent: 'center' },
-  name: { fontSize: 32, lineHeight: 34, fontStyle: 'normal' },
-  eloRow: { flexDirection: 'row', alignItems: 'stretch', alignSelf: 'flex-start' },
-  eloTag: { backgroundColor: colors.yellow, paddingHorizontal: 6, justifyContent: 'center', borderRadius: 14 },
-  eloNum: { backgroundColor: '#fff', paddingHorizontal: 8, justifyContent: 'center', borderRadius: 14 },
-  bar: { flexDirection: 'row', height: 6, backgroundColor: colors.line },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', padding: space.sm, rowGap: space.sm },
-  cell: { width: '25%', alignItems: 'center', paddingHorizontal: space.xxs, gap: space.xxs },
-  cellNum: { fontSize: 22, lineHeight: 26, fontStyle: 'normal' },
   actions: { flexDirection: 'row', gap: layout.button },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   trophy: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.card, borderWidth: 1, borderColor: 'rgba(212,175,55,0.55)', paddingLeft: space.xs, paddingRight: space.md, paddingVertical: space.xs, borderRadius: 999, maxWidth: '100%' },

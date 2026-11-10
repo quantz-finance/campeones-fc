@@ -8,6 +8,7 @@ import type { Href } from 'expo-router';
 import type { BillboardPlayer, BillboardRivalry, BillboardSnapshot, BillboardTournament } from '../data/snapshots';
 import type { SponsorSlot } from '../content/sponsors';
 import { BrandIcon, InitialsMark, Shield, type BrandIconName } from './broadcast';
+import { PlayerPortrait } from './player-portrait';
 import { elo, firstName, formatWhen, monogram, pct, signed, tagOf } from './format';
 import { CountRoll } from './motion';
 import { push } from './nav';
@@ -95,7 +96,7 @@ function StarCard({ star, index, total, me, width }: { star: BillboardSnapshot['
     >
       <View style={styles.starGlow} pointerEvents="none" />
       <View style={styles.starPhoto} pointerEvents="none">
-        <InitialsMark name={player.profile.displayName} avatarKey={player.profile.avatarKey} photoUrl={player.profile.photoUrl} size={150} fontSize={56} />
+        <PlayerPortrait name={player.profile.displayName} photoUrl={player.profile.photoUrl} size={156} accent={player.place === 1 ? 'gold' : 'green'} />
       </View>
       <T variant="display" style={styles.starIndex} pointerEvents="none">
         {index + 1}
@@ -560,7 +561,7 @@ const styles = StyleSheet.create({
     opacity: web ? 0.35 : 0.16,
     ...(web ? ({ filter: 'blur(30px)' } as object) : null),
   },
-  starPhoto: { position: 'absolute', right: -10, top: 12, width: 150, height: 150, borderRadius: 75, overflow: 'hidden' },
+  starPhoto: { position: 'absolute', right: -14, top: 12, width: 156, height: 156 },
   starIndex: { position: 'absolute', right: 132, top: 4, fontSize: 64, lineHeight: 70, fontStyle: 'normal', color: colors.accentText, opacity: 0.22 },
   starCount: { position: 'absolute', right: space.lg, bottom: space.md, fontSize: 10 },
   starBody: { gap: space.sm, maxWidth: '78%' },

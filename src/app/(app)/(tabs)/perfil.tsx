@@ -15,7 +15,7 @@ import { Screen } from '../../../ui/screen';
 import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { Rise, useDelayed } from '../../../ui/motion';
-import { PlayerHero } from '../../../ui/player-hero';
+import { PlayerCard, cardFromPublic } from '../../../ui/player-card';
 import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
 import { DeleteAccount } from '../../../ui/delete-account';
@@ -35,6 +35,8 @@ export default function Profile() {
   const personal = useQuery(() => app.repo.personalSnapshot(app.userId!), [app.repo, app.userId, app.version]);
   const trophies = useQuery(() => app.repo.trophies(app.userId!), [app.repo, app.userId, app.version]);
   const groups = useQuery(() => app.repo.groupsSnapshot(app.userId!), [app.repo, app.userId, app.version]);
+  // La misma carta que la ficha pública (puesto global, Elo máx., títulos, logros y redes).
+  const card = useQuery(() => app.repo.publicPlayer(app.userId!, app.userId!), [app.repo, app.userId, app.version]);
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
   const [username, setUsername] = useState(profile?.username ?? '');
   const [avatarKey, setAvatarKey] = useState(profile?.avatarKey ?? 'rayo');
@@ -89,21 +91,19 @@ export default function Profile() {
           return (
             <>
               <Rise index={0}>
-                <PlayerHero
-                  profile={{ ...data.profile, displayName: displayName || data.profile.displayName, avatarKey, photoUrl: profile.photoUrl }}
-                  rating={data.rating}
-                  record={data.record}
-                  place={firstGroup?.yourPlace ? { rank: firstGroup.yourPlace, groupName: firstGroup.group.name } : null}
-                  onPress={() => push('/estadisticas')}
-                />
+                {card.data ? (
+                  <PlayerCard
+                    data={{ ...cardFromPublic(card.data, displayName), profile: { ...cardFromPublic(card.data, displayName).profile, photoUrl: profile.photoUrl } }}
+                    kicker={firstGroup?.yourPlace ? `#${firstGroup.yourPlace} ${firstGroup.group.name}` : 'Tu ficha'}
+                    onPress={() => push('/estadisticas')}
+                  />
+                ) : null}
               </Rise>
               <View style={styles.idRow}>
                 <View style={styles.flex}>
-                  <T variant="strong" numberOfLines={1}>
-                    {profile.displayName}
-                  </T>
+                  {/* Nombre y @usuario ya van en la carta; aquí solo el país y el botón de foto. */}
                   <T variant="tiny" color={colors.muted} style={styles.plain}>
-                    @{profile.username} · {branding.country}
+                    {branding.country}
                   </T>
                 </View>
                 <PhotoButton kind="users" targetId={profile.id} label={profile.photoUrl ? 'Cambiar foto' : 'Subir foto'} />

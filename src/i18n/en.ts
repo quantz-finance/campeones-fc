@@ -603,4 +603,6 @@ export const en: Record<string, string> = {
   "Trofeo estrella": "Star trophy",
   "Laurel": "Laurel",
   "Mi ficha": "My card",
+  "Sin ranking aún": "Not ranked yet",
+  "Elo": "Elo",
 };
