@@ -11,8 +11,17 @@ export const APP_SALT = 'campeones-fc';
 export const CAVOS_ENVIRONMENT: 'development' | 'production' =
   process.env.EXPO_PUBLIC_CAVOS_ENVIRONMENT === 'development' ? 'development' : 'production';
 
-/** Por ahora solo web (PWA). En nativo hace falta un development build con el plugin de Cavos. */
-export const cavosSupported = Platform.OS === 'web';
+/** Callback exacto que hay que registrar en el panel de Cavos (sin comodines) para el login nativo. */
+export const CAVOS_NATIVE_REDIRECT = 'campeones-fc://cavos-auth';
+
+/**
+ * Puente nativo (@cavos/kit/react-native). Apagado por defecto.
+ * En kit 0.4.4 el proveedor nativo no expone el JWT que /api/auth necesita para acuñar la sesión:
+ * no activar en un iPhone hasta resolver eso con Vitalik (ver docs/cavos-native.md).
+ */
+export const cavosNativeEnabled =
+  Platform.OS !== 'web' && /^(1|true)$/i.test(process.env.EXPO_PUBLIC_CAVOS_NATIVE ?? '');
+export const cavosSupported = Platform.OS === 'web' || cavosNativeEnabled;
 export const cavosConfigured = () => cavosSupported && CAVOS_APP_ID.length > 0;
 
 /**

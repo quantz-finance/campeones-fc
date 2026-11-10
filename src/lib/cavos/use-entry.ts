@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { track } from '../analytics';
 import { useApp } from '../../state/app-provider';
 import { authErrorText } from './auth-ux';
-import { cavosConfigured } from './config';
+import { cavosConfigured, cavosNativeEnabled } from './config';
 import { DeviceApprovalNeeded, exchangeCavosSession, loginPath, NoDeviceKey } from './session';
 import { cavosStore, useCavosState } from './store';
 
@@ -104,8 +104,24 @@ export function useCavosEntry() {
     }
   }
 
+  async function loginWith(provider: 'google' | 'apple') {
+    setError(null);
+    if (signedOut) cavosStore.setSignedOut(false);
+    if (!bridged || bridged.isLoading) {
+      setPhase('opening');
+      cavosStore.want();
+      return;
+    }
+    try {
+      if (bridged.loginWith) await bridged.loginWith(provider);
+      else bridged.openModal();
+    } catch (cause) {
+      setError(cause instanceof Error ? authErrorText(cause.message) : 'No se pudo entrar.');
+    }
+  }
+
   const busy = phase === 'opening' || phase === 'session';
   const label = phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar con Cavos';
 
-  return { configured, phase, error, busy, label, openCavos, approveDevice, otherAccount };
+  return { configured, phase, error, busy, label, openCavos, approveDevice, otherAccount, loginWith, native: cavosNativeEnabled };
 }

@@ -13,10 +13,11 @@ import { colors, space } from '../ui/theme';
 import { T } from '../ui/text';
 import { TestUserButton } from '../ui/test-user';
 import { HeroPhoto, HeroPhotoNote } from '../ui/hero-photo';
+import { LegalLinks } from '../ui/legal-links';
 
 export default function Login() {
   const app = useApp();
-  const { configured, phase, error, busy, label, openCavos, approveDevice, otherAccount } = useCavosEntry();
+  const { configured, phase, error, busy, label, openCavos, approveDevice, otherAccount, loginWith, native } = useCavosEntry();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
 
   // Después de todos los hooks: un return temprano antes de un hook rompe el orden (error #300 de React).
@@ -86,6 +87,12 @@ export default function Login() {
               />
               <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
             </>
+          ) : native ? (
+            <>
+              <Button label="Continuar con Apple" disabled={busy} onPress={() => void loginWith('apple')} />
+              <Button label="Continuar con Google" tone="ghost" disabled={busy} onPress={() => void loginWith('google')} />
+              <TestUserButton />
+            </>
           ) : (
             <>
               <Button label={label} disabled={busy} onPress={openCavos} />
@@ -94,7 +101,9 @@ export default function Login() {
             </>
           )}
           <T color={colors.muted}>
-            Entra con Google, Apple o tu correo. Al entrar recibes tu billetera en Stellar y cada resultado que confirmen los dos queda registrado ahí.
+            {native
+              ? 'Entra con Apple o Google. Cada resultado que confirmen los dos queda verificado en la red de prueba de Stellar, sin dinero real.'
+              : 'Entra con Google, Apple o tu correo. Al entrar recibes tu billetera en Stellar y cada resultado que confirmen los dos queda registrado ahí.'}
           </T>
         </>
       ) : (
@@ -104,13 +113,14 @@ export default function Login() {
           body={
             cavosSupported
               ? 'La entrada con Cavos (Google, Apple o correo) se activa cuando el equipo agregue el appId de Cavos. Vuelve pronto.'
-              : 'Por ahora la entrada con Cavos funciona en la versión web. Ábrela desde el navegador.'
+              : 'En el iPhone todavía no está activa la entrada con Cavos. Mientras tanto, puedes entrar con la cuenta de prueba.'
           }
         />
       )}
       {!configured && app.mode !== 'demo' ? <TestUserButton /> : null}
 
       {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
+      <LegalLinks />
     </Screen>
   );
 }

@@ -14,6 +14,8 @@ export type CavosBridged = {
   approveDevice: () => Promise<void>;
   error: string | null;
   openModal: () => void;
+  /** Solo nativo: entra con Google o Apple, sin el modal de correo. */
+  loginWith?: (provider: 'google' | 'apple') => Promise<void>;
   logout: () => Promise<void>;
   signMessage: (message: string) => Promise<CavosSignature>;
   /** Firma (sin enviar) un XDR de Stellar testnet, p. ej. el fund_escrow de Trustless Work. Devuelve el XDR firmado. */
