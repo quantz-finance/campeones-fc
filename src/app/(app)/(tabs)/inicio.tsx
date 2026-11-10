@@ -24,7 +24,7 @@ import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { buildNews } from '../../../ui/news';
 import { NewsTicker, TICKER_SPACE } from '../../../ui/news-ticker';
 import { Screen } from '../../../ui/screen';
-import { colors, space } from '../../../ui/theme';
+import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { AI_PHOTO_NOTE, appModeOf, modeChip } from '../../../lib/app-mode';
 import { Pop, Rise } from '../../../ui/motion';
@@ -187,7 +187,7 @@ export default function Home() {
 
 
 const styles = StyleSheet.create({
-  brandLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  brandLeft: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   modeChip: { paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: colors.accentText, borderRadius: 999 },
   modeChipFake: { backgroundColor: colors.yellow, borderRadius: 14 },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 62 },
@@ -214,9 +214,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  block: { gap: space.sm },
-  mosaic: { gap: space.md },
-  col: { flex: 1, gap: space.sm },
+  block: { gap: layout.title },
+  mosaic: { gap: layout.stack },
+  col: { flex: 1, gap: layout.card },
   allClear: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: 16, borderWidth: 1, borderColor: colors.line },
 });
 

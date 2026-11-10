@@ -9,7 +9,7 @@ import { Affiliation, SectionHead, StatCell, Sticker } from '../../../ui/broadca
 import { Banner, Button, Field, Gate } from '../../../ui/controls';
 import { elo, firstName, goalsPerMatch, pct, recordLine } from '../../../ui/format';
 import { Screen } from '../../../ui/screen';
-import { colors } from '../../../ui/theme';
+import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { Rise, useDelayed } from '../../../ui/motion';
 import { PlayerHero } from '../../../ui/player-hero';
@@ -256,12 +256,12 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  modeBox: { gap: 8, padding: 12, borderWidth: 1, borderColor: colors.line },
+  modeBox: { gap: space.sm, padding: 12, borderWidth: 1, borderColor: colors.line },
   segment: { flexDirection: 'row', transform: [{ skewX: '0deg' }], borderWidth: 1, borderColor: colors.lineStrong },
   segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, minHeight: 48 },
   segOn: { backgroundColor: colors.yellow, borderRadius: 14 },
   segOff: { opacity: 0.5 },
-  top: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 52 },
+  top: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingRight: 52 },
   flex: { flex: 1 },
   iconBtn: {
     width: 40,
@@ -272,27 +272,27 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     transform: [{ skewX: '0deg' }],
   },
-  idRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  idRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  album: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  rivals: { flexDirection: 'row', gap: 8 },
-  rival: { flex: 1, backgroundColor: colors.card, borderLeftWidth: 4, padding: 10, gap: 4, borderRadius: 14 },
-  edit: { gap: 12 },
-  avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  album: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  rivals: { flexDirection: 'row', gap: space.sm },
+  rival: { flex: 1, backgroundColor: colors.card, borderLeftWidth: 4, padding: 10, gap: space.xs, borderRadius: 14 },
+  edit: { gap: space.md },
+  avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   avatar: {
     width: 74,
     height: 64,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: space.xs,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.card,
     borderRadius: 14,
   },
   avatarOn: { borderColor: colors.yellow },
-  links: { gap: 8 },
+  links: { gap: space.sm },
 });
 
 function ProfileSkeleton() {

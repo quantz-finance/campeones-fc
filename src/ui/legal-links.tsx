@@ -31,7 +31,7 @@ export function LegalLinks() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, paddingTop: space.sm },
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.xs, paddingTop: space.sm },
   plain: { textTransform: 'none', letterSpacing: 0 },
   link: { textTransform: 'none', letterSpacing: 0, textDecorationLine: 'underline' },
 });

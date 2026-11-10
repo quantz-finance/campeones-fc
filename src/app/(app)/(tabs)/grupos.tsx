@@ -5,7 +5,7 @@ import { Shield } from '../../../ui/broadcast';
 import { Button, Empty, Gate } from '../../../ui/controls';
 import { monogram } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
-import { colors } from '../../../ui/theme';
+import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { Rise } from '../../../ui/motion';
 import { push } from '../../../ui/nav';
@@ -54,7 +54,7 @@ export default function Groups() {
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    gap: 12,
+    gap: space.md,
     alignItems: 'center',
     padding: 12,
     backgroundColor: colors.card,
@@ -62,5 +62,5 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 14,
   },
-  flex: { flex: 1, gap: 4 },
+  flex: { flex: 1, gap: space.xs },
 });

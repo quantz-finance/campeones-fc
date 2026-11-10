@@ -4,7 +4,7 @@ import { useQuery } from '../../../state/use-query';
 import { Shield } from '../../../ui/broadcast';
 import { Button, Empty, Gate } from '../../../ui/controls';
 import { Screen, Top } from '../../../ui/screen';
-import { colors } from '../../../ui/theme';
+import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { monogram } from '../../../ui/format';
 import { push } from '../../../ui/nav';
@@ -65,12 +65,12 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
     padding: 12,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.line,
     borderRadius: 14,
   },
-  flex: { flex: 1, gap: 2 },
+  flex: { flex: 1, gap: space.xxs },
 });

@@ -201,7 +201,7 @@ export function Landing() {
 
 const styles = StyleSheet.create({
   hero: { gap: space.lg, alignItems: 'flex-start', minHeight: 300, paddingTop: 4 },
-  logoWrap: { alignItems: 'flex-start', marginTop: 8 },
+  logoWrap: { alignItems: 'flex-start', marginTop: space.sm },
   logoPlate: {
     width: 132,
     height: 132,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.35)',
     opacity: 0,
   },
-  lockup: { alignItems: 'flex-start', gap: 8 },
+  lockup: { alignItems: 'flex-start', gap: space.sm },
   title: { fontSize: 48, lineHeight: 52, letterSpacing: -1 },
   pitch: { fontSize: 18, lineHeight: 26 },
   ctas: { gap: space.md, alignSelf: 'stretch' },
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
   },
-  featureCopy: { flex: 1, gap: 2 },
+  featureCopy: { flex: 1, gap: space.xxs },
   featureBody: { fontSize: 14, lineHeight: 20 },
   accounts: { gap: space.sm },
   account: {
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
   },
   accountCopy: { flex: 1 },
-  footer: { gap: space.sm, marginTop: 12, paddingBottom: 8 },
-  socials: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  socialRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  footer: { gap: space.sm, marginTop: space.md, paddingBottom: 8 },
+  socials: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  socialRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
 });

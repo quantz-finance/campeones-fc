@@ -8,7 +8,7 @@ import { Gate } from '../../../ui/controls';
 import { elo, firstName, formatDay, goalsPerMatch, signed, tagOf } from '../../../ui/format';
 import { matchDelta } from '../../../domain/elo';
 import { Screen, Top } from '../../../ui/screen';
-import { colors } from '../../../ui/theme';
+import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import type { Match } from '../../../domain/types';
 import { DetailSkeleton } from '../../../ui/skeleton';
@@ -223,10 +223,10 @@ const styles = StyleSheet.create({
     transform: [{ skewX: '0deg' }],
   },
   banner: { flexDirection: 'row', minHeight: 168, overflow: 'hidden' },
-  half: { flex: 1, padding: 10, gap: 2, overflow: 'hidden' },
+  half: { flex: 1, padding: 10, gap: space.xxs, overflow: 'hidden' },
   tag: { fontSize: 13, color: 'rgba(255,255,255,0.8)' },
   bannerName: { fontSize: 18, fontStyle: 'normal', maxWidth: 120 },
-  wins: { fontSize: 52, fontStyle: 'normal', lineHeight: 52, marginTop: 6 },
+  wins: { fontSize: 52, fontStyle: 'normal', lineHeight: 52, marginTop: space.sm },
   mark: { position: 'absolute', top: 36, left: 8, opacity: 0.9 },
   center: {
     width: 78,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   },
   played: { fontSize: 32, color: colors.ink, fontStyle: 'normal' },
   legendBar: { flexDirection: 'row', justifyContent: 'space-between' },
-  chips: { flexDirection: 'row', gap: 6 },
-  chip: { flex: 1, minHeight: 72, padding: 6, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  chips: { flexDirection: 'row', gap: space.sm },
+  chip: { flex: 1, minHeight: 72, padding: 6, alignItems: 'center', justifyContent: 'center', gap: space.xxs },
   months: { flexDirection: 'row', justifyContent: 'space-between' },
 });

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { type Href } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, font } from './theme';
+import { colors, font, space } from './theme';
 import { T } from './text';
 import { BrandIcon, tabBarSpace, type BrandIconName } from './broadcast';
 import { navigate } from './nav';
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     zIndex: 40,
   },
-  tab: { width: 68, alignItems: 'center', gap: 3, paddingBottom: 2, position: 'relative' },
+  tab: { width: 68, alignItems: 'center', gap: space.xs, paddingBottom: 2, position: 'relative' },
   caption: { fontSize: 10, fontFamily: font.label, letterSpacing: 0.4, textTransform: 'none' },
   mark: {
     position: 'absolute',

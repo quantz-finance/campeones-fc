@@ -10,7 +10,7 @@ import { ChainCard } from '../../../ui/chain-card';
 import { Banner, Button, Gate } from '../../../ui/controls';
 import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
-import { colors } from '../../../ui/theme';
+import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { DetailSkeleton } from '../../../ui/skeleton';
 import { Avatar } from '../../../ui/avatar';
@@ -501,13 +501,13 @@ const styles = StyleSheet.create({
     textShadowRadius: 0,
   },
   board: { flexDirection: 'row', minHeight: 92, backgroundColor: '#fff' },
-  boardSide: { width: 74, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  boardSide: { width: 74, alignItems: 'center', justifyContent: 'center', gap: space.xxs },
   boardScore: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 14 },
   boardNum: { fontSize: 42, color: colors.ink, fontStyle: 'normal' },
-  steppers: { flexDirection: 'row', gap: 28 },
-  mini: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  block: { gap: 12 },
-  choices: { flexDirection: 'row', gap: 8 },
+  steppers: { flexDirection: 'row', gap: space.xxl },
+  mini: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  block: { gap: space.md },
+  choices: { flexDirection: 'row', gap: space.sm },
   choiceHit: { flex: 1 },
   review: {
     backgroundColor: colors.card,
@@ -516,11 +516,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
     padding: 12,
-    gap: 10,
+    gap: space.sm,
     borderRadius: 14,
   },
   reviewHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  vote: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  vote: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   voteTag: { width: 36, height: 36, backgroundColor: colors.blue, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
   voteState: { paddingHorizontal: 8, paddingVertical: 4 },
   flex: { flex: 1 },

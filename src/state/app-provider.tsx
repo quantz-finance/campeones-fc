@@ -2,7 +2,7 @@ import { signInTestUser } from '../lib/demo-login';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState, Platform, StyleSheet, View } from 'react-native';
 import { T } from '../ui/text';
-import { colors } from '../ui/theme';
+import { colors, space } from '../ui/theme';
 import { createRepository, type Repository } from '../data';
 import { readDemoSession, readPendingInvite, writeDemoSession, writePendingInvite } from '../data/demo-store';
 import type { Profile } from '../data/types';
@@ -277,7 +277,7 @@ function InvalidEnv() {
 }
 
 const styles = StyleSheet.create({
-  invalid: { flex: 1, backgroundColor: colors.bg, padding: 24, justifyContent: 'center', gap: 12 },
+  invalid: { flex: 1, backgroundColor: colors.bg, padding: 24, justifyContent: 'center', gap: space.md },
 });
 
 export function useApp() {

@@ -5,7 +5,7 @@ import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-s
 import { avatarByKey, branding } from '../../config/branding';
 import { CountRoll, CountUp, GrowX } from './motion';
 import { SportPress } from './press';
-import { colors, font, hex } from './theme';
+import { colors, font, hex, layout, space } from './theme';
 import { T } from './text';
 import { toroPaths, toroTransform, toroViewBox } from './toro-data';
 import { featureIcons, type FeatureIconName } from './feature-icons-data';
@@ -160,8 +160,8 @@ export function Wordmark({ size = 22 }: { size?: number }) {
               color: colors.accentText,
               fontStyle: 'normal',
               letterSpacing: 0.9,
-              marginLeft: 5,
-              marginBottom: 2,
+              marginLeft: space.xs,
+              marginBottom: space.xxs,
               textTransform: 'uppercase',
             }}
           >
@@ -585,14 +585,15 @@ const styles = StyleSheet.create({
       : null),
   },
   stripes: { backgroundImage: 'none' } as object,
-  wordmark: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
+  wordmark: { flexDirection: 'row', alignItems: 'center', gap: space.sm, flexShrink: 1 },
   lockup: { flexDirection: 'row', alignItems: 'flex-end', flexShrink: 1 },
   affiliation: { textTransform: 'none', letterSpacing: 0, textAlign: 'center' },
   skewWrap: { position: 'relative', alignSelf: 'flex-start' },
   skewFill: { alignSelf: 'stretch' },
   skewFace: { zIndex: 1, position: 'relative' },
   skewShadow: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 0 },
-  head: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
+  // Aire extra arriba de cada título: sección a sección = layout.section; título a contenido = layout.title.
+  head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: layout.section - layout.stack },
   headLine: { flex: 1, height: 1, backgroundColor: colors.line },
   mark: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   markClip: { borderRadius: 999, overflow: 'hidden' } as object,
@@ -609,7 +610,7 @@ const styles = StyleSheet.create({
   },
   scoreTag: { fontSize: 18, color: '#fff', transform: [{ skewX: '0deg' }] },
   scoreMid: { flex: 1, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center' },
-  scoreFigure: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  scoreFigure: { flexDirection: 'row', alignItems: 'center', gap: space.xxs },
   scoreActionHit: { justifyContent: 'center', paddingHorizontal: 8, backgroundColor: colors.card },
   ghostAction: {
     borderWidth: 1.5,
@@ -629,18 +630,18 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     paddingVertical: 12,
     paddingHorizontal: 10,
-    gap: 2,
+    gap: space.xxs,
     borderRadius: 16,
   },
-  compare: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  compare: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginBottom: space.sm },
   compareNum: { width: 54, fontSize: 22, color: colors.text, fontStyle: 'normal' },
-  compareTrack: { flex: 1, gap: 4 },
+  compareTrack: { flex: 1, gap: space.xs },
   compareBars: { flexDirection: 'row', height: 10, alignItems: 'center' },
   compareLeft: { height: 10, backgroundColor: colors.red, borderRadius: 999 },
   compareRight: { height: 10, backgroundColor: colors.blue, borderRadius: 999 },
   compareLabel: { textAlign: 'center' },
-  legend: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginBottom: 4 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  legend: { flexDirection: 'row', justifyContent: 'flex-end', gap: space.md, marginBottom: space.xs },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   dot: { width: 8, height: 8, borderRadius: 999 },
   sticker: {
     width: '47%',
@@ -648,7 +649,7 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: space.xs,
     borderRadius: 16,
   },
   stickerLocked: { borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.lineStrong },

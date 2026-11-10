@@ -7,7 +7,7 @@ import { InitialsMark } from './broadcast';
 import { elo, firstName, pct, streakLabel } from './format';
 import { CountRoll, Pop } from './motion';
 import { SportPress } from './press';
-import { colors } from './theme';
+import { colors, space } from './theme';
 import { T } from './text';
 
 export function PlayerHero({
@@ -107,14 +107,14 @@ const styles = StyleSheet.create({
   heroLeft: { width: '38%', backgroundColor: colors.red, paddingTop: 14, paddingLeft: 12, paddingBottom: 12, justifyContent: 'flex-start', overflow: 'hidden' },
   bigNum: { fontSize: 68, fontStyle: 'normal', color: colors.redInk, lineHeight: 70 },
   heroMark: { position: 'absolute', right: -16, bottom: 8, opacity: 0.9 },
-  heroRight: { flex: 1, padding: 12, gap: 6, justifyContent: 'center' },
+  heroRight: { flex: 1, padding: 12, gap: space.sm, justifyContent: 'center' },
   heroName: { fontSize: 36, fontStyle: 'normal', lineHeight: 36 },
   eloRow: { flexDirection: 'row', alignItems: 'stretch' },
   eloTag: { backgroundColor: colors.yellow, paddingHorizontal: 6, justifyContent: 'center', borderRadius: 14 },
   eloNum: { backgroundColor: '#fff', paddingHorizontal: 8, justifyContent: 'center', borderRadius: 14 },
-  tags: { gap: 4 },
+  tags: { gap: space.xs },
   tagDark: { alignSelf: 'flex-start', backgroundColor: colors.bgDeep, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
-  tagRed: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.red, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
-  barRow: { gap: 4, marginTop: 4 },
+  tagRed: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: space.xs, backgroundColor: colors.red, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
+  barRow: { gap: space.xs },
   bar: { flexDirection: 'row', height: 8, backgroundColor: colors.line, borderRadius: 14 },
 });

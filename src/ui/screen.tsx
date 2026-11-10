@@ -12,7 +12,7 @@ import { back as goBack } from './nav';
 import { SportPress } from './press';
 import { BroadcastSlash, Scene } from './scene';
 import { TabReplica } from './tabs';
-import { colors, radius, space } from './theme';
+import { colors, layout, radius, space } from './theme';
 import { T } from './text';
 
 /** Aire extra bajo el notch / Dynamic Island / barra de Safari (también en PWA standalone). */
@@ -42,7 +42,8 @@ export function Screen({
   const focused = useIsFocused();
   const docked = tab || Boolean(dock);
   const footerReserve = !docked && footer ? 36 + Math.max(insets.bottom, 8) : 0;
-  const bottom = docked ? tabBarSpace(insets.bottom) + (footer ? footerHeight + 12 : 18) : Math.max(insets.bottom, 12) + 16;
+  // Aire bajo el contenido: nada queda tapado por la barra de pestañas, la cinta ni el borde seguro.
+  const bottom = docked ? tabBarSpace(insets.bottom) + (footer ? footerHeight : 0) + layout.bottom : Math.max(insets.bottom, space.md) + layout.bottom;
   const body = (
     <View style={[styles.inner, fill && styles.flex]}>
       <Scene>{children}</Scene>
@@ -147,12 +148,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: space.lg,
     paddingTop: 8,
-    gap: 14,
+    gap: layout.stack,
   },
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },
-  sound: { position: 'absolute', right: 10, zIndex: 45, flexDirection: 'row', gap: 8 },
-  top: { gap: 12, minHeight: 44 },
-  topLead: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 46, paddingRight: 146 },
+  sound: { position: 'absolute', right: 10, zIndex: 45, flexDirection: 'row', gap: space.sm },
+  top: { gap: space.md, minHeight: 44 },
+  topLead: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 46, paddingRight: 146 },
   topText: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   topClear: { paddingRight: 146 },
   titleCol: { flex: 1, minWidth: 0 },

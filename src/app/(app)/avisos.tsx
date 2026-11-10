@@ -11,7 +11,7 @@ import { Rise } from '../../ui/motion';
 import { Screen, Top } from '../../ui/screen';
 import { ListSkeleton } from '../../ui/skeleton';
 import { T } from '../../ui/text';
-import { colors } from '../../ui/theme';
+import { colors, space } from '../../ui/theme';
 import { push } from '../../ui/nav';
 
 export default function Notices() {
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
     padding: 14,
     backgroundColor: colors.surface,
     borderColor: colors.line,
@@ -132,5 +132,5 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   rowStrong: { borderLeftWidth: 4, borderLeftColor: colors.accent },
-  copy: { flex: 1, gap: 2 },
+  copy: { flex: 1, gap: space.xxs },
 });

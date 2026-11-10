@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: 14,
   },
-  row: { gap: 2 },
+  row: { gap: space.xxs },
   mono: { fontSize: 12, lineHeight: 17, color: colors.text },
 });
 

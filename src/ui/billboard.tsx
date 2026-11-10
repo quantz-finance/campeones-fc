@@ -11,12 +11,12 @@ import { elo, firstName, formatWhen, monogram, pct, signed, tagOf } from './form
 import { CountRoll } from './motion';
 import { push } from './nav';
 import { SportPress } from './press';
-import { colors, space } from './theme';
+import { colors, layout, space } from './theme';
 import { T } from './text';
 import { useLang } from '../i18n/lang';
 
 const web = Platform.OS === 'web';
-const GAP = space.sm;
+const GAP = layout.card;
 
 /** A dónde lleva tocar a un jugador: tu perfil, o el cara a cara con él. */
 export function playerHref(me: string, playerId: string): `/perfil` | `/versus/${string}` {
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   bentoRow: { flexDirection: 'row', gap: GAP, alignItems: 'stretch' },
   bleed: { marginHorizontal: -space.lg },
   bleedContent: { paddingHorizontal: space.lg, gap: GAP },
-  tileHead: { flexDirection: 'row', alignItems: 'center', gap: space.xs + 2, minHeight: 20 },
+  tileHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 20 },
   tileTitle: { flex: 1, fontSize: 12 },
   tile: { ...cardBase, flex: 1, padding: space.md, gap: GAP },
   /* estrellas */
@@ -559,16 +559,16 @@ const styles = StyleSheet.create({
   starIndex: { position: 'absolute', right: 132, top: 4, fontSize: 64, lineHeight: 70, fontStyle: 'normal', color: colors.accentText, opacity: 0.22 },
   starCount: { position: 'absolute', right: space.lg, bottom: space.md, fontSize: 10 },
   starBody: { gap: space.sm, maxWidth: '78%' },
-  kicker: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  kicker: { flexDirection: 'row', alignItems: 'center', gap: space.xs, alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   starName: { fontSize: 46, lineHeight: 48, fontStyle: 'normal' },
   starLast: { fontSize: 16, lineHeight: 18 },
   starStats: { flexDirection: 'row', gap: space.lg },
   starNum: { fontSize: 26, lineHeight: 28, fontStyle: 'normal' },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.xs + 2 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
-  form: { flexDirection: 'row', gap: 3 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  form: { flexDirection: 'row', gap: space.xs },
   formDot: { borderRadius: 5, alignItems: 'center', justifyContent: 'center' },
-  dots: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: space.sm },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lineStrong },
   dotOn: { width: 18, backgroundColor: colors.accentText },
   /* accesos */
@@ -591,24 +591,24 @@ const styles = StyleSheet.create({
   cup: { ...cardBase, width: 168, minHeight: 168, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', padding: space.md, gap: space.xs },
   cupLive: { borderColor: colors.yellow },
   cupTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.xs },
-  status: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999 },
+  status: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999 },
   liveDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.ink },
   cupName: { fontSize: 16, lineHeight: 18 },
-  cupWho: { flexDirection: 'row', alignItems: 'center', gap: space.xs + 2, marginTop: 'auto' },
+  cupWho: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: 'auto' },
   /* mini filas */
-  miniList: { gap: space.xs + 2 },
-  mini: { flexDirection: 'row', alignItems: 'center', gap: space.xs + 2, minHeight: 28 },
+  miniList: { gap: space.sm },
+  mini: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 28 },
   miniPlace: { width: 14, fontSize: 15, fontStyle: 'normal', textAlign: 'center' },
   miniName: { flex: 1, fontSize: 13 },
   miniValue: { fontSize: 14 },
   /* resultados */
   grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
-  result: { flexBasis: '48%', flexGrow: 1, padding: space.sm + 2, gap: space.xs + 2 },
+  result: { flexBasis: '48%', flexGrow: 1, padding: space.sm + 2, gap: space.sm },
   resultFace: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   resultScore: { flex: 1, alignItems: 'center' },
   resultNum: { fontSize: 24, lineHeight: 26, fontStyle: 'normal' },
-  side: { alignItems: 'center', gap: 2 },
+  side: { alignItems: 'center', gap: space.xxs },
   sideRing: { borderWidth: 2, borderColor: 'transparent', borderRadius: 999, padding: 1, overflow: 'hidden' },
   /* reñidos */
-  rivalryHead: { flexDirection: 'row', alignItems: 'center', gap: space.xs + 2 },
+  rivalryHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
 });

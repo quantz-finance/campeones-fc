@@ -9,7 +9,7 @@ import { Banner, Button, Field, Gate } from '../../ui/controls';
 import { recordLine } from '../../ui/format';
 import { copyText, inviteUrl, openWhatsApp, shareInvite } from '../../ui/share';
 import { Screen, Top } from '../../ui/screen';
-import { colors } from '../../ui/theme';
+import { colors, space } from '../../ui/theme';
 import { T } from '../../ui/text';
 import { ListSkeleton } from '../../ui/skeleton';
 import { push } from '../../ui/nav';
@@ -98,7 +98,7 @@ export default function Friends() {
               placeholder="@usuario"
             />
             {hits.map((hit) => (
-              <View key={hit.id} style={{ gap: 6 }}>
+              <View key={hit.id} style={{ gap: space.sm }}>
                 <T variant="strong">{hit.displayName}</T>
                 <T variant="tiny" color={colors.muted} style={{ textTransform: 'none' }}>
                   @{hit.username}
@@ -121,10 +121,10 @@ export default function Friends() {
             ))}
             {error ? <Banner tone="danger" title="Revisa eso" body={error} /> : null}
             {data.incoming.length > 0 ? (
-              <View style={{ gap: 10 }}>
+              <View style={{ gap: space.sm }}>
                 <SectionHead title="Te invitaron" />
                 {data.incoming.map((item) => (
-                  <View key={item.friendship.id} style={{ gap: 8 }}>
+                  <View key={item.friendship.id} style={{ gap: space.sm }}>
                     <PlayerLine profile={item.profile} detail="Quiere entrar a tu círculo" />
                     <Button label="Aceptar" disabled={busy} onPress={() => void run(() => repo.respondFriendRequest(userId!, item.friendship.id, true))} />
                     <Button
@@ -138,7 +138,7 @@ export default function Friends() {
               </View>
             ) : null}
             {data.outgoing.length > 0 ? (
-              <View style={{ gap: 10 }}>
+              <View style={{ gap: space.sm }}>
                 <SectionHead title="Esperando respuesta" />
                 {data.outgoing.map((item) => (
                   <PlayerLine key={item.friendship.id} profile={item.profile} detail="Invitación enviada" />

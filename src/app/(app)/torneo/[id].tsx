@@ -10,7 +10,7 @@ import { SectionHead, Shield, Toro } from '../../../ui/broadcast';
 import { Button, Gate } from '../../../ui/controls';
 import { firstName, monogram, scoreText } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
-import { colors } from '../../../ui/theme';
+import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { PhotoButton } from '../../../ui/photo-button';
 import { Avatar } from '../../../ui/avatar';
@@ -253,30 +253,30 @@ function topScorer(matches: Match[], people: Record<string, { displayName: strin
 }
 
 const styles = StyleSheet.create({
-  topRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  topRight: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   badge: { paddingHorizontal: 8, paddingVertical: 5 },
   champ: { flexDirection: 'row', minHeight: 150, overflow: 'hidden' },
-  cupBox: { width: '36%', backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center', gap: 6, padding: 8, borderRadius: 14 },
-  champBody: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', gap: 4, borderRadius: 14 },
+  cupBox: { width: '36%', backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center', gap: space.sm, padding: 8, borderRadius: 14 },
+  champBody: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', gap: space.xs, borderRadius: 14 },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  pills: { flexDirection: 'row', gap: 6, marginTop: 4 },
+  pills: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
   pill: { backgroundColor: '#1A0A1C', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
-  table: { gap: 8 },
-  line: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  table: { gap: space.sm },
+  line: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   place: { width: 24, color: colors.muted },
   flex: { flex: 1 },
-  bracket: { gap: 16, paddingVertical: 8, alignItems: 'stretch' },
-  column: { width: 168, gap: 10, justifyContent: 'space-around' },
+  bracket: { gap: space.lg, paddingVertical: 8, alignItems: 'stretch' },
+  column: { width: 168, gap: space.sm, justifyContent: 'space-around' },
   roundTag: { alignSelf: 'flex-start', backgroundColor: colors.navy, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
-  block: { gap: 8 },
+  block: { gap: space.sm },
   fixture: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 14 },
   finalFix: { borderColor: colors.yellow, borderWidth: 2 },
-  slot: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 7, gap: 6 },
+  slot: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 7, gap: space.sm },
   slotWin: { backgroundColor: '#fff', borderRadius: 14 },
   scorer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: space.sm,
     padding: 12,
     backgroundColor: colors.blue,
     borderRadius: 14,

@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   you: { backgroundColor: colors.surface, borderRadius: 14 },
   place: { width: 28 },
   flex: { flex: 1 },
-  list: { gap: 4, paddingBottom: 8 },
-  head: { gap: 14, marginBottom: 10 },
-  note: { textAlign: 'center', marginTop: 12, fontSize: 10, textTransform: 'none', letterSpacing: 0 },
+  list: { gap: space.xs, paddingBottom: 8 },
+  head: { gap: space.md, marginBottom: space.sm },
+  note: { textAlign: 'center', marginTop: space.md, fontSize: 10, textTransform: 'none', letterSpacing: 0 },
 });

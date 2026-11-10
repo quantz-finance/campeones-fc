@@ -44,7 +44,7 @@ export function Wordmark() {
           <T variant="title" style={{ fontStyle: 'normal' }}>
             {branding.name.split(' ')[0]}
           </T>
-          <T style={{ fontFamily: font.body, fontSize: 11, color: colors.accentText, marginLeft: 4, marginBottom: 3, letterSpacing: 0.4 }}>
+          <T style={{ fontFamily: font.body, fontSize: 11, color: colors.accentText, marginLeft: space.xs, marginBottom: space.xs, letterSpacing: 0.4 }}>
             {branding.name.split(' ').slice(1).join(' ')}
           </T>
         </View>
@@ -218,8 +218,8 @@ const styles = StyleSheet.create({
   word: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   lockup: { flexDirection: 'row', alignItems: 'flex-end' },
   pill: { paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start', borderRadius: radius.pill },
-  stat: { flex: 1, gap: 2 },
-  spark: { height: 80, flexDirection: 'row', alignItems: 'flex-end', gap: 5 },
+  stat: { flex: 1, gap: space.xxs },
+  spark: { height: 80, flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
   match: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -234,9 +234,9 @@ const styles = StyleSheet.create({
   },
   side: { width: 42, height: 42, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   sideText: { fontSize: 13, color: colors.redInk },
-  mid: { flex: 1, gap: 2, paddingVertical: 8 },
+  mid: { flex: 1, gap: space.xxs, paddingVertical: 8 },
   flex: { flex: 1 },
-  end: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 8 },
+  end: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingRight: 8 },
   record: { flexDirection: 'row', gap: space.sm },
   elo: { backgroundColor: colors.yellow, paddingHorizontal: 12, paddingVertical: 6, alignItems: 'flex-end', borderRadius: radius.md },
 });

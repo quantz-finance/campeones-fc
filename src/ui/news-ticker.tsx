@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Toro } from './broadcast';
 import { cssAnim, useReducedMotion } from './motion';
-import { colors } from './theme';
+import { colors, space } from './theme';
 import { T } from './text';
 
 /** Alto de la cinta de noticias. */
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: space.xs,
     backgroundColor: colors.yellow,
     paddingHorizontal: 5,
     paddingVertical: 1,
@@ -157,11 +157,11 @@ const styles = StyleSheet.create({
   },
   dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: colors.red },
   chipText: { fontSize: 9, lineHeight: 12, letterSpacing: 0.8 },
-  track: { flex: 1, height: '100%', overflow: 'hidden', marginLeft: 8, justifyContent: 'center' },
+  track: { flex: 1, height: '100%', overflow: 'hidden', marginLeft: space.sm, justifyContent: 'center' },
   row: { position: 'absolute', left: 0, top: 0, bottom: 0, flexDirection: 'row', alignItems: 'center' },
   copy: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
   item: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
   itemText: { fontSize: 11, lineHeight: 14, letterSpacing: 0.8, color: colors.text, flexShrink: 0 },
-  sep: { marginHorizontal: 9, opacity: 0.95 },
+  sep: { marginHorizontal: space.sm, opacity: 0.95 },
   staticRow: { paddingRight: 8 },
 });

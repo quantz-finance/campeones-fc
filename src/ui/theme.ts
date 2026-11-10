@@ -41,7 +41,9 @@ if (web && typeof document !== 'undefined' && !document.getElementById('cfc-them
   document.head.appendChild(style);
 }
 
+/** Escala de espacios (px). Todo margen o gap de la app sale de aquí. */
 export const space = {
+  xxs: 2,
   xs: 4,
   sm: 8,
   md: 12,
@@ -49,6 +51,29 @@ export const space = {
   xl: 24,
   xxl: 32,
 };
+
+/**
+ * Reglas de espacio entre elementos (los paddings no se tocan):
+ * - stack: entre hermanos de una pantalla (bloque a bloque).
+ * - section: de una sección a la siguiente = stack + el aire extra arriba de cada título de sección.
+ * - title: de un título de sección a su contenido.
+ * - card: de tarjeta a tarjeta en listas y cuadrículas (también fichas del mosaico).
+ * - inCard: entre elementos dentro de una tarjeta.
+ * - button / field: de botón a botón y de campo a campo.
+ * - inline: ícono ↔ texto, chips pequeños.
+ * - bottom: aire mínimo sobre la barra de pestañas / cinta / borde seguro.
+ */
+export const layout = {
+  stack: space.md,
+  section: space.xl,
+  title: space.md,
+  card: space.sm,
+  inCard: space.sm,
+  button: space.sm,
+  field: space.md,
+  inline: space.xs,
+  bottom: space.lg,
+} as const;
 
 export const radius = {
   sm: 8,

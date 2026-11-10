@@ -10,7 +10,7 @@ import { Button, Gate } from '../../../ui/controls';
 import { elo, firstName, monogram, tagOf } from '../../../ui/format';
 import { copyText, inviteUrl, openWhatsApp } from '../../../ui/share';
 import { Screen, Top } from '../../../ui/screen';
-import { colors } from '../../../ui/theme';
+import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { PhotoButton } from '../../../ui/photo-button';
 import { push } from '../../../ui/nav';
@@ -201,30 +201,30 @@ function formOf(playerId: string, recent: Match[]): ('w' | 'd' | 'l')[] {
 }
 
 const styles = StyleSheet.create({
-  identity: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: -8 },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: -8 },
   king: { flexDirection: 'row', minHeight: 84, overflow: 'hidden' },
   kingLeft: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', transform: [{ skewX: '0deg' }], marginRight: -12, borderRadius: 14 },
   kingRight: { width: 110, backgroundColor: colors.navy, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 12, borderLeftWidth: 4, borderLeftColor: colors.red, borderRadius: 14 },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  table: { gap: 2 },
+  table: { gap: space.xxs },
   headRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
   bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, paddingVertical: 6 },
   leaderRow: { borderLeftWidth: 3, borderLeftColor: colors.yellow },
   name: { flex: 1.4 },
   cell: { width: 28, textAlign: 'center', fontSize: 13 },
   elo: { width: 48, textAlign: 'right', fontSize: 13, lineHeight: 16 },
-  player: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  form: { width: 44, flexDirection: 'row', gap: 2, justifyContent: 'flex-end' },
+  player: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  form: { width: 44, flexDirection: 'row', gap: space.xxs, justifyContent: 'flex-end' },
   formHead: { width: 44, textAlign: 'right' },
-  matrix: { backgroundColor: colors.card, padding: 8, gap: 4, borderRadius: 14 },
-  matrixRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  matrix: { backgroundColor: colors.card, padding: 8, gap: space.xs, borderRadius: 14 },
+  matrixRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   matrixName: { width: 36 },
   matrixCell: { width: 46, height: 32, alignItems: 'center', justifyContent: 'center' },
   hatch: { backgroundColor: colors.wash, borderWidth: 1, borderColor: colors.line, borderRadius: 14 },
   tour: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: space.sm,
     padding: 10,
     backgroundColor: colors.card,
     borderWidth: 1,

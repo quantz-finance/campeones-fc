@@ -4,7 +4,7 @@ import { useQuery } from '../../state/use-query';
 import { Gate } from '../../ui/controls';
 import { formatDay } from '../../ui/format';
 import { Panel, Screen, Top } from '../../ui/screen';
-import { colors, radius } from '../../ui/theme';
+import { colors, radius, space } from '../../ui/theme';
 import { T } from '../../ui/text';
 
 export default function Trophies() {
@@ -40,7 +40,7 @@ export default function Trophies() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  row: { flexDirection: 'row', gap: space.md, alignItems: 'center' },
   medal: {
     width: 52,
     height: 52,
@@ -50,5 +50,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   locked: { backgroundColor: colors.surface2, borderRadius: 14 },
-  flex: { flex: 1, gap: 4 },
+  flex: { flex: 1, gap: space.xs },
 });

@@ -9,7 +9,7 @@ import { useApp } from '../state/app-provider';
 import { cssAnim, useReducedMotion } from './motion';
 import { push } from './nav';
 import { T } from './text';
-import { colors } from './theme';
+import { colors, space } from './theme';
 import { toastBottom } from './toast-place';
 
 const slideFrames = {
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
+    gap: space.sm,
     padding: 14,
     backgroundColor: colors.surface,
     borderColor: colors.line,
@@ -152,5 +152,5 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderRadius: 14,
   },
-  copy: { flex: 1, gap: 2 },
+  copy: { flex: 1, gap: space.xxs },
 });
