@@ -1,10 +1,11 @@
 import { StyleSheet, View } from 'react-native';
 import { useApp } from '../../state/app-provider';
 import { useQuery } from '../../state/use-query';
+import { AchievementBadge } from '../../ui/achievement-badge';
 import { Gate } from '../../ui/controls';
 import { formatDay } from '../../ui/format';
 import { Panel, Screen, Top } from '../../ui/screen';
-import { colors, radius, space } from '../../ui/theme';
+import { colors, layout } from '../../ui/theme';
 import { T } from '../../ui/text';
 
 export default function Trophies() {
@@ -16,16 +17,14 @@ export default function Trophies() {
       <Gate query={query}>
         {(trophies) => (
           <>
-            {trophies.map((trophy) => (
+            {trophies.map((trophy, index) => (
               <Panel key={trophy.code}>
                 <View style={styles.row}>
-                  <View style={[styles.medal, !trophy.earned && styles.locked]}>
-                    <T variant="title">{trophy.earned ? 'Sí' : '·'}</T>
-                  </View>
+                  <AchievementBadge code={trophy.code} unlocked={trophy.earned} index={index} size={64} />
                   <View style={styles.flex}>
                     <T variant="title">{trophy.title}</T>
                     <T color={colors.muted}>{trophy.description}</T>
-                    <T variant="tiny" color={trophy.earned ? colors.gold : colors.faint}>
+                    <T variant="tiny" color={trophy.earned ? colors.accentText : colors.faint}>
                       {trophy.earned && trophy.earnedAt ? `Lo conseguiste el ${formatDay(trophy.earnedAt)}` : 'Bloqueado'}
                     </T>
                   </View>
@@ -40,15 +39,6 @@ export default function Trophies() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: space.md, alignItems: 'center' },
-  medal: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.md,
-    backgroundColor: colors.gold,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  locked: { backgroundColor: colors.surface2, borderRadius: 14 },
-  flex: { flex: 1, gap: space.xs },
+  row: { flexDirection: 'row', gap: layout.field, alignItems: 'center' },
+  flex: { flex: 1, gap: layout.inline },
 });

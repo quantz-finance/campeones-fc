@@ -159,9 +159,10 @@ export function AchievementBadge({
     return release;
   }, [moving]);
 
-  const art = logroArt[code];
+  // Menos de 56 px: variante small (marco simple, silueta maciza) para que se lea en listas.
+  const art = logroArt(code, size);
   return (
-    <View style={[styles.wrap, { width: Math.max(size, 96) }]} accessibilityLabel={`${title ?? code}${unlocked ? '' : ' (bloqueado)'}`}>
+    <View style={[styles.wrap, { width: title || detail ? Math.max(size, 96) : size }]} accessibilityLabel={`${title ?? code}${unlocked ? '' : ' (bloqueado)'}`}>
       <View ref={ref} style={[styles.badge, { width: size, height: size, borderRadius: size / 2 }, unlocked ? styles.on : styles.off]}>
         <Image
           source={art}
