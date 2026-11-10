@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { SocialEditor } from '../../../ui/social-editor';
+import { AchievementBadge } from '../../../ui/achievement-badge';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { APP_MODES, appModeOf } from '../../../lib/app-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { avatars, branding } from '../../../../config/branding';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { Affiliation, SectionHead, StatCell, Sticker } from '../../../ui/broadcast';
+import { Affiliation, SectionHead, StatCell } from '../../../ui/broadcast';
 import { Banner, Button, Field, Gate } from '../../../ui/controls';
 import { elo, firstName, goalsPerMatch, pct, recordLine } from '../../../ui/format';
 import { Screen } from '../../../ui/screen';
@@ -118,20 +119,16 @@ export default function Profile() {
               </View>
               <SectionHead title="Álbum de logros" action={`${earned} / 3`} />
               <View style={styles.album}>
-                {(trophies.data ?? []).map((trophy) => {
-                  const meta = stickerMeta[trophy.code];
-                  return (
-                    <Sticker
-                      key={trophy.code}
-                      title={meta.title}
-                      detail={trophy.earned ? trophy.title : trophy.description}
-                      icon={meta.icon}
-                      color={meta.color}
-                      earned={trophy.earned}
-                      tilt={meta.tilt}
-                    />
-                  );
-                })}
+                {(trophies.data ?? []).map((trophy, index) => (
+                  <AchievementBadge
+                    key={trophy.code}
+                    code={trophy.code}
+                    unlocked={trophy.earned}
+                    index={index}
+                    title={stickerMeta[trophy.code].title}
+                    detail={trophy.earned ? trophy.title : trophy.description}
+                  />
+                ))}
               </View>
               <View style={styles.rivals}>
                 {data.bestRival ? (
@@ -280,7 +277,7 @@ const styles = StyleSheet.create({
   idRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   plain: { textTransform: 'none', letterSpacing: 0 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  album: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  album: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: space.sm },
   rivals: { flexDirection: 'row', gap: space.sm },
   rival: { flex: 1, backgroundColor: colors.card, borderLeftWidth: 4, padding: 10, gap: space.xs, borderRadius: 14 },
   edit: { gap: space.md },

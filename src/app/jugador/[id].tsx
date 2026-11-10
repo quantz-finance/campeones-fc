@@ -20,6 +20,7 @@ import { SportPress } from '../../ui/press';
 import { Screen, Top } from '../../ui/screen';
 import { copyText } from '../../ui/share';
 import { DetailSkeleton } from '../../ui/skeleton';
+import { AchievementBadge } from '../../ui/achievement-badge';
 import { SocialButtons } from '../../ui/social-icons';
 import { T } from '../../ui/text';
 import { colors, layout, space } from '../../ui/theme';
@@ -150,7 +151,6 @@ export default function PlayerPage() {
       <Gate query={query} skeleton={<DetailSkeleton />}>
         {(data) => {
           const mine = data.profile.id === userId;
-          const titles = new Map(trophyCatalog.map((t) => [t.code, t.title]));
           return (
             <>
               <Top title="Ficha del jugador" kicker={branding.name} back />
@@ -203,20 +203,22 @@ export default function PlayerPage() {
               </Rise>
               <Rise index={4} style={styles.section}>
                 <SectionHead title="Logros" />
-                {data.achievements.length ? (
-                  <View style={styles.wrap}>
-                    {data.achievements.map((item) => (
-                      <View key={item.code} style={styles.badge}>
-                        <Ionicons name="medal" size={14} color={colors.gold} />
-                        <T variant="strong" style={{ fontSize: 13 }}>
-                          {titles.get(item.code) ?? item.title}
-                        </T>
-                      </View>
-                    ))}
-                  </View>
-                ) : (
-                  <T color={colors.muted}>Todavía no tiene logros.</T>
-                )}
+                <View style={styles.album}>
+                  {trophyCatalog.map((trophy, index) => {
+                    const got = data.achievements.find((item) => item.code === trophy.code);
+                    return (
+                      <AchievementBadge
+                        key={trophy.code}
+                        code={trophy.code}
+                        unlocked={Boolean(got)}
+                        index={index}
+                        size={84}
+                        title={trophy.title}
+                        detail={got ? formatDay(got.earnedAt) : 'Bloqueado'}
+                      />
+                    );
+                  })}
+                </View>
               </Rise>
               {data.groups.length ? (
                 <Rise index={5} style={styles.section}>
@@ -322,6 +324,7 @@ const styles = StyleSheet.create({
   trophy: { flexDirection: 'row', alignItems: 'center', gap: layout.inline, backgroundColor: colors.gold, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, maxWidth: '100%' },
   badge: { flexDirection: 'row', alignItems: 'center', gap: layout.inline, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   list: { gap: layout.card },
+  album: { flexDirection: 'row', justifyContent: 'space-around', gap: space.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 14, padding: 10 },
   result: { minWidth: 46, paddingHorizontal: 6, paddingVertical: 4, borderRadius: 10, alignItems: 'center' },
   cta: { gap: space.sm, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.cardSoft, marginTop: layout.section - layout.stack },
