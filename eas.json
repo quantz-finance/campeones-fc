@@ -7,16 +7,24 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "ios": { "simulator": false }
+      "ios": {
+        "simulator": false
+      }
     },
     "preview": {
       "distribution": "store",
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "CFC_IOS_ASSOCIATED_DOMAINS": "1"
+      }
     },
     "production": {
       "distribution": "store",
       "channel": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "CFC_IOS_ASSOCIATED_DOMAINS": "1"
+      }
     }
   },
   "submit": {

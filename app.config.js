@@ -15,6 +15,17 @@ const branding = JSON.parse(raw);
 
 const CAVOS_RP_ID = (process.env.EXPO_PUBLIC_CAVOS_RP_ID || 'campeones-fc.vercel.app').trim();
 
+/**
+ * Associated Domains (y el webcredentials del rpId de Cavos) obligan a firmar incluso en el simulador.
+ * Sin membresía de Apple Developer activa no hay certificados, así que en el build local van apagados.
+ * Para TestFlight / App Store: CFC_IOS_ASSOCIATED_DOMAINS=1 (y el Team ID en la AASA).
+ */
+const enableAssociatedDomains = /^(1|true)$/i.test(process.env.CFC_IOS_ASSOCIATED_DOMAINS ?? '');
+const ASSOCIATED_DOMAINS = [
+  'applinks:partido.campeonesfc.app',
+  'webcredentials:partido.campeonesfc.app',
+];
+
 /** @param {{ config: import('expo/config').ExpoConfig }} ctx */
 module.exports = ({ config }) => ({
   ...config,
@@ -23,6 +34,10 @@ module.exports = ({ config }) => ({
   scheme: branding.scheme,
   description: branding.description,
   userInterfaceStyle: 'dark',
+  ios: {
+    ...config.ios,
+    associatedDomains: enableAssociatedDomains ? ASSOCIATED_DOMAINS : [],
+  },
   plugins: [
     ...(config.plugins ?? []),
     [
@@ -30,10 +45,8 @@ module.exports = ({ config }) => ({
       {
         rpId: CAVOS_RP_ID,
         scheme: branding.scheme,
-        associatedDomains: [
-          'applinks:partido.campeonesfc.app',
-          'webcredentials:partido.campeonesfc.app',
-        ],
+        enableAssociatedDomains,
+        associatedDomains: enableAssociatedDomains ? ASSOCIATED_DOMAINS : [],
       },
     ],
   ],
