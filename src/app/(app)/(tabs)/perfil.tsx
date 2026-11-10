@@ -67,9 +67,10 @@ export default function Profile() {
   return (
     <Screen tab>
       <View style={styles.top}>
-        <View style={styles.flex}>
-          <T variant="label" color={colors.muted}>
-            Ficha del jugador
+        {/* Una sola línea: con los cuatro botones al lado, «Ficha del jugador» se partía en dos. */}
+        <View style={styles.topLabel}>
+          <T variant="label" color={colors.muted} numberOfLines={1}>
+            Mi ficha
           </T>
         </View>
         <LangToggle />
@@ -78,7 +79,7 @@ export default function Profile() {
           <Ionicons name="share-outline" size={18} color={colors.text} />
         </Pressable>
         <Pressable accessibilityLabel="Editar ficha" style={styles.iconBtn} onPress={() => setEditing((value) => !value)}>
-          <Ionicons name={editing ? 'close' : 'sunny-outline'} size={18} color={colors.text} />
+          <Ionicons name={editing ? 'close' : 'create-outline'} size={18} color={colors.text} />
         </Pressable>
       </View>
       <Gate query={personal}>
@@ -265,6 +266,7 @@ const styles = StyleSheet.create({
   segOff: { opacity: 0.5 },
   top: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingRight: 52 },
   flex: { flex: 1 },
+  topLabel: { flex: 1, minWidth: 0 },
   iconBtn: {
     width: 40,
     height: 36,

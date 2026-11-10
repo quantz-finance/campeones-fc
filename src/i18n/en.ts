@@ -602,4 +602,5 @@ export const en: Record<string, string> = {
   "Cinturón": "Belt",
   "Trofeo estrella": "Star trophy",
   "Laurel": "Laurel",
+  "Mi ficha": "My card",
 };
