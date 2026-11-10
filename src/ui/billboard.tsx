@@ -80,7 +80,7 @@ export function StarHero({ board, me }: { board: BillboardSnapshot; me: string }
       accessibilityLabel={`${starKicker(reason)}: ${player.profile.displayName}`}
     >
       <View style={styles.heroGlow} pointerEvents="none" />
-      <View style={styles.heroPhoto} pointerEvents="none">
+      <View style={[styles.heroPhoto, styles.heroClip]} pointerEvents="none">
         <InitialsMark
           name={player.profile.displayName}
           avatarKey={player.profile.avatarKey}
@@ -454,10 +454,11 @@ const styles = StyleSheet.create({
     height: 260,
     borderRadius: 999,
     backgroundColor: colors.blue,
-    opacity: 0.35,
+    opacity: web ? 0.35 : 0.16,
     ...(web ? ({ filter: 'blur(30px)' } as object) : null),
   },
   heroPhoto: { position: 'absolute', right: -14, top: 14, opacity: 0.95 },
+  heroClip: { width: 170, height: 170, borderRadius: 85, overflow: 'hidden' },
   heroBody: { gap: 6, maxWidth: '72%' },
   kicker: {
     flexDirection: 'row',
