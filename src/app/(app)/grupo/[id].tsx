@@ -95,7 +95,13 @@ export default function GroupDetail() {
                 {data.table.map((row, index) => {
                   const form = formOf(row.playerId, data.recent);
                   return (
-                    <View key={row.playerId} style={[styles.bodyRow, index === 0 && styles.leaderRow]}>
+                    <Pressable
+                      key={row.playerId}
+                      style={[styles.bodyRow, index === 0 && styles.leaderRow]}
+                      onPress={() => push(`/jugador/${row.playerId}`)}
+                      accessibilityRole="link"
+                      accessibilityLabel={row.profile.displayName}
+                    >
                       <T variant="strong" style={styles.cell}>
                         {index + 1}
                       </T>
@@ -123,7 +129,7 @@ export default function GroupDetail() {
                           />
                         ))}
                       </View>
-                    </View>
+                    </Pressable>
                   );
                 })}
               </View>

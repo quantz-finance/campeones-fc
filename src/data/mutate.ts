@@ -1,3 +1,4 @@
+import { cleanSocialLinks, type SocialLinks } from '../domain/social';
 import { avatars } from '../../config/branding';
 import { earnedAchievementCodes } from '../domain/achievements';
 import { buildRoundRobin, buildSingleElim } from '../domain/bracket';
@@ -401,7 +402,7 @@ export function mutateRedeem(db: World, me: string, code: string, now: Date): 'f
 export function mutateUpdateProfile(
   db: World,
   me: string,
-  patch: { displayName?: string; username?: string; avatarKey?: string },
+  patch: { displayName?: string; username?: string; avatarKey?: string; socialLinks?: SocialLinks | null },
 ): Profile {
   const user = mustUser(db, me);
   if (patch.displayName != null) {
@@ -418,6 +419,10 @@ export function mutateUpdateProfile(
       throw new DomainError('username_taken', 'Ese usuario ya existe.');
     }
     user.username = username;
+  }
+  if (patch.socialLinks !== undefined) {
+    const clean = cleanSocialLinks(patch.socialLinks);
+    user.socialLinks = Object.keys(clean).length ? clean : null;
   }
   if (patch.avatarKey != null) {
     if (!avatars.some((avatar) => avatar.key === patch.avatarKey)) {

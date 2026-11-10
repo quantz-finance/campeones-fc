@@ -49,3 +49,18 @@ export async function apiPost<T>(path: string, token: string, payload: unknown):
   }
   return data as T;
 }
+
+/** Ficha pública de un jugador (sin sesión). */
+export async function fetchPublicPlayer(id: string): Promise<import('../data/public-player').PublicPlayer> {
+  let res: Response;
+  try {
+    res = await fetch(apiUrl(`/api/jugador?id=${encodeURIComponent(id)}`));
+  } catch {
+    throw new ApiError('No hay conexión. Revisa tu internet y vuelve a intentar.', 0, 'network');
+  }
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new ApiError(typeof data.error === 'string' ? data.error : 'No pudimos abrir esta ficha. Intenta de nuevo.', res.status, typeof data.code === 'string' ? data.code : 'error');
+  }
+  return data as unknown as import('../data/public-player').PublicPlayer;
+}

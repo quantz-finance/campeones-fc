@@ -1,3 +1,5 @@
+import type { PublicPlayer } from './public-player';
+import type { SocialLinks } from '../domain/social';
 import type { Profile } from './types';
 import type { Notice } from './notices';
 import type { PhotoKind, PhotoPayload } from '../lib/photos';
@@ -22,7 +24,7 @@ export type Repository = {
   getProfile(userId: string): Promise<Profile | null>;
   updateProfile(
     userId: string,
-    patch: { displayName?: string; username?: string; avatarKey?: string; showDemo?: boolean },
+    patch: { displayName?: string; username?: string; avatarKey?: string; showDemo?: boolean; socialLinks?: SocialLinks | null },
   ): Promise<Profile>;
   searchProfiles(query: string, me: string): Promise<Profile[]>;
   demoAccounts(): Profile[];
@@ -38,6 +40,8 @@ export type Repository = {
   homeSnapshot(userId: string): Promise<HomeSnapshot>;
   /** Portada del inicio (estrella, top, rachas, resultados, torneos). */
   billboardSnapshot(userId: string): Promise<BillboardSnapshot>;
+  /** Ficha pública de un jugador. me = null para espectadores sin cuenta. */
+  publicPlayer(playerId: string, me: string | null): Promise<PublicPlayer>;
   createMatch(input: { me: string; opponentId: string; groupId?: string | null }): Promise<Match>;
   matchSnapshot(matchId: string, me: string): Promise<MatchSnapshot>;
   acceptMatch(matchId: string, me: string): Promise<Match>;

@@ -190,6 +190,18 @@ export function buildSeed(now = new Date()): World {
     account(IDS.cami, 'cami', 'Camila Rojas', 'luna'),
     account(IDS.nati, 'nati', 'Natalia Vargas', 'fuego'),
   );
+  // Redes de ejemplo: claramente falsas (demo_*), nunca cuentas de personas reales.
+  const socials: Record<string, UserAccount['socialLinks']> = {
+    [IDS.andre]: {
+      tiktok: 'https://www.tiktok.com/@demo_andres',
+      instagram: 'https://www.instagram.com/demo_andres',
+      twitch: 'https://www.twitch.tv/demo_andres',
+      x: 'https://x.com/demo_andres',
+    },
+    [IDS.vale]: { instagram: 'https://www.instagram.com/demo_vale', youtube: 'https://www.youtube.com/@demo_vale', discord: 'demo_vale' },
+    [IDS.diego]: { kick: 'https://kick.com/demo_diego', tiktok: 'https://www.tiktok.com/@demo_diego' },
+  };
+  for (const user of db.users) if (socials[user.id]) user.socialLinks = socials[user.id];
 
   let link = 0;
   for (let left = 0; left < CREW.length; left += 1) {

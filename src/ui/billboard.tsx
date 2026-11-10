@@ -1,4 +1,5 @@
 // Portada del inicio en mosaico: los jugadores del círculo como estrellas. Solo datos de partidos confirmados.
+import { SocialDots } from './social-icons';
 import { useState } from 'react';
 import { Linking, Platform, ScrollView, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,9 +19,9 @@ import { useLang } from '../i18n/lang';
 const web = Platform.OS === 'web';
 const GAP = layout.card;
 
-/** A dónde lleva tocar a un jugador: tu perfil, o el cara a cara con él. */
-export function playerHref(me: string, playerId: string): `/perfil` | `/versus/${string}` {
-  return playerId === me ? '/perfil' : `/versus/${playerId}`;
+/** A dónde lleva tocar a un jugador: su ficha pública (desde ahí, el cara a cara). */
+export function playerHref(_me: string, playerId: string): `/jugador/${string}` {
+  return `/jugador/${playerId}`;
 }
 
 function lastNames(displayName: string): string {
@@ -100,11 +101,14 @@ function StarCard({ star, index, total, me, width }: { star: BillboardSnapshot['
         {index + 1}
       </T>
       <View style={styles.starBody}>
-        <View style={styles.kicker}>
-          <Ionicons name="star" size={11} color={colors.ink} />
-          <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
-            {starKicker(reason)}
-          </T>
+        <View style={styles.starTopRow}>
+          <View style={styles.kicker}>
+            <Ionicons name="star" size={11} color={colors.ink} />
+            <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
+              {starKicker(reason)}
+            </T>
+          </View>
+          <SocialDots links={player.profile.socialLinks} size={12} />
         </View>
         <View>
           <T variant="display" style={styles.starName} numberOfLines={1} adjustsFontSizeToFit>
@@ -459,13 +463,13 @@ export function ResultsGrid({ board }: { board: BillboardSnapshot }) {
           return (
             <SportPress key={match.id} style={[styles.tile, styles.result]} onPress={() => push(`/partido/${match.id}`)} accessibilityLabel={`${a?.displayName ?? ''} ${b?.displayName ?? ''}`}>
               <View style={styles.resultFace}>
-                <Side name={a?.displayName ?? '—'} avatarKey={a?.avatarKey ?? 'rayo'} photoUrl={a?.photoUrl} won={aWon} />
+                <Side id={match.playerAId} name={a?.displayName ?? '—'} avatarKey={a?.avatarKey ?? 'rayo'} photoUrl={a?.photoUrl} won={aWon} />
                 <View style={styles.resultScore}>
                   <T variant="display" style={styles.resultNum}>
                     {match.goalsA != null && match.goalsB != null ? `${match.goalsA}–${match.goalsB}` : match.isDraw ? '=' : 'FT'}
                   </T>
                 </View>
-                <Side name={b?.displayName ?? '—'} avatarKey={b?.avatarKey ?? 'rayo'} photoUrl={b?.photoUrl} won={bWon} />
+                <Side id={match.playerBId} name={b?.displayName ?? '—'} avatarKey={b?.avatarKey ?? 'rayo'} photoUrl={b?.photoUrl} won={bWon} />
               </View>
               <T variant="tiny" color={colors.muted} numberOfLines={1} style={{ fontSize: 9, textAlign: 'center' }}>
                 {[label, match.confirmedAt ? formatWhen(match.confirmedAt) : null].filter(Boolean).join(' · ')}
@@ -478,16 +482,16 @@ export function ResultsGrid({ board }: { board: BillboardSnapshot }) {
   );
 }
 
-function Side({ name, avatarKey, photoUrl, won }: { name: string; avatarKey: string; photoUrl?: string | null; won: boolean }) {
+function Side({ id, name, avatarKey, photoUrl, won }: { id: string; name: string; avatarKey: string; photoUrl?: string | null; won: boolean }) {
   return (
-    <View style={styles.side}>
+    <SportPress style={styles.side} onPress={() => push(`/jugador/${id}`)} hitSlop={4} accessibilityRole="link" accessibilityLabel={name}>
       <View style={[styles.sideRing, won && { borderColor: colors.yellow }]}>
         <InitialsMark name={name} avatarKey={avatarKey} photoUrl={photoUrl} size={34} fontSize={12} />
       </View>
       <T variant="tiny" color={won ? colors.accentText : colors.text} style={{ fontSize: 10 }}>
         {tagOf(name)}
       </T>
-    </View>
+    </SportPress>
   );
 }
 
@@ -506,7 +510,7 @@ export function RivalryTile({ items, me, style }: { items: BillboardRivalry[]; m
         </T>
       </View>
       {[item.first, item.second].map((player, index) => (
-        <View key={player.profile.id} style={styles.mini}>
+        <SportPress key={player.profile.id} style={styles.mini} onPress={() => push(playerHref(me, player.profile.id))} accessibilityLabel={player.profile.displayName}>
           <T variant="display" style={[styles.miniPlace, index === 0 && { color: colors.accentText }]}>
             {index + 1}
           </T>
@@ -517,7 +521,7 @@ export function RivalryTile({ items, me, style }: { items: BillboardRivalry[]; m
           <T variant="title" style={styles.miniValue}>
             {elo(player.rating)}
           </T>
-        </View>
+        </SportPress>
       ))}
       <View style={[styles.chip, { backgroundColor: colors.yellow, alignSelf: 'flex-start' }]}>
         <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
@@ -531,6 +535,7 @@ export function RivalryTile({ items, me, style }: { items: BillboardRivalry[]; m
 const cardBase = { borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line } as const;
 
 const styles = StyleSheet.create({
+  starTopRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' },
   plain: { textTransform: 'none', letterSpacing: 0 },
   block: { gap: GAP },
   bentoRow: { flexDirection: 'row', gap: GAP, alignItems: 'stretch' },

@@ -1,4 +1,5 @@
 import type { AvatarKey } from '../../config/branding';
+import type { SocialLinks } from '../domain/social';
 import type {
   AchievementCode,
   Match,
@@ -18,6 +19,8 @@ export type Profile = {
   isDemo?: boolean;
   /** Modo prueba: ve los datos de demo (apagado por defecto). */
   showDemo?: boolean;
+  /** Redes que el jugador escribió (enlaces https canónicos; discord = usuario). */
+  socialLinks?: SocialLinks | null;
 };
 
 export type UserAccount = Profile & { email: string };
@@ -110,6 +113,7 @@ export function toProfile(user: UserAccount): Profile {
     displayName: user.displayName,
     avatarKey: user.avatarKey,
     photoUrl: user.photoUrl ?? null,
+    socialLinks: user.socialLinks ?? null,
   };
 }
 

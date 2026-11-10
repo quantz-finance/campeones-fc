@@ -154,7 +154,7 @@ export default function Friends() {
                   key={friend.profile.id}
                   profile={friend.profile}
                   detail={recordLine(friend.record)}
-                  onPress={() => push(`/versus/${friend.profile.id}`)}
+                  onPress={() => push(`/jugador/${friend.profile.id}`)}
                 />
               ))
             )}

@@ -1,3 +1,4 @@
+import { projectPublicPlayer } from './public-player';
 import { branding } from '../../config/branding';
 import { trophyCatalog } from '../content/trophies';
 import type { ReportDraft } from '../domain/types';
@@ -118,6 +119,9 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
     },
     async billboardSnapshot(userId) {
       return projectBillboard(view(), userId, now());
+    },
+    async publicPlayer(playerId, me) {
+      return projectPublicPlayer(view(), playerId, me);
     },
     createMatch(input) {
       return commit((world, at) => mutateCreateMatch(world, input, at));

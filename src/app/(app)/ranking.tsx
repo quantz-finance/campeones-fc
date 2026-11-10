@@ -22,9 +22,9 @@ const Row = memo(function Row({ row, index, me }: { row: RankRow; index: number;
     <Rise index={index}>
       <Pressable
         style={[styles.row, me && styles.you]}
-        onPress={() => {
-          if (!me) push(`/versus/${row.playerId}`);
-        }}
+        onPress={() => push(`/jugador/${row.playerId}`)}
+        accessibilityRole="link"
+        accessibilityLabel={row.profile.displayName}
       >
         <T variant="title" color={index < 3 ? colors.gold : colors.muted} style={styles.place}>
           {index + 1}

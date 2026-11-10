@@ -1,3 +1,6 @@
+import { fetchPublicPlayer } from '../lib/api';
+import { projectPublicPlayer } from './public-player';
+import { cleanSocialLinks } from '../domain/social';
 import { hideDemo, joinDemo } from './demo-filter';
 import { trophyCatalog } from '../content/trophies';
 import { DomainError } from '../domain/errors';
@@ -62,6 +65,11 @@ function mapUser(row: Row): UserAccount {
     photoUrl: asNullable(row.photo_url),
     isDemo: row.is_demo === true,
     showDemo: row.show_demo === true,
+    // Si la columna todavía no existe (migración sin aplicar), queda vacío.
+    socialLinks: (() => {
+      const links = cleanSocialLinks(row.social_links);
+      return Object.keys(links).length ? links : null;
+    })(),
     email: '',
   };
 }
@@ -294,7 +302,14 @@ export function createSupabaseRepository(): Repository {
       if (patch.username != null) payload.username = patch.username.trim().toLowerCase();
       if (patch.avatarKey != null) payload.avatar_key = patch.avatarKey;
       if (patch.showDemo != null) payload.show_demo = patch.showDemo;
+      if (patch.socialLinks !== undefined) {
+        const clean = cleanSocialLinks(patch.socialLinks);
+        payload.social_links = Object.keys(clean).length ? clean : null;
+      }
       const { data, error } = await supabase.from('profiles').update(payload).eq('id', userId).select('*').single();
+      if (error && 'social_links' in payload && /social_links/.test(error.message ?? '')) {
+        throw new DomainError('social_unavailable', 'Las redes sociales todavía no están activadas. Pronto vas a poder guardarlas.');
+      }
       fail(error);
       notify();
       return mapUser(data as Row);
@@ -351,6 +366,14 @@ export function createSupabaseRepository(): Repository {
     },
     async billboardSnapshot(userId) {
       return projectBillboard(await worldFor(userId), userId);
+    },
+    async publicPlayer(playerId, me) {
+      if (me) {
+        const world = await worldFor(me);
+        if (world.users.some((user) => user.id === playerId)) return projectPublicPlayer(world, playerId, me);
+      }
+      // Espectador sin cuenta (o jugador fuera de su vista): la ficha pública del servidor.
+      return fetchPublicPlayer(playerId);
     },
     async createMatch(input) {
       const { data, error } = await supabase.rpc('create_match', {

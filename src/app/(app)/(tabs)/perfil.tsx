@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { SocialEditor } from '../../../ui/social-editor';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { APP_MODES, appModeOf } from '../../../lib/app-mode';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,6 +42,8 @@ export default function Profile() {
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
+  // ?redes=1 abre directo el editor de redes (enlace desde la ficha pública).
+  const startSocial = useLocalSearchParams<{ redes?: string }>().redes === '1';
 
   useEffect(() => {
     if (!profile) return;
@@ -102,6 +106,7 @@ export default function Profile() {
                 </View>
                 <PhotoButton kind="users" targetId={profile.id} label={profile.photoUrl ? 'Cambiar foto' : 'Subir foto'} />
               </View>
+              <SocialEditor profile={profile} repo={app.repo} startOpen={startSocial} />
               <SectionHead title="Estadísticas" action="Todas" onAction={() => push('/estadisticas')} />
               <View style={styles.grid}>
                 <StatCell value={String(data.record.played)} label="Partidos" />

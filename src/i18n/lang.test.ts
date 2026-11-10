@@ -48,3 +48,13 @@ describe('i18n portada v2', () => {
     expect(translate('Las estrellas', 'en')).toBe('The stars');
   });
 });
+
+describe('i18n ficha pública y redes', () => {
+  it('traduce la ficha y los errores de redes', () => {
+    expect(translate('Ficha del jugador', 'en')).toBe('Player card');
+    expect(translate('de 6 jugadores', 'en')).toBe('of 6 players');
+    expect(translate('Ese enlace no es de TikTok.', 'en')).toBe("That link isn't from TikTok.");
+    expect(translate('Usuario de Instagram no válido.', 'en')).toBe('Invalid Instagram username.');
+    expect(translate('Tus redes', 'en')).toBe('Your socials');
+  });
+});
