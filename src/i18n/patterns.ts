@@ -81,10 +81,7 @@ export const enPatterns: [RegExp, string][] = [
   [/^Quedarme con lo que dijo (.+)$/, 'Keep what $1 said'],
   [/^Juguemos nuestros partidos en (.+)$/, "Let's play our matches on $1"],
   [/^Espera (\d+) s antes de pedir otro código\. Mientras, revisa tu bandeja y la carpeta de Spam\.$/, 'Wait $1 s before asking for another code. Meanwhile, check your inbox and Spam folder.'],
-  [/^Depositar (.+) USDC$/, 'Deposit $1 USDC'],
   [/^Los goles van de 0 a (\d+)\.$/, 'Goals go from 0 to $1.'],
-  [/^(.+) El partido sigue: pueden jugarlo sin apuesta\.$/, '$1 The match goes on: you can play it without a stake.'],
-  [/^Cada uno bloquea (.+) USDC en custodia de Trustless Work \(Stellar, red de prueba\)\. El ganador se lleva (.+) USDC\.$/, 'Each player locks $1 USDC in Trustless Work escrow (Stellar testnet). The winner takes $2 USDC.'],
   [/^El acta del (.+) corresponde a su contenido$/, 'The $1 record matches its content'],
   [/^Avisos(.*)$/, 'Notifications$1'],
 ];
