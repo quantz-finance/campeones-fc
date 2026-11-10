@@ -18,6 +18,7 @@ import { Screen } from './screen';
 import { openExternal } from './share';
 import { colors, space } from './theme';
 import { T } from './text';
+import { LegalLinks } from './legal-links';
 
 const sweepFrames = {
   from: { opacity: 0, transform: [{ translateX: -220 }, { skewX: '0deg' }] },
@@ -192,6 +193,7 @@ export function Landing() {
           <SocialLink icon="logo-x" label="X" url={branding.social.x} />
         </View>
         <Affiliation />
+        <LegalLinks />
       </View>
     </Screen>
   );

@@ -14,6 +14,7 @@ import { T } from '../../../ui/text';
 import { useDelayed } from '../../../ui/motion';
 import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
+import { DeleteAccount } from '../../../ui/delete-account';
 import { push } from '../../../ui/nav';
 import { ThemeToggle } from '../../../ui/theme-toggle';
 import { LangToggle } from '../../../ui/lang-toggle';
@@ -265,8 +266,11 @@ export default function Profile() {
         <Button label="Amigos" tone="ghost" onPress={() => push('/amigos')} />
         <Button label="Ranking" tone="ghost" onPress={() => push('/ranking')} />
         <Button label="Trofeos" tone="ghost" onPress={() => push('/trofeos')} />
+        <Button label="Términos de uso" tone="ghost" onPress={() => push('/terminos')} />
+        <Button label="Aviso de privacidad" tone="ghost" onPress={() => push('/privacidad')} />
       </View>
       {app.mode === 'demo' ? <Button label="Restablecer datos de demostración" tone="ghost" onPress={() => void app.repo.resetDemo()} /> : null}
+      <DeleteAccount />
       <Button label="Cerrar sesión" tone="danger" onPress={() => void app.signOut()} />
       <Affiliation />
     </Screen>
