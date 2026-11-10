@@ -389,7 +389,7 @@ export function QuickTile({
         </T>
         <BrandIcon name={icon} size={22} color={ink} />
       </View>
-      <T variant="display" style={{ fontSize: 26, color: ink, fontStyle: 'normal' }}>
+      <T variant="display" style={{ fontSize: 26, color: ink, fontStyle: 'normal' }} numberOfLines={1} adjustsFontSizeToFit>
         {title}
       </T>
     </SportPress>

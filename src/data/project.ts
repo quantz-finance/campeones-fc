@@ -376,6 +376,36 @@ export function projectBillboard(db: World, userId: string, now: Date = new Date
       ? { player: fallback, reason: 'top' as const }
       : null;
 
+  // Las estrellas (hasta 5): primero quienes más ganaron en la semana, luego en el mes, luego el ranking.
+  // Cada puesto trae los datos de su propia ventana.
+  const stars: BillboardSnapshot['stars'] = [];
+  const taken = new Set<string>();
+  const winners = (days: number) => {
+    const cutoff = new Date(now.getTime() - days * DAY).toISOString();
+    return ids
+      .map((id) => card(id, cutoff))
+      .filter((item) => item.played > 0 && item.windowWins > 0)
+      .sort(
+        (a, b) =>
+          b.windowWins - a.windowWins ||
+          b.windowDelta - a.windowDelta ||
+          b.rating - a.rating ||
+          a.profile.id.localeCompare(b.profile.id),
+      );
+  };
+  const take = (list: BillboardPlayer[], reason: 'week' | 'month' | 'top') => {
+    for (const player of list) {
+      if (stars.length >= 5) return;
+      if (taken.has(player.profile.id)) continue;
+      taken.add(player.profile.id);
+      stars.push({ player, reason });
+    }
+  };
+  take(winners(7), 'week');
+  take(winners(30), 'month');
+  take(top, 'top');
+  take(cards.slice().sort((a, b) => b.rating - a.rating || a.profile.id.localeCompare(b.profile.id)), 'top');
+
   const movers = cards
     .filter((item) => item.windowDelta > 0)
     .sort((a, b) => b.windowDelta - a.windowDelta || a.profile.id.localeCompare(b.profile.id))
@@ -442,6 +472,7 @@ export function projectBillboard(db: World, userId: string, now: Date = new Date
   return {
     windowDays,
     star,
+    stars,
     top: top.slice(0, 5),
     movers,
     streaks,

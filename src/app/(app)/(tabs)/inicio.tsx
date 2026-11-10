@@ -2,14 +2,29 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { QuickTile, ScoreBar, SectionHead, Wordmark } from '../../../ui/broadcast';
-import { HotCups, Movers, RecentResults, Rivalries, StarHero, Streaks, TopBoard } from '../../../ui/billboard';
+import { ScoreBar, SectionHead, Wordmark } from '../../../ui/broadcast';
+import {
+  BentoRow,
+  HotCups,
+  MoversTile,
+  QuickRow,
+  ResultsGrid,
+  RivalryTile,
+  SponsorBanner,
+  SponsorTile,
+  StarsCarousel,
+  StreaksTile,
+  TopTile,
+} from '../../../ui/billboard';
+import { sponsorsFor } from '../../../content/sponsors';
+import type { BillboardSnapshot } from '../../../data/snapshots';
+import type { ReactNode } from 'react';
 import { Gate } from '../../../ui/controls';
 import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { buildNews } from '../../../ui/news';
 import { NewsTicker, TICKER_SPACE } from '../../../ui/news-ticker';
 import { Screen } from '../../../ui/screen';
-import { colors } from '../../../ui/theme';
+import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { AI_PHOTO_NOTE, appModeOf, modeChip } from '../../../lib/app-mode';
 import { Pop, Rise } from '../../../ui/motion';
@@ -51,28 +66,14 @@ export default function Home() {
               : home.recent[0].playerAId
             : null;
           const quickTiles = (
-            <>
-              <SectionHead title="Accesos rápidos" />
-                <Rise index={4} style={styles.grid}>
-                  <QuickTile kicker="Nuevo partido" title="Registrar" color={colors.yellow} ink={colors.ink} icon="matches" onPress={() => push('/jugar')} />
-                  <QuickTile
-                    kicker="Cara a cara"
-                    title="Versus"
-                    color={colors.red}
-                    ink={colors.redInk}
-                    icon="versus"
-                    onPress={() => (rivalId ? push(`/versus/${rivalId}`) : push('/amigos'))}
-                  />
-                  <QuickTile
-                    kicker={group?.group.name ?? 'Tu grupo'}
-                    title="Tabla"
-                    color={colors.blue}
-                    icon="ranking"
-                    onPress={() => (group ? push(`/grupo/${group.group.id}`) : push('/grupos'))}
-                  />
-                  <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="tournaments" onPress={() => push('/torneos')} />
-                </Rise>
-            </>
+            <QuickRow
+              items={[
+                { title: 'Registrar', en: 'Log', icon: 'matches', color: colors.yellow, ink: colors.ink, onPress: () => push('/jugar') },
+                { title: 'Versus', icon: 'versus', color: colors.red, ink: colors.redInk, onPress: () => (rivalId ? push(`/versus/${rivalId}`) : push('/amigos')) },
+                { title: 'Tabla', icon: 'ranking', color: colors.blue, ink: '#fff', onPress: () => (group ? push(`/grupo/${group.group.id}`) : push('/grupos')) },
+                { title: 'Torneos', en: 'Cups', icon: 'tournaments', color: '#fff', ink: colors.ink, onPress: () => push('/torneos') },
+              ]}
+            />
           );
           const confirmar = (
             <>
@@ -83,7 +84,7 @@ export default function Home() {
                 {pending.length === 0 ? (
                   <T color={colors.muted}>No tienes nada pendiente. Cuando alguien te rete, aparece aquí.</T>
                 ) : (
-                  pending.slice(0, 3).map((match, index) => {
+                  pending.slice(0, 2).map((match, index) => {
                     const otherId = match.playerAId === userId ? match.playerBId : match.playerAId;
                     const other = home.people[otherId];
                     const me = home.people[userId!];
@@ -160,26 +161,22 @@ export default function Home() {
                   {AI_PHOTO_NOTE}
                 </T>
               ) : null}
-              {pending.length > 0 ? confirmar : null}
+              {pending.length > 0 ? <View style={styles.block}>{confirmar}</View> : null}
               {board.data ? (
-                <>
-                  <Rise index={pending.length > 0 ? 2 : 0}>
-                    <StarHero board={board.data} me={userId!} />
-                  </Rise>
-                  {quickTiles}
-                  <HotCups items={board.data.tournaments} />
-                  <TopBoard board={board.data} me={userId!} />
-                  <Movers board={board.data} me={userId!} />
-                  <RecentResults board={board.data} />
-                  <Streaks board={board.data} me={userId!} />
-                  <Rivalries items={board.data.rivalries} me={userId!} />
-                </>
+                <Mosaic board={board.data} me={userId!} quick={quickTiles} first={pending.length > 0 ? 2 : 0} />
               ) : board.error ? (
                 quickTiles
               ) : (
                 <BillboardSkeleton />
               )}
-              {pending.length === 0 ? confirmar : null}
+              {pending.length === 0 ? (
+                <SportPress style={styles.allClear} onPress={() => push('/avisos')} accessibilityLabel="Por confirmar · 0">
+                  <Ionicons name="checkmark-circle" size={18} color={colors.accentText} />
+                  <T variant="tiny" color={colors.muted} style={[styles.plain, { flex: 1 }]}>
+                    No tienes nada pendiente. Cuando alguien te rete, aparece aquí.
+                  </T>
+                </SportPress>
+              ) : null}
             </>
           );
         }}
@@ -217,8 +214,61 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  block: { gap: space.sm },
+  mosaic: { gap: space.md },
+  col: { flex: 1, gap: space.sm },
+  allClear: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: 16, borderWidth: 1, borderColor: colors.line },
 });
+
+/** Portada en mosaico: piezas de distintos tamaños (ancho completo, medio ancho, fichas cuadradas). */
+function Mosaic({ board, me, quick, first }: { board: BillboardSnapshot; me: string; quick: ReactNode; first: number }) {
+  const banner = sponsorsFor('home', 'banner')[0];
+  const tiles = sponsorsFor('home', 'tile');
+  const cupAds = sponsorsFor('tournament');
+  const side = board.movers.length > 0 || board.streaks.length > 0;
+  return (
+    <View style={styles.mosaic}>
+      <Rise index={first}>
+        <StarsCarousel board={board} me={me} />
+      </Rise>
+      <Rise index={first + 1}>{quick}</Rise>
+      {board.top.length ? (
+        <Rise index={first + 2}>
+          <BentoRow>
+            <TopTile board={board} me={me} />
+            {side ? (
+              <View style={styles.col}>
+                {board.movers.length ? <MoversTile board={board} me={me} /> : null}
+                {board.streaks.length ? <StreaksTile board={board} me={me} /> : null}
+              </View>
+            ) : tiles[0] ? (
+              <SponsorTile slot={tiles[0]} />
+            ) : null}
+          </BentoRow>
+        </Rise>
+      ) : null}
+      {banner ? (
+        <Rise index={first + 3}>
+          <SponsorBanner slot={banner} />
+        </Rise>
+      ) : null}
+      <Rise index={first + 4}>
+        <HotCups items={board.tournaments} sponsored={cupAds} />
+      </Rise>
+      <Rise index={first + 5}>
+        <ResultsGrid board={board} />
+      </Rise>
+      <Rise index={first + 6}>
+        <BentoRow>
+          {board.rivalries.length ? <RivalryTile items={board.rivalries} me={me} /> : null}
+          {(board.rivalries.length ? tiles.slice(-1) : tiles).map((slot) => (
+            <SponsorTile key={slot.id} slot={slot} />
+          ))}
+        </BentoRow>
+      </Rise>
+    </View>
+  );
+}
 
 function BillboardSkeleton() {
   return <CardsSkeleton cards={2} />;

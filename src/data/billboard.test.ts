@@ -40,6 +40,19 @@ describe('portada del inicio', () => {
     }
   });
 
+  it('las estrellas: hasta 5, sin repetir, semana antes que mes antes que ranking', () => {
+    const board = projectBillboard(db, IDS.andre, at);
+    expect(board.stars.length).toBeGreaterThanOrEqual(4);
+    expect(board.stars.length).toBeLessThanOrEqual(5);
+    const ids = board.stars.map((s) => s.player.profile.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const order = { week: 0, month: 1, top: 2 } as const;
+    for (let i = 1; i < board.stars.length; i++) {
+      expect(order[board.stars[i - 1].reason]).toBeLessThanOrEqual(order[board.stars[i].reason]);
+    }
+    for (const s of board.stars) if (s.reason !== 'top') expect(s.player.windowWins).toBeGreaterThan(0);
+  });
+
   it('sin partidos en la semana, la estrella es el número 1 del ranking', () => {
     const later = new Date(at.getTime() + 120 * 86400000);
     const board = projectBillboard(db, IDS.andre, later);
@@ -53,6 +66,7 @@ describe('portada del inicio', () => {
     world.users.push({ id: 'solo', username: 'solo', displayName: 'Solo Uno', avatarKey: 'rayo', email: 'solo@x.y' });
     const board = projectBillboard(world, 'solo', at);
     expect(board.star).toBeNull();
+    expect(board.stars).toHaveLength(0);
     expect(board.top).toHaveLength(0);
     expect(board.results).toHaveLength(0);
     expect(board.tournaments).toHaveLength(0);

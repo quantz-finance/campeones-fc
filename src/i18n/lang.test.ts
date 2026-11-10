@@ -39,3 +39,12 @@ describe('i18n portada', () => {
     expect(translate('Copa X · Ganó Andrés · hace 3 d', 'en')).toBe('Copa X · Andrés won · 3 d ago');
   });
 });
+
+describe('i18n portada v2', () => {
+  it('traduce mosaico, patrocinios y accesos', () => {
+    expect(translate('Tabla', 'en')).toBe('Table');
+    expect(translate('Patrocinado', 'en')).toBe('Sponsored');
+    expect(translate('Elo · últimos 7 días', 'en')).toBe('Elo · last 7 days');
+    expect(translate('Las estrellas', 'en')).toBe('The stars');
+  });
+});

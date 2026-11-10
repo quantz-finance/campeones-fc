@@ -1,16 +1,22 @@
-// Portada del inicio: los jugadores del círculo como estrellas. Solo datos de partidos confirmados.
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+// Portada del inicio en mosaico: los jugadores del círculo como estrellas. Solo datos de partidos confirmados.
+import { useState } from 'react';
+import { Linking, Platform, ScrollView, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import type { Href } from 'expo-router';
 import type { BillboardPlayer, BillboardRivalry, BillboardSnapshot, BillboardTournament } from '../data/snapshots';
-import { InitialsMark, ScoreBar, SectionHead, Shield } from './broadcast';
-import { elo, firstName, formatWhen, monogram, pct, scoreText, signed, tagOf } from './format';
-import { CountRoll, Rise } from './motion';
+import type { SponsorSlot } from '../content/sponsors';
+import { BrandIcon, InitialsMark, Shield, type BrandIconName } from './broadcast';
+import { elo, firstName, formatWhen, monogram, pct, signed, tagOf } from './format';
+import { CountRoll } from './motion';
 import { push } from './nav';
 import { SportPress } from './press';
-import { colors } from './theme';
+import { colors, space } from './theme';
 import { T } from './text';
+import { useLang } from '../i18n/lang';
 
 const web = Platform.OS === 'web';
+const GAP = space.sm;
 
 /** A dónde lleva tocar a un jugador: tu perfil, o el cara a cara con él. */
 export function playerHref(me: string, playerId: string): `/perfil` | `/versus/${string}` {
@@ -24,17 +30,13 @@ function lastNames(displayName: string): string {
 export function starKicker(reason: 'week' | 'month' | 'top'): string {
   if (reason === 'week') return 'Estrella de la semana';
   if (reason === 'month') return 'Estrella del mes';
-  return 'Número 1 del ranking';
-}
-
-function windowLabel(days: number): string {
-  return days <= 7 ? 'en la semana' : 'en el mes';
+  return 'Top del ranking';
 }
 
 const formColor = { win: colors.yellow, draw: colors.draw, loss: colors.loss } as const;
 const formLetter = { win: 'V', draw: 'E', loss: 'D' } as const;
 
-export function FormDots({ form, size = 18 }: { form: BillboardPlayer['form']; size?: number }) {
+export function FormDots({ form, size = 16 }: { form: BillboardPlayer['form']; size?: number }) {
   if (!form.length) return null;
   return (
     <View style={styles.form} accessibilityLabel="Últimos resultados">
@@ -49,12 +51,139 @@ export function FormDots({ form, size = 18 }: { form: BillboardPlayer['form']; s
   );
 }
 
-export function StarHero({ board, me }: { board: BillboardSnapshot; me: string }) {
-  if (!board.star) {
+/** Encabezado compacto de bloque del mosaico. */
+function TileHead({ title, action, onAction, icon }: { title: string; action?: string; onAction?: () => void; icon?: keyof typeof Ionicons.glyphMap }) {
+  return (
+    <View style={styles.tileHead}>
+      {icon ? <Ionicons name={icon} size={14} color={colors.accentText} /> : null}
+      <T variant="label" color={colors.text} style={styles.tileTitle} numberOfLines={1}>
+        {title}
+      </T>
+      {action ? (
+        <SportPress onPress={onAction} hitSlop={10}>
+          <T variant="tiny" color={colors.accentText}>
+            {action}
+          </T>
+        </SportPress>
+      ) : null}
+    </View>
+  );
+}
+
+/** Fila de dos (o más) piezas del mosaico, con el mismo espacio entre ellas. */
+export function BentoRow({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  return <View style={[styles.bentoRow, style]}>{children}</View>;
+}
+
+function useCardWidth() {
+  const { width } = useWindowDimensions();
+  return Math.min(Math.max(width, 320), 560) - space.lg * 2;
+}
+
+/* ---------- Las estrellas: carrusel del top 5 ---------- */
+
+function StarCard({ star, index, total, me, width }: { star: BillboardSnapshot['stars'][number]; index: number; total: number; me: string; width: number }) {
+  const { player, reason } = star;
+  const rest = lastNames(player.profile.displayName);
+  const hot = player.streak.type === 'win' && player.streak.count >= 2;
+  return (
+    <SportPress
+      style={[styles.star, { width }]}
+      onPress={() => push(playerHref(me, player.profile.id))}
+      accessibilityLabel={`${starKicker(reason)}: ${player.profile.displayName}`}
+    >
+      <View style={styles.starGlow} pointerEvents="none" />
+      <View style={styles.starPhoto} pointerEvents="none">
+        <InitialsMark name={player.profile.displayName} avatarKey={player.profile.avatarKey} photoUrl={player.profile.photoUrl} size={150} fontSize={56} />
+      </View>
+      <T variant="display" style={styles.starIndex} pointerEvents="none">
+        {index + 1}
+      </T>
+      <View style={styles.starBody}>
+        <View style={styles.kicker}>
+          <Ionicons name="star" size={11} color={colors.ink} />
+          <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
+            {starKicker(reason)}
+          </T>
+        </View>
+        <View>
+          <T variant="display" style={styles.starName} numberOfLines={1} adjustsFontSizeToFit>
+            {firstName(player.profile.displayName)}
+          </T>
+          {rest ? (
+            <T variant="strong" color={colors.muted} style={styles.starLast} numberOfLines={1}>
+              {rest}
+            </T>
+          ) : null}
+        </View>
+        <View style={styles.starStats}>
+          <Stat value={player.rating} label="Elo" format={(n) => elo(Math.round(n))} />
+          {reason === 'top' ? (
+            <View>
+              <T variant="display" style={styles.starNum}>
+                {pct(player.winRate)}
+              </T>
+              <T variant="tiny" color={colors.accentText} style={{ fontSize: 10 }}>
+                Victorias
+              </T>
+            </View>
+          ) : (
+            <Stat value={player.windowWins} label={reason === 'week' ? 'Victorias · semana' : 'Victorias · mes'} />
+          )}
+          {player.place ? <Stat value={player.place} label="Ranking" format={(n) => `#${Math.round(n)}`} /> : null}
+        </View>
+        <View style={styles.chips}>
+          {hot ? (
+            <View style={[styles.chip, { backgroundColor: colors.red }]}>
+              <Ionicons name="flame" size={11} color={colors.redInk} />
+              <T variant="tiny" color={colors.redInk} style={{ fontSize: 10 }}>
+                Racha de {player.streak.count} victorias
+              </T>
+            </View>
+          ) : null}
+          {reason !== 'top' && player.windowDelta > 0 ? (
+            <View style={[styles.chip, { backgroundColor: colors.yellow }]}>
+              <Ionicons name="trending-up" size={11} color={colors.ink} />
+              <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
+                {signed(Math.round(player.windowDelta))} Elo
+              </T>
+            </View>
+          ) : null}
+          <FormDots form={player.form} size={15} />
+        </View>
+      </View>
+      <T variant="tiny" color={colors.faint} style={styles.starCount} pointerEvents="none">
+        {index + 1} / {total}
+      </T>
+    </SportPress>
+  );
+}
+
+function Stat({ value, label, format = (n) => String(Math.round(n)) }: { value: number; label: string; format?: (n: number) => string }) {
+  return (
+    <View>
+      <CountRoll value={value} format={format}>
+        {(shown) => (
+          <T variant="display" style={styles.starNum}>
+            {shown}
+          </T>
+        )}
+      </CountRoll>
+      <T variant="tiny" color={colors.accentText} style={{ fontSize: 10 }}>
+        {label}
+      </T>
+    </View>
+  );
+}
+
+export function StarsCarousel({ board, me }: { board: BillboardSnapshot; me: string }) {
+  const width = useCardWidth();
+  const [page, setPage] = useState(0);
+  if (!board.stars.length) {
     return (
-      <SportPress style={[styles.hero, styles.heroEmpty]} onPress={() => push('/jugar')} accessibilityLabel="Registrar partido">
+      <SportPress style={[styles.star, styles.starEmpty]} onPress={() => push('/jugar')} accessibilityLabel="Registrar partido">
         <T variant="label" color={colors.accentText}>
-          Estrella de la semana
+          Las estrellas
         </T>
         <T variant="display" style={styles.emptyTitle}>
           Tu nombre puede estar aquí
@@ -70,118 +199,130 @@ export function StarHero({ board, me }: { board: BillboardSnapshot; me: string }
       </SportPress>
     );
   }
-  const { player, reason } = board.star;
-  const rest = lastNames(player.profile.displayName);
-  const hot = player.streak.type === 'win' && player.streak.count >= 2;
+  const step = width + GAP;
   return (
-    <SportPress
-      style={styles.hero}
-      onPress={() => push(playerHref(me, player.profile.id))}
-      accessibilityLabel={`${starKicker(reason)}: ${player.profile.displayName}`}
-    >
-      <View style={styles.heroGlow} pointerEvents="none" />
-      <View style={[styles.heroPhoto, styles.heroClip]} pointerEvents="none">
-        <InitialsMark
-          name={player.profile.displayName}
-          avatarKey={player.profile.avatarKey}
-          photoUrl={player.profile.photoUrl}
-          size={170}
-          fontSize={64}
-        />
-      </View>
-      <View style={styles.heroBody}>
-        <View style={styles.kicker}>
-          <Ionicons name="star" size={12} color={colors.ink} />
-          <T variant="tiny" color={colors.ink}>
-            {starKicker(reason)}
-          </T>
+    <View style={styles.block}>
+      <TileHead title="Las estrellas" icon="star" action="Ranking" onAction={() => push('/ranking')} />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={step}
+        decelerationRate="fast"
+        style={styles.bleed}
+        contentContainerStyle={styles.bleedContent}
+        scrollEventThrottle={32}
+        onScroll={(event) => setPage(Math.round(event.nativeEvent.contentOffset.x / step))}
+      >
+        {board.stars.map((star, index) => (
+          <StarCard key={star.player.profile.id} star={star} index={index} total={board.stars.length} me={me} width={width} />
+        ))}
+      </ScrollView>
+      {board.stars.length > 1 ? (
+        <View style={styles.dots}>
+          {board.stars.map((star, index) => (
+            <View key={star.player.profile.id} style={[styles.dot, index === Math.min(page, board.stars.length - 1) && styles.dotOn]} />
+          ))}
         </View>
-        <T variant="display" style={styles.heroName} numberOfLines={1} adjustsFontSizeToFit>
-          {firstName(player.profile.displayName)}
+      ) : null}
+    </View>
+  );
+}
+
+/* ---------- Accesos rápidos: cuatro fichas cuadradas ---------- */
+
+export function QuickRow({ items }: { items: { title: string; en?: string; icon: BrandIconName; color: string; ink: string; onPress: () => void }[] }) {
+  const lang = useLang();
+  return (
+    <View style={styles.quickRow}>
+      {items.map((item) => (
+        <SportPress key={item.title} style={[styles.quick, { backgroundColor: item.color }]} onPress={item.onPress} accessibilityLabel={item.title}>
+          <BrandIcon name={item.icon} size={22} color={item.ink} />
+          <T variant="title" color={item.ink} style={styles.quickTitle} numberOfLines={1} adjustsFontSizeToFit>
+            {lang === 'en' && item.en ? item.en : item.title}
+          </T>
+        </SportPress>
+      ))}
+    </View>
+  );
+}
+
+/* ---------- Patrocinios (anuncios de la casa por ahora) ---------- */
+
+function openSponsor(slot: SponsorSlot) {
+  if (!slot.href) return;
+  if (/^https?:\/\//.test(slot.href)) void Linking.openURL(slot.href);
+  else push(slot.href as Href);
+}
+
+function SponsorTag() {
+  return (
+    <View style={styles.sponsorTag}>
+      <T variant="tiny" color={colors.faint} style={{ fontSize: 9 }}>
+        Patrocinado
+      </T>
+    </View>
+  );
+}
+
+export function SponsorBanner({ slot }: { slot: SponsorSlot }) {
+  return (
+    <SportPress style={styles.sponsorBanner} onPress={slot.href ? () => openSponsor(slot) : undefined} accessibilityLabel={`Patrocinado: ${slot.title}`}>
+      {slot.imageUrl ? <SponsorImage uri={slot.imageUrl} /> : <View style={styles.sponsorStripes} pointerEvents="none" />}
+      <SponsorTag />
+      <View style={styles.sponsorIcon}>
+        <Ionicons name="megaphone" size={22} color={colors.ink} />
+      </View>
+      <View style={{ flex: 1, gap: space.xs }}>
+        <T variant="display" style={styles.sponsorTitle} numberOfLines={1}>
+          {slot.title}
         </T>
-        {rest ? (
-          <T variant="title" color={colors.muted} style={styles.heroLast} numberOfLines={1}>
-            {rest}
+        {slot.body ? (
+          <T variant="body" color={colors.muted} style={[styles.plain, { fontSize: 13 }]} numberOfLines={2}>
+            {slot.body}
           </T>
         ) : null}
-        <View style={styles.heroStats}>
-          <View>
-            <CountRoll value={player.rating} format={(n) => elo(Math.round(n))}>
-              {(shown) => (
-                <T variant="display" style={styles.heroNum}>
-                  {shown}
-                </T>
-              )}
-            </CountRoll>
-            <T variant="tiny" color={colors.accentText}>
-              Elo
+        {slot.cta ? (
+          <View style={styles.sponsorCta}>
+            <T variant="tiny" color={colors.text} style={{ fontSize: 10 }}>
+              {slot.cta}
             </T>
           </View>
-          {reason !== 'top' ? (
-            <View>
-              <CountRoll value={player.windowWins} format={(n) => String(Math.round(n))}>
-                {(shown) => (
-                  <T variant="display" style={styles.heroNum}>
-                    {shown}
-                  </T>
-                )}
-              </CountRoll>
-              <T variant="tiny" color={colors.accentText}>
-                {reason === 'week' ? 'Victorias · semana' : 'Victorias · mes'}
-              </T>
-            </View>
-          ) : (
-            <View>
-              <T variant="display" style={styles.heroNum}>
-                {pct(player.winRate)}
-              </T>
-              <T variant="tiny" color={colors.accentText}>
-                Victorias
-              </T>
-            </View>
-          )}
-        </View>
-        <View style={styles.chips}>
-          {player.place ? (
-            <View style={styles.chipLight}>
-              <T variant="tiny" color={colors.text}>
-                #{player.place} Ranking
-              </T>
-            </View>
-          ) : null}
-          {hot ? (
-            <View style={styles.chipHot}>
-              <Ionicons name="flame" size={12} color={colors.redInk} />
-              <T variant="tiny" color={colors.redInk}>
-                Racha de {player.streak.count} victorias
-              </T>
-            </View>
-          ) : null}
-          {reason !== 'top' && player.windowDelta > 0 ? (
-            <View style={styles.chipUp}>
-              <Ionicons name="trending-up" size={12} color={colors.ink} />
-              <T variant="tiny" color={colors.ink}>
-                {signed(Math.round(player.windowDelta))} Elo
-              </T>
-            </View>
-          ) : null}
-        </View>
-        <FormDots form={player.form} />
+        ) : null}
       </View>
     </SportPress>
   );
 }
 
-function cupStatus(item: BillboardTournament): string {
-  return item.tournament.status === 'in_progress' ? 'En juego' : 'Finalizado';
+function SponsorImage({ uri }: { uri: string }) {
+  return <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} />;
 }
 
-export function HotCups({ items }: { items: BillboardTournament[] }) {
-  if (!items.length) return null;
+export function SponsorTile({ slot, style }: { slot: SponsorSlot; style?: StyleProp<ViewStyle> }) {
   return (
-    <>
-      <SectionHead title="Torneos más calientes" action="Ver todos" onAction={() => push('/torneos')} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel} style={styles.carouselWrap}>
+    <SportPress style={[styles.tile, styles.sponsorTile, style]} onPress={slot.href ? () => openSponsor(slot) : undefined} accessibilityLabel={`Patrocinado: ${slot.title}`}>
+      {slot.imageUrl ? <SponsorImage uri={slot.imageUrl} /> : null}
+      <SponsorTag />
+      <Ionicons name={slot.placement === 'tournament' || /torneo/i.test(slot.title) ? 'trophy-outline' : 'megaphone-outline'} size={24} color={colors.accentText} />
+      <T variant="title" style={{ fontSize: 16, lineHeight: 18 }} numberOfLines={2}>
+        {slot.title}
+      </T>
+      {slot.body ? (
+        <T variant="tiny" color={colors.muted}>
+          {slot.body}
+        </T>
+      ) : null}
+    </SportPress>
+  );
+}
+
+/* ---------- Torneos más calientes (con un torneo patrocinado al final) ---------- */
+
+export function HotCups({ items, sponsored }: { items: BillboardTournament[]; sponsored: SponsorSlot[] }) {
+  if (!items.length && !sponsored.length) return null;
+  return (
+    <View style={styles.block}>
+      <TileHead title="Torneos más calientes" icon="flame" action="Ver todos" onAction={() => push('/torneos')} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.bleedContent}>
         {items.map((item) => {
           const live = item.tournament.status === 'in_progress';
           const who = item.champion ?? item.leader;
@@ -193,330 +334,281 @@ export function HotCups({ items }: { items: BillboardTournament[] }) {
               accessibilityLabel={item.tournament.name}
             >
               <View style={styles.cupTop}>
-                <Shield letters={monogram(item.tournament.name)} photoUrl={item.tournament.photoUrl} size={44} />
-                <View style={[styles.status, live ? styles.statusLive : styles.statusDone]}>
-                  {live ? <View style={styles.liveDot} /> : <Ionicons name="trophy" size={10} color={colors.ink} />}
-                  <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
-                    {cupStatus(item)}
+                <Shield letters={monogram(item.tournament.name)} photoUrl={item.tournament.photoUrl} size={36} />
+                <View style={[styles.status, { backgroundColor: live ? colors.yellow : colors.gold }]}>
+                  {live ? <View style={styles.liveDot} /> : <Ionicons name="trophy" size={9} color={colors.ink} />}
+                  <T variant="tiny" color={colors.ink} style={{ fontSize: 9 }}>
+                    {live ? 'En juego' : 'Finalizado'}
                   </T>
                 </View>
               </View>
               <T variant="title" numberOfLines={2} style={styles.cupName}>
                 {item.tournament.name}
               </T>
-              <T variant="tiny" color={colors.muted} numberOfLines={1}>
+              <T variant="tiny" color={colors.muted} numberOfLines={1} style={{ fontSize: 10 }}>
                 {item.groupName}
               </T>
-              <View style={styles.cupMeta}>
-                <T variant="tiny" color={colors.accentText}>
-                  {item.tournament.playerIds.length} jugadores
-                </T>
-                <T variant="tiny" color={colors.accentText}>
-                  {item.played} partidos
-                </T>
-              </View>
+              <T variant="tiny" color={colors.accentText} style={{ fontSize: 10 }}>
+                {item.tournament.playerIds.length} jugadores · {item.played} partidos
+              </T>
               {who ? (
                 <View style={styles.cupWho}>
-                  <InitialsMark name={who.displayName} avatarKey={who.avatarKey} photoUrl={who.photoUrl} size={26} fontSize={11} />
-                  <View style={{ flex: 1 }}>
-                    <T variant="tiny" color={colors.faint} style={{ fontSize: 9 }}>
-                      {item.champion ? 'Campeón' : 'Va primero'}
-                    </T>
-                    <T variant="strong" numberOfLines={1} style={{ fontSize: 14 }}>
-                      {firstName(who.displayName)}
-                    </T>
-                  </View>
+                  <InitialsMark name={who.displayName} avatarKey={who.avatarKey} photoUrl={who.photoUrl} size={22} fontSize={10} />
+                  <T variant="tiny" color={colors.faint} style={{ fontSize: 9 }}>
+                    {item.champion ? 'Campeón' : 'Va primero'}
+                  </T>
+                  <T variant="strong" numberOfLines={1} style={{ fontSize: 13, flex: 1 }}>
+                    {firstName(who.displayName)}
+                  </T>
                 </View>
               ) : (
-                <T variant="tiny" color={colors.faint} style={styles.plain}>
+                <T variant="tiny" color={colors.faint} style={[styles.plain, styles.cupWho]}>
                   Todavía sin partidos confirmados
                 </T>
               )}
             </SportPress>
           );
         })}
+        {sponsored.map((slot) => (
+          <SponsorTile key={slot.id} slot={slot} style={styles.cup} />
+        ))}
       </ScrollView>
-    </>
+    </View>
   );
 }
 
-export function TopBoard({ board, me }: { board: BillboardSnapshot; me: string }) {
-  if (!board.top.length) return null;
-  const up = new Map(board.movers.map((item) => [item.profile.id, item.windowDelta]));
+/* ---------- Bento: top 5, los que más suben, rachas ---------- */
+
+function MiniRow({ player, me, left, right, accent }: { player: BillboardPlayer; me: string; left?: string; right: string; accent?: boolean }) {
   return (
-    <>
-      <SectionHead title="Top del ranking" action="Ranking" onAction={() => push('/ranking')} />
-      <View style={styles.board}>
-        {board.top.map((player, index) => {
-          const delta = up.get(player.profile.id);
-          const mine = player.profile.id === me;
+    <SportPress style={styles.mini} onPress={() => push(playerHref(me, player.profile.id))} accessibilityLabel={player.profile.displayName}>
+      {left ? (
+        <T variant="display" style={[styles.miniPlace, accent && { color: colors.accentText }]}>
+          {left}
+        </T>
+      ) : null}
+      <InitialsMark name={player.profile.displayName} avatarKey={player.profile.avatarKey} photoUrl={player.profile.photoUrl} size={26} fontSize={10} />
+      <T variant="strong" numberOfLines={1} style={styles.miniName}>
+        {player.profile.id === me ? 'Tú' : firstName(player.profile.displayName)}
+      </T>
+      <T variant="title" style={[styles.miniValue, accent && { color: colors.accentText }]}>
+        {right}
+      </T>
+    </SportPress>
+  );
+}
+
+export function TopTile({ board, me, style }: { board: BillboardSnapshot; me: string; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[styles.tile, style]}>
+      <TileHead title="Top ranking" icon="podium" action="Ver" onAction={() => push('/ranking')} />
+      <View style={styles.miniList}>
+        {board.top.map((player, index) => (
+          <MiniRow key={player.profile.id} player={player} me={me} left={String(index + 1)} right={elo(player.rating)} accent={index === 0} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function MoversTile({ board, me, style }: { board: BillboardSnapshot; me: string; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[styles.tile, style]}>
+      <TileHead title="En alza" icon="trending-up" />
+      <View style={styles.miniList}>
+        {board.movers.map((player) => (
+          <MiniRow key={player.profile.id} player={player} me={me} right={signed(Math.round(player.windowDelta))} accent />
+        ))}
+      </View>
+      <T variant="tiny" color={colors.faint} style={{ fontSize: 9 }}>
+        {board.windowDays <= 7 ? 'Elo · últimos 7 días' : 'Elo · últimos 30 días'}
+      </T>
+    </View>
+  );
+}
+
+export function StreaksTile({ board, me, style }: { board: BillboardSnapshot; me: string; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[styles.tile, style]}>
+      <TileHead title="Rachas" icon="flame" />
+      <View style={styles.miniList}>
+        {board.streaks.slice(0, 3).map((player) => (
+          <MiniRow key={player.profile.id} player={player} me={me} right={String(player.streak.count)} accent />
+        ))}
+      </View>
+      <T variant="tiny" color={colors.faint} style={{ fontSize: 9 }}>
+        Victorias seguidas
+      </T>
+    </View>
+  );
+}
+
+/* ---------- Resultados recientes: cuadrícula de 2 ---------- */
+
+export function ResultsGrid({ board }: { board: BillboardSnapshot }) {
+  if (!board.results.length) return null;
+  return (
+    <View style={styles.block}>
+      <TileHead title="Resultados recientes" icon="football" />
+      <View style={styles.grid2}>
+        {board.results.map(({ match, label }) => {
+          const a = board.people[match.playerAId];
+          const b = board.people[match.playerBId];
+          const aWon = !match.isDraw && match.winnerId === match.playerAId;
+          const bWon = !match.isDraw && match.winnerId === match.playerBId;
           return (
-            <Rise key={player.profile.id} index={Math.min(index + 2, 7)}>
-              <SportPress
-                style={[styles.row, index === 0 && styles.rowFirst, mine && styles.rowMine]}
-                onPress={() => push(playerHref(me, player.profile.id))}
-                accessibilityLabel={`${index + 1}. ${player.profile.displayName}`}
-              >
-                <T variant="display" style={[styles.place, index === 0 && { color: colors.accentText }]}>
-                  {index + 1}
-                </T>
-                <InitialsMark name={player.profile.displayName} avatarKey={player.profile.avatarKey} photoUrl={player.profile.photoUrl} size={index === 0 ? 46 : 38} />
-                <View style={styles.rowBody}>
-                  <T variant="strong" numberOfLines={1} style={index === 0 ? { fontSize: 18 } : null}>
-                    {player.profile.displayName}
-                  </T>
-                  <T variant="tiny" color={colors.muted}>
-                    {player.wins} V · {player.draws} E · {player.losses} D
+            <SportPress key={match.id} style={[styles.tile, styles.result]} onPress={() => push(`/partido/${match.id}`)} accessibilityLabel={`${a?.displayName ?? ''} ${b?.displayName ?? ''}`}>
+              <View style={styles.resultFace}>
+                <Side name={a?.displayName ?? '—'} avatarKey={a?.avatarKey ?? 'rayo'} photoUrl={a?.photoUrl} won={aWon} />
+                <View style={styles.resultScore}>
+                  <T variant="display" style={styles.resultNum}>
+                    {match.goalsA != null && match.goalsB != null ? `${match.goalsA}–${match.goalsB}` : match.isDraw ? '=' : 'FT'}
                   </T>
                 </View>
-                {delta ? (
-                  <View style={styles.delta}>
-                    <Ionicons name="caret-up" size={10} color={colors.up} />
-                    <T variant="tiny" color={colors.up}>
-                      {Math.round(delta)}
-                    </T>
-                  </View>
-                ) : null}
-                <T variant="display" style={styles.rowElo}>
-                  {elo(player.rating)}
-                </T>
-              </SportPress>
-            </Rise>
+                <Side name={b?.displayName ?? '—'} avatarKey={b?.avatarKey ?? 'rayo'} photoUrl={b?.photoUrl} won={bWon} />
+              </View>
+              <T variant="tiny" color={colors.muted} numberOfLines={1} style={{ fontSize: 9, textAlign: 'center' }}>
+                {[label, match.confirmedAt ? formatWhen(match.confirmedAt) : null].filter(Boolean).join(' · ')}
+              </T>
+            </SportPress>
           );
         })}
       </View>
-      {board.movers.length ? (
-        <T variant="tiny" color={colors.faint} style={styles.plain}>
-          {board.windowDays <= 7 ? 'La flecha verde es el Elo que sumó en los últimos 7 días.' : 'La flecha verde es el Elo que sumó en los últimos 30 días.'}
+    </View>
+  );
+}
+
+function Side({ name, avatarKey, photoUrl, won }: { name: string; avatarKey: string; photoUrl?: string | null; won: boolean }) {
+  return (
+    <View style={styles.side}>
+      <View style={[styles.sideRing, won && { borderColor: colors.yellow }]}>
+        <InitialsMark name={name} avatarKey={avatarKey} photoUrl={photoUrl} size={34} fontSize={12} />
+      </View>
+      <T variant="tiny" color={won ? colors.accentText : colors.text} style={{ fontSize: 10 }}>
+        {tagOf(name)}
+      </T>
+    </View>
+  );
+}
+
+/* ---------- Grupos más reñidos ---------- */
+
+export function RivalryTile({ items, me, style }: { items: BillboardRivalry[]; me: string; style?: StyleProp<ViewStyle> }) {
+  const item = items[0];
+  if (!item) return null;
+  return (
+    <SportPress style={[styles.tile, style]} onPress={() => push(`/grupo/${item.group.id}`)} accessibilityLabel={item.group.name}>
+      <TileHead title="Grupo más reñido" icon="flash" />
+      <View style={styles.rivalryHead}>
+        <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} size={22} />
+        <T variant="strong" numberOfLines={1} style={{ flex: 1, fontSize: 13 }}>
+          {item.group.name}
         </T>
-      ) : null}
-    </>
-  );
-}
-
-export function Movers({ board, me }: { board: BillboardSnapshot; me: string }) {
-  if (!board.movers.length) return null;
-  return (
-    <>
-      <SectionHead title="Los que más suben" />
-      <View style={styles.movers}>
-        {board.movers.map((player) => (
-          <SportPress key={player.profile.id} style={styles.mover} onPress={() => push(playerHref(me, player.profile.id))} accessibilityLabel={player.profile.displayName}>
-            <InitialsMark name={player.profile.displayName} avatarKey={player.profile.avatarKey} photoUrl={player.profile.photoUrl} size={44} />
-            <T variant="strong" numberOfLines={1} style={{ fontSize: 14 }}>
-              {firstName(player.profile.displayName)}
-            </T>
-            <View style={styles.moverUp}>
-              <Ionicons name="trending-up" size={14} color={colors.ink} />
-              <CountRoll value={Math.round(player.windowDelta)} format={(n) => signed(Math.round(n))}>
-                {(shown) => (
-                  <T variant="title" color={colors.ink} style={{ fontSize: 16 }}>
-                    {shown}
-                  </T>
-                )}
-              </CountRoll>
-            </View>
-            <T variant="tiny" color={colors.faint} style={{ fontSize: 9 }}>
-              {windowLabel(board.windowDays)}
-            </T>
-          </SportPress>
-        ))}
       </View>
-    </>
-  );
-}
-
-export function RecentResults({ board }: { board: BillboardSnapshot }) {
-  if (!board.results.length) return null;
-  return (
-    <>
-      <SectionHead title="Resultados recientes" />
-      {board.results.map(({ match, label }, index) => {
-        const a = board.people[match.playerAId];
-        const b = board.people[match.playerBId];
-        const winner = match.isDraw || !match.winnerId ? null : board.people[match.winnerId];
-        const pieces = [
-          label,
-          winner ? `Ganó ${firstName(winner.displayName)}` : 'Empate',
-          match.confirmedAt ? formatWhen(match.confirmedAt) : null,
-        ].filter(Boolean);
-        return (
-          <Rise key={match.id} index={Math.min(index + 1, 7)}>
-            <ScoreBar
-              leftTag={tagOf(a?.displayName ?? '—')}
-              rightTag={tagOf(b?.displayName ?? '—')}
-              leftPhoto={a?.photoUrl}
-              rightPhoto={b?.photoUrl}
-              score={scoreText(match.goalsA, match.goalsB) ?? (match.isDraw ? '=' : 'FT')}
-              onPress={() => push(`/partido/${match.id}`)}
-              note={pieces.join(' · ')}
-            />
-          </Rise>
-        );
-      })}
-    </>
-  );
-}
-
-export function Streaks({ board, me }: { board: BillboardSnapshot; me: string }) {
-  if (!board.streaks.length) return null;
-  return (
-    <>
-      <SectionHead title="Rachas encendidas" />
-      <View style={styles.board}>
-        {board.streaks.map((player) => (
-          <SportPress key={player.profile.id} style={styles.row} onPress={() => push(playerHref(me, player.profile.id))} accessibilityLabel={player.profile.displayName}>
-            <View style={styles.flame}>
-              <Ionicons name="flame" size={18} color={colors.redInk} />
-            </View>
-            <InitialsMark name={player.profile.displayName} avatarKey={player.profile.avatarKey} photoUrl={player.profile.photoUrl} size={36} />
-            <View style={styles.rowBody}>
-              <T variant="strong" numberOfLines={1}>
-                {player.profile.displayName}
-              </T>
-              <T variant="tiny" color={colors.muted}>
-                Mejor racha: {player.bestWinStreak}
-              </T>
-            </View>
-            <T variant="display" style={styles.rowElo}>
-              {player.streak.count}
-            </T>
-            <T variant="tiny" color={colors.accentText}>
-              Seguidas
-            </T>
-          </SportPress>
-        ))}
-      </View>
-    </>
-  );
-}
-
-export function Rivalries({ items, me }: { items: BillboardRivalry[]; me: string }) {
-  if (!items.length) return null;
-  return (
-    <>
-      <SectionHead title="Grupos más reñidos" />
-      {items.map((item) => (
-        <SportPress key={item.group.id} style={styles.rivalry} onPress={() => push(`/grupo/${item.group.id}`)} accessibilityLabel={item.group.name}>
-          <View style={styles.rivalryHead}>
-            <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} size={28} />
-            <T variant="strong" numberOfLines={1} style={{ flex: 1 }}>
-              {item.group.name}
-            </T>
-            <T variant="tiny" color={colors.accentText}>
-              {Math.round(item.gap)} Elo de diferencia
-            </T>
-          </View>
-          <View style={styles.rivalryFace}>
-            {[item.first, item.second].map((player, index) => (
-              <View key={player.profile.id} style={[styles.rivalrySide, index === 1 && { alignItems: 'flex-end' }]}>
-                <T variant="tiny" color={index === 0 ? colors.accentText : colors.faint}>
-                  {index === 0 ? '1.º' : '2.º'}
-                </T>
-                <T variant="title" numberOfLines={1} style={{ fontSize: 18 }}>
-                  {player.profile.id === me ? 'Tú' : firstName(player.profile.displayName)}
-                </T>
-                <T variant="tiny" color={colors.muted}>
-                  {elo(player.rating)} Elo
-                </T>
-              </View>
-            ))}
-            <T variant="display" style={styles.vs}>
-              VS
-            </T>
-          </View>
-        </SportPress>
+      {[item.first, item.second].map((player, index) => (
+        <View key={player.profile.id} style={styles.mini}>
+          <T variant="display" style={[styles.miniPlace, index === 0 && { color: colors.accentText }]}>
+            {index + 1}
+          </T>
+          <InitialsMark name={player.profile.displayName} avatarKey={player.profile.avatarKey} photoUrl={player.profile.photoUrl} size={26} fontSize={10} />
+          <T variant="strong" numberOfLines={1} style={styles.miniName}>
+            {player.profile.id === me ? 'Tú' : firstName(player.profile.displayName)}
+          </T>
+          <T variant="title" style={styles.miniValue}>
+            {elo(player.rating)}
+          </T>
+        </View>
       ))}
-    </>
+      <View style={[styles.chip, { backgroundColor: colors.yellow, alignSelf: 'flex-start' }]}>
+        <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
+          {Math.round(item.gap)} Elo de diferencia
+        </T>
+      </View>
+    </SportPress>
   );
 }
+
+const cardBase = { borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line } as const;
 
 const styles = StyleSheet.create({
   plain: { textTransform: 'none', letterSpacing: 0 },
-  hero: {
-    minHeight: 260,
-    borderRadius: 22,
-    overflow: 'hidden',
-    backgroundColor: colors.navy,
-    borderWidth: 1,
-    borderColor: colors.line,
-    padding: 16,
-    justifyContent: 'flex-end',
-  },
-  heroEmpty: { gap: 10, justifyContent: 'center', minHeight: 220 },
-  emptyTitle: { fontSize: 34, lineHeight: 36, fontStyle: 'normal' },
-  cta: { alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, marginTop: 4 },
-  heroGlow: {
+  block: { gap: GAP },
+  bentoRow: { flexDirection: 'row', gap: GAP, alignItems: 'stretch' },
+  bleed: { marginHorizontal: -space.lg },
+  bleedContent: { paddingHorizontal: space.lg, gap: GAP },
+  tileHead: { flexDirection: 'row', alignItems: 'center', gap: space.xs + 2, minHeight: 20 },
+  tileTitle: { flex: 1, fontSize: 12 },
+  tile: { ...cardBase, flex: 1, padding: space.md, gap: GAP },
+  /* estrellas */
+  star: { ...cardBase, minHeight: 232, overflow: 'hidden', backgroundColor: colors.navy, padding: space.lg, justifyContent: 'flex-end', borderRadius: 22 },
+  starEmpty: { gap: space.sm, justifyContent: 'center', minHeight: 200 },
+  emptyTitle: { fontSize: 30, lineHeight: 32, fontStyle: 'normal' },
+  cta: { alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999 },
+  starGlow: {
     position: 'absolute',
-    right: -60,
-    top: -60,
-    width: 260,
-    height: 260,
+    right: -50,
+    top: -50,
+    width: 230,
+    height: 230,
     borderRadius: 999,
     backgroundColor: colors.blue,
     opacity: web ? 0.35 : 0.16,
     ...(web ? ({ filter: 'blur(30px)' } as object) : null),
   },
-  heroPhoto: { position: 'absolute', right: -14, top: 14, opacity: 0.95 },
-  heroClip: { width: 170, height: 170, borderRadius: 85, overflow: 'hidden' },
-  heroBody: { gap: 6, maxWidth: '72%' },
-  kicker: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    alignSelf: 'flex-start',
-    backgroundColor: colors.yellow,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 999,
+  starPhoto: { position: 'absolute', right: -10, top: 12, width: 150, height: 150, borderRadius: 75, overflow: 'hidden' },
+  starIndex: { position: 'absolute', right: 132, top: 4, fontSize: 64, lineHeight: 70, fontStyle: 'normal', color: colors.accentText, opacity: 0.22 },
+  starCount: { position: 'absolute', right: space.lg, bottom: space.md, fontSize: 10 },
+  starBody: { gap: space.sm, maxWidth: '78%' },
+  kicker: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  starName: { fontSize: 46, lineHeight: 48, fontStyle: 'normal' },
+  starLast: { fontSize: 16, lineHeight: 18 },
+  starStats: { flexDirection: 'row', gap: space.lg },
+  starNum: { fontSize: 26, lineHeight: 28, fontStyle: 'normal' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.xs + 2 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  form: { flexDirection: 'row', gap: 3 },
+  formDot: { borderRadius: 5, alignItems: 'center', justifyContent: 'center' },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lineStrong },
+  dotOn: { width: 18, backgroundColor: colors.accentText },
+  /* accesos */
+  quickRow: { flexDirection: 'row', gap: GAP },
+  quick: { flex: 1, aspectRatio: 1, maxHeight: 96, borderRadius: 18, padding: space.sm + 2, justifyContent: 'space-between', borderWidth: 1, borderColor: colors.line },
+  quickTitle: { fontSize: 14, lineHeight: 16 },
+  /* patrocinios */
+  sponsorBanner: { ...cardBase, minHeight: 96, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, overflow: 'hidden', borderStyle: 'dashed', borderColor: colors.lineStrong, backgroundColor: colors.surface },
+  sponsorStripes: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    opacity: 0.5,
+    ...(web ? ({ backgroundImage: 'repeating-linear-gradient(-45deg, transparent 0 14px, rgba(255,255,255,0.04) 14px 28px)' } as object) : null),
   },
-  heroName: { fontSize: 54, lineHeight: 56, fontStyle: 'normal', marginTop: 4 },
-  heroLast: { fontSize: 20, marginTop: -6 },
-  heroStats: { flexDirection: 'row', gap: 22, marginTop: 6 },
-  heroNum: { fontSize: 34, lineHeight: 36, fontStyle: 'normal' },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
-  chipLight: { borderWidth: 1, borderColor: colors.lineStrong, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
-  chipHot: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.red, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
-  chipUp: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
-  form: { flexDirection: 'row', gap: 4, marginTop: 4 },
-  formDot: { borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  carouselWrap: { marginHorizontal: -16 },
-  carousel: { paddingHorizontal: 16, gap: 10 },
-  cup: { width: 210, minHeight: 200, padding: 14, gap: 6, borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line },
+  sponsorTag: { position: 'absolute', top: space.sm, right: space.sm, borderWidth: 1, borderColor: colors.line, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1 },
+  sponsorIcon: { width: 46, height: 46, borderRadius: 14, backgroundColor: colors.yellow, alignItems: 'center', justifyContent: 'center' },
+  sponsorTitle: { fontSize: 24, lineHeight: 26, fontStyle: 'normal' },
+  sponsorCta: { borderWidth: 1, borderColor: colors.lineStrong, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: space.xs },
+  sponsorTile: { borderStyle: 'dashed', borderColor: colors.lineStrong, justifyContent: 'flex-end', minHeight: 120 },
+  /* torneos */
+  cup: { ...cardBase, width: 168, minHeight: 168, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', padding: space.md, gap: space.xs },
   cupLive: { borderColor: colors.yellow },
-  cupTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  status: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 999 },
-  statusLive: { backgroundColor: colors.yellow },
-  statusDone: { backgroundColor: colors.gold },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.ink },
-  cupName: { fontSize: 20, lineHeight: 22 },
-  cupMeta: { flexDirection: 'row', gap: 10 },
-  cupWho: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 'auto' },
-  board: { gap: 6 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  rowFirst: { borderColor: colors.yellow, paddingVertical: 14 },
-  rowMine: { backgroundColor: colors.surface },
-  place: { width: 26, fontSize: 24, fontStyle: 'normal', textAlign: 'center' },
-  rowBody: { flex: 1, gap: 2 },
-  rowElo: { fontSize: 22, fontStyle: 'normal' },
-  delta: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  movers: { flexDirection: 'row', gap: 8 },
-  mover: { flex: 1, alignItems: 'center', gap: 6, padding: 12, borderRadius: 16, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line },
-  moverUp: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
-  flame: { width: 30, height: 30, borderRadius: 999, backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center' },
-  rivalry: { padding: 14, gap: 10, borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line },
-  rivalryHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rivalryFace: { flexDirection: 'row', alignItems: 'center' },
-  rivalrySide: { flex: 1, gap: 2 },
-  vs: { position: 'absolute', left: 0, right: 0, textAlign: 'center', fontSize: 22, fontStyle: 'normal', color: colors.faint },
+  cupTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.xs },
+  status: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999 },
+  liveDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.ink },
+  cupName: { fontSize: 16, lineHeight: 18 },
+  cupWho: { flexDirection: 'row', alignItems: 'center', gap: space.xs + 2, marginTop: 'auto' },
+  /* mini filas */
+  miniList: { gap: space.xs + 2 },
+  mini: { flexDirection: 'row', alignItems: 'center', gap: space.xs + 2, minHeight: 28 },
+  miniPlace: { width: 14, fontSize: 15, fontStyle: 'normal', textAlign: 'center' },
+  miniName: { flex: 1, fontSize: 13 },
+  miniValue: { fontSize: 14 },
+  /* resultados */
+  grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
+  result: { flexBasis: '48%', flexGrow: 1, padding: space.sm + 2, gap: space.xs + 2 },
+  resultFace: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  resultScore: { flex: 1, alignItems: 'center' },
+  resultNum: { fontSize: 24, lineHeight: 26, fontStyle: 'normal' },
+  side: { alignItems: 'center', gap: 2 },
+  sideRing: { borderWidth: 2, borderColor: 'transparent', borderRadius: 999, padding: 1, overflow: 'hidden' },
+  /* reñidos */
+  rivalryHead: { flexDirection: 'row', alignItems: 'center', gap: space.xs + 2 },
 });

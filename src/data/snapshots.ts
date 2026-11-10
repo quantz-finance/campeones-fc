@@ -153,6 +153,8 @@ export type BillboardSnapshot = {
   windowDays: number;
   /** Estrella: la de la semana (o del mes) si alguien ganó en la ventana; si no, el número 1 del ranking. */
   star: { player: BillboardPlayer; reason: 'week' | 'month' | 'top' } | null;
+  /** Las estrellas: hasta 5 (semana → mes → ranking), cada una con los datos de su ventana. */
+  stars: { player: BillboardPlayer; reason: 'week' | 'month' | 'top' }[];
   top: BillboardPlayer[];
   movers: BillboardPlayer[];
   streaks: BillboardPlayer[];
