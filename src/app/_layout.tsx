@@ -24,11 +24,17 @@ export default function RootLayout() {
   useEffect(() => startPwaUpdates(), []);
 
   // Web: Outfit autoalojada con un @font-face por peso (public/index.html). Nativo: la variable en assets.
-  const outfit = require('../../assets/fonts/Outfit-Variable.ttf');
+  // iOS no fija el peso de una fuente variable por familia: usamos un archivo estático por peso.
   const [loaded, error] = useFonts(
     Platform.OS === 'web'
       ? {}
-      : { Outfit_400: outfit, Outfit_500: outfit, Outfit_600: outfit, Outfit_700: outfit, Outfit_800: outfit },
+      : {
+          Outfit_400: require('../../assets/fonts/Outfit-400.ttf'),
+          Outfit_500: require('../../assets/fonts/Outfit-500.ttf'),
+          Outfit_600: require('../../assets/fonts/Outfit-600.ttf'),
+          Outfit_700: require('../../assets/fonts/Outfit-700.ttf'),
+          Outfit_800: require('../../assets/fonts/Outfit-800.ttf'),
+        },
   );
   const mode = useThemeMode();
 
