@@ -338,7 +338,7 @@ export function HotCups({ items, sponsored }: { items: BillboardTournament[]; sp
               accessibilityLabel={item.tournament.name}
             >
               <View style={styles.cupTop}>
-                <Shield letters={monogram(item.tournament.name)} photoUrl={item.tournament.photoUrl} size={36} />
+                <Shield letters={monogram(item.tournament.name)} photoUrl={item.tournament.photoUrl} kind="tournaments" id={item.tournament.id} logo={item.tournament.logo} size={40} />
                 <View style={[styles.status, { backgroundColor: live ? colors.yellow : colors.gold }]}>
                   {live ? <View style={styles.liveDot} /> : <Ionicons name="trophy" size={9} color={colors.ink} />}
                   <T variant="tiny" color={colors.ink} style={{ fontSize: 9 }}>
@@ -504,7 +504,7 @@ export function RivalryTile({ items, me, style }: { items: BillboardRivalry[]; m
     <SportPress style={[styles.tile, style]} onPress={() => push(`/grupo/${item.group.id}`)} accessibilityLabel={item.group.name}>
       <TileHead title="Grupo más reñido" icon="flash" />
       <View style={styles.rivalryHead}>
-        <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} size={22} />
+        <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} kind="groups" id={item.group.id} logo={item.group.logo} size={28} />
         <T variant="strong" numberOfLines={1} style={{ flex: 1, fontSize: 13 }}>
           {item.group.name}
         </T>

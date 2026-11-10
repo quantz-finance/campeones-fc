@@ -29,7 +29,7 @@ export default function Groups() {
             groups.map((item, index) => (
               <Rise key={item.group.id} index={index}>
               <Pressable style={styles.card} onPress={() => push(`/grupo/${item.group.id}`)}>
-                <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} />
+                <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} kind="groups" id={item.group.id} logo={item.group.logo} size={48} />
                 <View style={styles.flex}>
                   <T variant="title" style={{ fontStyle: 'normal' }} numberOfLines={1}>
                     {item.group.name}

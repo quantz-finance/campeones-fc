@@ -15,6 +15,7 @@ import {
   mutateReopen,
   mutateRespondFriend,
   mutateSendFriend,
+  mutateSetLogo,
   mutateSubmit,
   mutateUpdateProfile,
   searchUsers,
@@ -150,11 +151,14 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
     async groupsSnapshot(me) {
       return projectGroups(view(), me);
     },
-    createGroup(me, name, memberIds) {
+    createGroup(me, name, memberIds, logo) {
       return commit((world, at) => {
-        const group = mutateCreateGroup(world, me, name, memberIds, at);
+        const group = mutateCreateGroup(world, me, name, memberIds, at, logo);
         return { id: group.id };
       });
+    },
+    async setLogo(kind, targetId, logo, me) {
+      await commit((world) => mutateSetLogo(world, kind, targetId, logo, me));
     },
     async groupSnapshot(groupId, me) {
       return projectGroup(view(), groupId, me);
@@ -169,6 +173,7 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
             name: input.name,
             format: input.format,
             playerIds: input.playerIds,
+            logo: input.logo,
           },
           at,
         );

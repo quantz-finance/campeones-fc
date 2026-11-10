@@ -1,3 +1,4 @@
+import { isLogoId, type LogoKind } from '../content/crest-ids';
 import { cleanSocialLinks, type SocialLinks } from '../domain/social';
 import { avatars } from '../../config/branding';
 import { earnedAchievementCodes } from '../domain/achievements';
@@ -461,7 +462,7 @@ export function mutateRegisterDemo(db: World, email: string, now: Date): Profile
   return toProfile(user);
 }
 
-export function mutateCreateGroup(db: World, me: string, name: string, memberIds: string[], now: Date): Group {
+export function mutateCreateGroup(db: World, me: string, name: string, memberIds: string[], now: Date, logo?: string | null): Group {
   const trimmed = name.trim();
   if (trimmed.length < 3 || trimmed.length > rules.maxGroupName) {
     throw new DomainError('bad_name', 'El grupo necesita un nombre de 3 a 32 caracteres.');
@@ -471,7 +472,7 @@ export function mutateCreateGroup(db: World, me: string, name: string, memberIds
   for (const id of unique) {
     if (!areFriends(db, me, id)) throw new DomainError('not_friend', 'Solo puedes sumar a tus amigos.');
   }
-  const group: Group = { id: createId(), name: trimmed, createdBy: me, createdAt: now.toISOString() };
+  const group: Group = { id: createId(), name: trimmed, createdBy: me, createdAt: now.toISOString(), logo: isLogoId('groups', logo) ? logo : null };
   db.groups.push(group);
   const joinedAt = now.toISOString();
   db.groupMembers.push({ groupId: group.id, userId: me, role: 'owner', joinedAt });
@@ -487,6 +488,7 @@ export function mutateCreateTournament(
     name: string;
     format: 'single_elim' | 'round_robin';
     playerIds: string[];
+    logo?: string | null;
   },
   now: Date,
 ): Tournament {
@@ -522,6 +524,7 @@ export function mutateCreateTournament(
     winnerId: null,
     createdAt: now.toISOString(),
     playerIds: [...input.playerIds],
+    logo: isLogoId('tournaments', input.logo) ? input.logo : null,
   };
   const slots =
     input.format === 'single_elim'
@@ -608,4 +611,23 @@ export function searchUsers(db: World, query: string, me: string): Profile[] {
     )
     .slice(0, 8)
     .map(toProfile);
+}
+
+/** Elige escudo/trofeo del set (mismo permiso que las fotos: dueño del grupo o creador del torneo). Quita la foto. */
+export function mutateSetLogo(db: World, kind: LogoKind, targetId: string, logo: string, me: string): void {
+  if (!isLogoId(kind, logo)) throw new DomainError('bad_logo', 'Ese escudo no existe.');
+  if (kind === 'groups') {
+    const group = db.groups.find((item) => item.id === targetId);
+    if (!group) throw new DomainError('not_found', 'No encontramos el grupo.');
+    const owner = group.createdBy === me || db.groupMembers.some((m) => m.groupId === group.id && m.userId === me && m.role === 'owner');
+    if (!owner) throw new DomainError('forbidden', 'Solo quien administra el grupo puede cambiar el escudo.');
+    group.logo = logo;
+    group.photoUrl = null;
+    return;
+  }
+  const cup = db.tournaments.find((item) => item.id === targetId);
+  if (!cup) throw new DomainError('not_found', 'No encontramos el torneo.');
+  if (cup.createdBy !== me) throw new DomainError('forbidden', 'Solo quien creó el torneo puede cambiar el trofeo.');
+  cup.logo = logo;
+  cup.photoUrl = null;
 }

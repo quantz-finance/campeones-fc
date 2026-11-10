@@ -190,8 +190,8 @@ export default function PlayerPage() {
                   <View style={styles.wrap}>
                     {data.titles.map((cup) => (
                       <View key={cup.id} style={styles.trophy}>
-                        <Ionicons name="trophy" size={14} color={colors.ink} />
-                        <T variant="strong" color={colors.ink} style={{ fontSize: 13 }} numberOfLines={1}>
+                        <Shield letters="" photoUrl={cup.photoUrl} kind="tournaments" id={cup.id} logo={cup.logo} size={28} />
+                        <T variant="strong" color={colors.text} style={{ fontSize: 13 }} numberOfLines={1}>
                           {cup.name}
                         </T>
                       </View>
@@ -226,7 +226,7 @@ export default function PlayerPage() {
                   <View style={styles.list}>
                     {data.groups.map((group) => (
                       <SportPress key={group.id} style={styles.row} onPress={() => push(`/grupo/${group.id}`)} accessibilityRole="link" accessibilityLabel={group.name}>
-                        <Shield letters={monogram(group.name)} photoUrl={group.photoUrl} size={28} />
+                        <Shield letters={monogram(group.name)} photoUrl={group.photoUrl} kind="groups" id={group.id} logo={group.logo} size={32} />
                         <T variant="strong" style={styles.flex} numberOfLines={1}>
                           {group.name}
                         </T>
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   cellNum: { fontSize: 22, lineHeight: 26, fontStyle: 'normal' },
   actions: { flexDirection: 'row', gap: layout.button },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  trophy: { flexDirection: 'row', alignItems: 'center', gap: layout.inline, backgroundColor: colors.gold, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, maxWidth: '100%' },
+  trophy: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.card, borderWidth: 1, borderColor: 'rgba(212,175,55,0.55)', paddingLeft: space.xs, paddingRight: space.md, paddingVertical: space.xs, borderRadius: 999, maxWidth: '100%' },
   badge: { flexDirection: 'row', alignItems: 'center', gap: layout.inline, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   list: { gap: layout.card },
   album: { flexDirection: 'row', justifyContent: 'space-around', gap: space.sm },

@@ -5,14 +5,14 @@ import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { MatchRow } from '../../../ui/bits';
-import { BracketIcon, InitialsMark, SectionHead, Shield, SkewBlock } from '../../../ui/broadcast';
+import { InitialsMark, SectionHead, Shield, SkewBlock } from '../../../ui/broadcast';
 import { Button, Gate } from '../../../ui/controls';
-import { elo, firstName, monogram, tagOf } from '../../../ui/format';
+import { elo, firstName, tagOf } from '../../../ui/format';
 import { copyText, inviteUrl, openWhatsApp } from '../../../ui/share';
 import { Screen, Top } from '../../../ui/screen';
 import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
-import { PhotoButton } from '../../../ui/photo-button';
+import { LogoEditor } from '../../../ui/logo-picker';
 import { push } from '../../../ui/nav';
 
 export default function GroupDetail() {
@@ -51,12 +51,7 @@ export default function GroupDetail() {
                   </Pressable>
                 }
               />
-              <View style={styles.identity}>
-                <Shield letters={monogram(data.group.name)} photoUrl={data.group.photoUrl} />
-                {data.yourRole === 'owner' || data.group.createdBy === userId ? (
-                  <PhotoButton kind="groups" targetId={data.group.id} label="Foto del grupo" />
-                ) : null}
-              </View>
+              <LogoEditor kind="groups" entity={data.group} canEdit={data.yourRole === 'owner' || data.group.createdBy === userId} />
               <View style={styles.king}>
                 <View style={styles.kingLeft}>
                   <T variant="tiny" color={colors.ink}>
@@ -179,7 +174,7 @@ export default function GroupDetail() {
               ) : (
                 data.tournaments.map((tournament) => (
                   <Pressable key={tournament.id} style={styles.tour} onPress={() => push(`/torneo/${tournament.id}`)}>
-                    <BracketIcon size={18} color={colors.accentText} />
+                    <Shield letters="" photoUrl={tournament.photoUrl} kind="tournaments" id={tournament.id} logo={tournament.logo} size={36} />
                     <View style={styles.flex}>
                       <T variant="strong">{tournament.name}</T>
                       <T variant="tiny" color={colors.muted}>
@@ -207,7 +202,6 @@ function formOf(playerId: string, recent: Match[]): ('w' | 'd' | 'l')[] {
 }
 
 const styles = StyleSheet.create({
-  identity: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: -8 },
   king: { flexDirection: 'row', minHeight: 84, overflow: 'hidden' },
   kingLeft: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', transform: [{ skewX: '0deg' }], marginRight: -12, borderRadius: 14 },
   kingRight: { width: 110, backgroundColor: colors.navy, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 12, borderLeftWidth: 4, borderLeftColor: colors.red, borderRadius: 14 },

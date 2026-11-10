@@ -3,6 +3,7 @@ import type { SocialLinks } from '../domain/social';
 import type { Profile } from './types';
 import type { Notice } from './notices';
 import type { PhotoKind, PhotoPayload } from '../lib/photos';
+import type { LogoKind } from '../content/crest-ids';
 import type { ReportDraft } from '../domain/types';
 import type { Match } from '../domain/types';
 import type {
@@ -51,7 +52,10 @@ export type Repository = {
   personalSnapshot(me: string): Promise<PersonalSnapshot>;
   rankingSnapshot(me: string): Promise<RankingSnapshot>;
   groupsSnapshot(me: string): Promise<GroupSummary[]>;
-  createGroup(me: string, name: string, memberIds: string[]): Promise<{ id: string }>;
+  /** logo: id del set de escudos (opcional; si la base aún no tiene la columna, se ignora y queda el de por defecto). */
+  createGroup(me: string, name: string, memberIds: string[], logo?: string | null): Promise<{ id: string }>;
+  /** Elige el escudo (grupo) o trofeo (torneo) del set. Quita la foto subida. Solo dueño del grupo / creador del torneo. */
+  setLogo(kind: LogoKind, targetId: string, logo: string, me: string): Promise<void>;
   groupSnapshot(groupId: string, me: string): Promise<GroupSnapshot>;
   createTournament(input: {
     me: string;
@@ -59,6 +63,7 @@ export type Repository = {
     name: string;
     format: 'single_elim' | 'round_robin';
     playerIds: string[];
+    logo?: string | null;
   }): Promise<{ id: string }>;
   tournamentSnapshot(tournamentId: string, me: string): Promise<TournamentSnapshot>;
   reopenSlot(slotId: string, me: string): Promise<Match>;

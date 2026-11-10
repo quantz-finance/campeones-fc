@@ -101,6 +101,18 @@ function mapMatch(row: Row): Match {
   };
 }
 
+/** ¿La base todavía no tiene set_logo / la columna logo? (migración 20261113000000_entity_logos sin aplicar) */
+function logoRpcMissing(error: { code?: string; message?: string }): boolean {
+  return error.code === 'PGRST202' || error.code === '42883' || error.code === '42703' || /set_logo|column .*logo/i.test(error.message ?? '');
+}
+
+/** Al crear: guarda el logo si la base ya lo admite; si no, sigue sin error (se ve el de por defecto). */
+async function saveLogoSoft(kind: 'groups' | 'tournaments', id: string, logo: string): Promise<void> {
+  if (!id) return;
+  const { error } = await getSupabase().rpc('set_logo', { kind, target: id, logo });
+  if (error && !logoRpcMissing(error)) console.warn('[logo]', error.message);
+}
+
 async function pullWorld(userId: string): Promise<World> {
   const supabase = getSupabase();
   const [profiles, friendships, matches, reports, groups, members, tournaments, slots, achievements, invites] =
@@ -150,6 +162,8 @@ async function pullWorld(userId: string): Promise<World> {
       createdBy: asString(row.created_by),
       createdAt: asString(row.created_at),
       photoUrl: asNullable(row.photo_url),
+      // Sin la migración entity_logos la columna no viene: queda null y se usa el escudo por defecto.
+      logo: asNullable(row.logo),
     }),
   );
   world.groupMembers = ((members.data ?? []) as Row[]).map(
@@ -173,6 +187,7 @@ async function pullWorld(userId: string): Promise<World> {
       createdAt: asString(row.created_at),
       playerIds: Array.isArray(row.player_ids) ? row.player_ids.map(asString) : [],
       photoUrl: asNullable(row.photo_url),
+      logo: asNullable(row.logo),
     }),
   );
   world.slots = ((slots.data ?? []) as Row[]).map(
@@ -423,11 +438,21 @@ export function createSupabaseRepository(): Repository {
     async groupsSnapshot(me) {
       return projectGroups(await worldFor(me), me);
     },
-    async createGroup(_me, name, memberIds) {
+    async createGroup(_me, name, memberIds, logo) {
       const { data, error } = await supabase.rpc('create_group', { group_name: name, member_ids: memberIds });
       fail(error);
+      const id = asString(data);
+      if (logo) await saveLogoSoft('groups', id, logo);
       notify();
-      return { id: asString(data) };
+      return { id };
+    },
+    async setLogo(kind, targetId, logo) {
+      const { error } = await supabase.rpc('set_logo', { kind, target: targetId, logo });
+      if (error && logoRpcMissing(error)) {
+        throw new DomainError('logo_unavailable', 'Elegir escudo todavía no está activado. Mientras tanto se ve el de por defecto.');
+      }
+      fail(error);
+      notify();
     },
     async groupSnapshot(groupId, me) {
       return projectGroup(await worldFor(me), groupId, me);
@@ -440,8 +465,10 @@ export function createSupabaseRepository(): Repository {
         player_ids: input.playerIds,
       });
       fail(error);
+      const id = asString(data);
+      if (input.logo) await saveLogoSoft('tournaments', id, input.logo);
       notify();
-      return { id: asString(data) };
+      return { id };
     },
     async tournamentSnapshot(tournamentId, me) {
       return projectTournament(await worldFor(me), tournamentId, me);

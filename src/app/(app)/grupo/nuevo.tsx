@@ -9,6 +9,8 @@ import { Panel, Screen, Top } from '../../../ui/screen';
 import { colors, radius, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { replace } from '../../../ui/nav';
+import { defaultLogo } from '../../../content/crests';
+import { LogoPicker } from '../../../ui/logo-picker';
 
 export default function NewGroup() {
   const { repo, userId, version } = useApp();
@@ -17,6 +19,8 @@ export default function NewGroup() {
   const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Escudo inicial al azar (el usuario lo cambia en la cuadrícula).
+  const [logo, setLogo] = useState(() => defaultLogo('groups', String(Math.random())));
 
   function toggle(id: string) {
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
@@ -26,6 +30,9 @@ export default function NewGroup() {
     <Screen>
       <Top title="Nuevo grupo" kicker="Junta" back icon="friends" />
       <Field label="Nombre" value={name} onChangeText={setName} placeholder="La junta del viernes" autoCapitalize="sentences" />
+      <Panel>
+        <LogoPicker kind="groups" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
+      </Panel>
       <Gate query={friends}>
         {(data) => (
           <Panel>
@@ -54,7 +61,7 @@ export default function NewGroup() {
           setBusy(true);
           setError(null);
           void repo
-            .createGroup(userId!, name, selected)
+            .createGroup(userId!, name, selected, logo)
             .then((group) => {
               track('group_created');
               replace(`/grupo/${group.id}`);

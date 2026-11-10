@@ -1,3 +1,4 @@
+import { entityPhoto, logoSource, resolveLogo, type LogoKind } from '../content/crests';
 import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
@@ -548,21 +549,40 @@ export function Sticker({
   );
 }
 
-// Logo de grupo o torneo: sin caja, borde ni fondo. Con foto se ve solo el logo recortado (webp con
-// transparencia, contain); sin foto, solo las iniciales.
-export function Shield({ letters, photoUrl, size = 52 }: { letters: string; photoUrl?: string | null; size?: number }) {
+// Logo de grupo o torneo: sin caja, borde ni fondo. Orden: foto subida (recortada en el escudo, cover) →
+// escudo/trofeo elegido del set v5 → escudo/trofeo por defecto (determinista por id). Sin kind/id: iniciales.
+// Bajo 56 px usa la variante small del set (se lee mejor a 32–48 px).
+export function Shield({
+  letters,
+  photoUrl,
+  size = 52,
+  kind,
+  id,
+  logo,
+}: {
+  letters: string;
+  photoUrl?: string | null;
+  size?: number;
+  kind?: LogoKind;
+  id?: string;
+  logo?: string | null;
+}) {
+  const photo = kind ? entityPhoto(photoUrl) : photoUrl ?? null;
+  const art = kind && id ? resolveLogo(kind, id, logo) : null;
   return (
     <View style={[styles.shield, { width: size, height: size }]}>
-      {photoUrl ? (
+      {photo ? (
         <Image
-          source={{ uri: photoUrl }}
-          recyclingKey={photoUrl}
-          style={StyleSheet.absoluteFill}
-          contentFit="contain"
+          source={{ uri: photo }}
+          recyclingKey={photo}
+          style={[StyleSheet.absoluteFill, kind ? { borderRadius: size * 0.22 } : null]}
+          contentFit={kind ? 'cover' : 'contain'}
           cachePolicy="memory-disk"
           transition={180}
           accessible={false}
         />
+      ) : art ? (
+        <Image source={logoSource(art, size)} style={StyleSheet.absoluteFill} contentFit="contain" accessible={false} />
       ) : (
         <T variant="display" style={{ fontSize: Math.round(size * 0.42), color: colors.accentText }}>
           {letters}

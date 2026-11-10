@@ -1,5 +1,7 @@
 // Frases con datos (nombres, números): patrón en español → plantilla en inglés.
 export const enPatterns: [RegExp, string][] = [
+  [/^Elige uno de los (\d+) escudos o sube tu foto\.$/, 'Pick one of the $1 crests or upload your photo.'],
+  [/^Elige uno de los (\d+) trofeos o sube tu foto\.$/, 'Pick one of the $1 trophies or upload your photo.'],
   [/^de (\d+) jugadores$/, 'of $1 players'],
   [/^Ese enlace no es de (.+)\.$/, "That link isn't from $1."],
   [/^Pega el enlace de tu perfil de (.+)\.$/, 'Paste your $1 profile link.'],

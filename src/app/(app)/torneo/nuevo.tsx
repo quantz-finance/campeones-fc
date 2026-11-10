@@ -9,6 +9,8 @@ import { Panel, Screen, Top } from '../../../ui/screen';
 import { colors, radius, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { replace } from '../../../ui/nav';
+import { defaultLogo } from '../../../content/crests';
+import { LogoPicker } from '../../../ui/logo-picker';
 
 export default function NewTournament() {
   const { grupo } = useLocalSearchParams<{ grupo: string }>();
@@ -19,6 +21,7 @@ export default function NewTournament() {
   const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [logo, setLogo] = useState(() => defaultLogo('tournaments', String(Math.random())));
 
   function toggle(id: string) {
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
@@ -40,6 +43,9 @@ export default function NewTournament() {
           ? 'Elige 4, 8 o 16 jugadores. El orden en que los marcas es el orden del cuadro.'
           : 'Todos contra todos. Gana quien sume más puntos. Si hay empate arriba, no hay campeón único.'}
       </T>
+      <Panel>
+        <LogoPicker kind="tournaments" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
+      </Panel>
       <Gate query={query}>
         {(group) => (
             <Panel>
@@ -75,6 +81,7 @@ export default function NewTournament() {
               name,
               format,
               playerIds: selected,
+              logo,
             })
             .then((tournament) => {
               track('tournament_created', { format });

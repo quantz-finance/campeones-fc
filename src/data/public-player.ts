@@ -29,8 +29,8 @@ export type PublicPlayer = {
   streak: { type: Outcome | 'none'; count: number };
   form: Outcome[];
   achievements: { code: AchievementCode; title: string; earnedAt: string }[];
-  titles: { id: string; name: string }[];
-  groups: { id: string; name: string; photoUrl: string | null }[];
+  titles: { id: string; name: string; photoUrl: string | null; logo: string | null }[];
+  groups: { id: string; name: string; photoUrl: string | null; logo: string | null }[];
   recent: {
     id: string;
     opponent: PublicPerson | null;
@@ -94,11 +94,11 @@ export function projectPublicPlayer(db: World, playerId: string, viewer: string 
       .map((item) => ({ code: item.code, title: catalog.get(item.code) ?? item.code, earnedAt: item.earnedAt })),
     titles: db.tournaments
       .filter((cup) => cup.winnerId === playerId && cup.status === 'completed')
-      .map((cup) => ({ id: cup.id, name: cup.name })),
+      .map((cup) => ({ id: cup.id, name: cup.name, photoUrl: cup.photoUrl ?? null, logo: cup.logo ?? null })),
     groups: viewer
       ? db.groups
           .filter((group) => isMember(db, group.id, playerId) && isMember(db, group.id, viewer))
-          .map((group) => ({ id: group.id, name: group.name, photoUrl: group.photoUrl ?? null }))
+          .map((group) => ({ id: group.id, name: group.name, photoUrl: group.photoUrl ?? null, logo: group.logo ?? null }))
       : [],
     recent: newest.slice(0, 6).map((match) => {
       const aSide = match.playerAId === playerId;

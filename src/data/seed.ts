@@ -158,13 +158,14 @@ const DEMO_USER_PHOTOS: Record<string, string> = {
   user_nati: '54a6e865-cd32-5709-927c-a94f91d91b8e',
 };
 const DEMO_USER_FALLBACK = '0219793a-6bf8-50f1-b40f-515fa020a13f';
-// Logos v2 (escudos con mascota para grupos, emblemas para torneos), elegidos por afinidad con el nombre.
-const DEMO_GROUP_PHOTOS = ['d6cb7c52-740a-5440-94df-e7f63bcb7446', '055d71cd-9d97-531c-ba81-f37ad2ee447a'];
-const DEMO_CUP_PHOTOS: Record<string, string> = {
-  'Copa del barrio': 'd99186d1-6797-5a58-88dd-e0171dcb7cca',
-  'Copa relámpago': '0f676ba8-6faf-5196-8b31-e4e3b1b051fa',
+// Escudos y trofeos v5 (set de Stan) para el mundo de demostración, elegidos por afinidad con el nombre.
+// Ya no se usan las fotos-logo v2 de Storage (eran caricaturescas).
+const DEMO_GROUP_LOGOS = ['toro', 'leon'];
+const DEMO_CUP_LOGOS: Record<string, string> = {
+  'Copa del barrio': 'copa-asas',
+  'Copa relámpago': 'trofeo-estrella',
 };
-const DEMO_CUP_FALLBACK = '5762d60b-df20-55bf-be44-6fbab9071953';
+const DEMO_CUP_FALLBACK = 'copa-clasica';
 
 function withDemoPhotos(db: World): void {
   db.users.forEach((user) => {
@@ -172,10 +173,12 @@ function withDemoPhotos(db: World): void {
     user.photoUrl = `${DEMO_PHOTOS}/users/${id}-v2.webp`;
   });
   db.groups.forEach((group, i) => {
-    group.photoUrl = `${DEMO_PHOTOS}/groups/${DEMO_GROUP_PHOTOS[i % DEMO_GROUP_PHOTOS.length]}-v2.webp`;
+    group.photoUrl = null;
+    group.logo = DEMO_GROUP_LOGOS[i % DEMO_GROUP_LOGOS.length];
   });
   db.tournaments.forEach((cup) => {
-    cup.photoUrl = `${DEMO_PHOTOS}/tournaments/${DEMO_CUP_PHOTOS[cup.name] ?? DEMO_CUP_FALLBACK}-v2.webp`;
+    cup.photoUrl = null;
+    cup.logo = DEMO_CUP_LOGOS[cup.name] ?? DEMO_CUP_FALLBACK;
   });
 }
 

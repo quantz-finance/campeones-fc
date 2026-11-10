@@ -6,13 +6,13 @@ import { standings } from '../../../domain/stats';
 import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { SectionHead, Shield, Toro } from '../../../ui/broadcast';
+import { SectionHead, Toro } from '../../../ui/broadcast';
 import { Button, Gate } from '../../../ui/controls';
-import { firstName, monogram, scoreText } from '../../../ui/format';
+import { firstName, scoreText } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
 import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
-import { PhotoButton } from '../../../ui/photo-button';
+import { LogoEditor } from '../../../ui/logo-picker';
 import { Avatar } from '../../../ui/avatar';
 import { push } from '../../../ui/nav';
 
@@ -52,7 +52,6 @@ export default function TournamentScreen() {
                 back
                 right={
                   <View style={styles.topRight}>
-                  <Shield letters={monogram(data.tournament.name)} photoUrl={data.tournament.photoUrl} size={40} />
                   <View style={[styles.badge, { backgroundColor: data.tournament.status === 'completed' ? colors.up : colors.yellow }]}>
                     <T variant="tiny" color={colors.ink}>
                       {data.tournament.status === 'completed' ? 'Finalizado' : 'En juego'}
@@ -61,9 +60,7 @@ export default function TournamentScreen() {
                   </View>
                 }
               />
-              {data.tournament.createdBy === userId ? (
-                <PhotoButton kind="tournaments" targetId={data.tournament.id} label="Foto del torneo" />
-              ) : null}
+              <LogoEditor kind="tournaments" entity={data.tournament} canEdit={data.tournament.createdBy === userId} />
               {data.tournament.status === 'completed' ? (
                 <View style={styles.champ}>
                   <View style={styles.cupBox}>

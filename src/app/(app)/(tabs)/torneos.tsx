@@ -19,6 +19,7 @@ export default function TournamentsTab() {
         id: tournament.id,
         name: tournament.name,
         photoUrl: tournament.photoUrl ?? null,
+        logo: tournament.logo ?? null,
         status: tournament.status,
         groupName: group.group.name,
         groupId: group.group.id,
@@ -40,7 +41,7 @@ export default function TournamentsTab() {
           ) : (
             list.map((item) => (
               <Pressable key={item.id} style={styles.card} onPress={() => push(`/torneo/${item.id}`)}>
-                <Shield letters={monogram(item.name)} photoUrl={item.photoUrl} size={44} />
+                <Shield letters={monogram(item.name)} photoUrl={item.photoUrl} kind="tournaments" id={item.id} logo={item.logo} size={48} />
                 <View style={styles.flex}>
                   <T variant="title" style={{ fontStyle: 'normal' }} numberOfLines={1}>
                     {item.name}

@@ -47,6 +47,8 @@ export type Group = {
   createdBy: string;
   createdAt: string;
   photoUrl?: string | null;
+  /** Escudo elegido del set (id de GROUP_CRESTS). null/ausente = escudo por defecto según el id. */
+  logo?: string | null;
 };
 
 export type GroupMember = {
@@ -68,6 +70,8 @@ export type Tournament = {
   createdAt: string;
   playerIds: string[];
   photoUrl?: string | null;
+  /** Trofeo elegido del set (id de TOURNAMENT_TROPHIES). null/ausente = trofeo por defecto según el id. */
+  logo?: string | null;
 };
 
 export type Achievement = {
