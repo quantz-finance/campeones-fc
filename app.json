@@ -8,19 +8,45 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "description": "Lleva el marcador de tus partidos con amigos: series, grupos, torneos y trofeos.",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#37003C"
+    },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "cr.quantz.campeonesfc"
+      "supportsTablet": false,
+      "bundleIdentifier": "app.campeonesfc",
+      "associatedDomains": [
+        "applinks:partido.campeonesfc.app",
+        "webcredentials:partido.campeonesfc.app"
+      ]
     },
     "android": {
-      "package": "cr.quantz.campeonesfc",
+      "package": "app.campeonesfc",
       "adaptiveIcon": {
         "backgroundColor": "#37003C",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "partido.campeonesfc.app",
+              "pathPrefix": "/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -37,9 +63,25 @@
     },
     "plugins": [
       "expo-router",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#37003C",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Campeones FC usa tus fotos para la foto de perfil, de un grupo o de un torneo.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
       "expo-status-bar",
-      "expo-font"
+      "expo-font",
+      "expo-web-browser"
     ]
   }
 }

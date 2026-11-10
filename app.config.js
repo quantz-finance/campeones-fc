@@ -13,6 +13,8 @@ const raw = execFileSync(
 );
 const branding = JSON.parse(raw);
 
+const CAVOS_RP_ID = (process.env.EXPO_PUBLIC_CAVOS_RP_ID || 'campeones-fc.vercel.app').trim();
+
 /** @param {{ config: import('expo/config').ExpoConfig }} ctx */
 module.exports = ({ config }) => ({
   ...config,
@@ -21,6 +23,20 @@ module.exports = ({ config }) => ({
   scheme: branding.scheme,
   description: branding.description,
   userInterfaceStyle: 'dark',
+  plugins: [
+    ...(config.plugins ?? []),
+    [
+      '@cavos/kit',
+      {
+        rpId: CAVOS_RP_ID,
+        scheme: branding.scheme,
+        associatedDomains: [
+          'applinks:partido.campeonesfc.app',
+          'webcredentials:partido.campeonesfc.app',
+        ],
+      },
+    ],
+  ],
   web: {
     ...config.web,
     favicon: './assets/favicon.png',
