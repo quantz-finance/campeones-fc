@@ -27,3 +27,15 @@ describe('i18n tramos', () => {
     expect(translate('Racha actual: 8 victorias. Mejor racha: 8 victorias.', 'en')).toBe('Current streak: 8 wins. Best streak: 8 wins.');
   });
 });
+
+describe('i18n portada', () => {
+  it('traduce las secciones y los datos de la portada del inicio', () => {
+    expect(translate('Estrella de la semana', 'en')).toBe('Star of the week');
+    expect(translate('Torneos más calientes', 'en')).toBe('Hottest tournaments');
+    expect(translate('#2 Ranking', 'en')).toBe('Ranking #2');
+    expect(translate('Racha de 8 victorias', 'en')).toBe('8-win streak');
+    expect(translate('12 Elo de diferencia', 'en')).toBe('12 Elo apart');
+    expect(translate('Victorias · semana', 'en')).toBe('Wins · week');
+    expect(translate('Copa X · Ganó Andrés · hace 3 d', 'en')).toBe('Copa X · Andrés won · 3 d ago');
+  });
+});

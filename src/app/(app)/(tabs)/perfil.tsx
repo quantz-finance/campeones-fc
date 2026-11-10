@@ -5,13 +5,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { avatars, branding } from '../../../../config/branding';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { Affiliation, InitialsMark, SectionHead, StatCell, Sticker } from '../../../ui/broadcast';
+import { Affiliation, SectionHead, StatCell, Sticker } from '../../../ui/broadcast';
 import { Banner, Button, Field, Gate } from '../../../ui/controls';
 import { elo, firstName, goalsPerMatch, pct, recordLine } from '../../../ui/format';
 import { Screen } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
-import { useDelayed } from '../../../ui/motion';
+import { Rise, useDelayed } from '../../../ui/motion';
+import { PlayerHero } from '../../../ui/player-hero';
 import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
 import { DeleteAccount } from '../../../ui/delete-account';
@@ -75,54 +76,31 @@ export default function Profile() {
           <Ionicons name={editing ? 'close' : 'sunny-outline'} size={18} color={colors.text} />
         </Pressable>
       </View>
-      <View style={styles.card}>
-        <View style={styles.photo}>
-          <InitialsMark name={displayName || profile.displayName} avatarKey={avatarKey} photoUrl={profile.photoUrl} size={132} fontSize={48} />
-        </View>
-        <View style={styles.cardBody}>
-          <T variant="tiny" color={colors.accentText}>
-            Tu ficha
-          </T>
-          <PhotoButton kind="users" targetId={profile.id} label={profile.photoUrl ? 'Cambiar foto' : 'Subir foto'} />
-          <T variant="display" style={styles.name} numberOfLines={2}>
-            {profile.displayName}
-          </T>
-          <T variant="tiny" color={colors.muted} style={styles.plain}>
-            @{profile.username} · {branding.country}
-          </T>
-          <View style={styles.tags}>
-            {groups.data?.[0]?.yourPlace ? (
-              <View style={styles.tagY}>
-                <T variant="tiny" color={colors.ink}>
-                  #{groups.data[0].yourPlace} {groups.data[0].group.name}
-                </T>
-              </View>
-            ) : null}
-            {personal.data && personal.data.record.currentStreak.type === 'win' && personal.data.record.currentStreak.count > 0 ? (
-              <View style={styles.tagR}>
-                <T variant="tiny" color={colors.redInk}>
-                  Racha {personal.data.record.currentStreak.count}
-                </T>
-              </View>
-            ) : null}
-          </View>
-        </View>
-      </View>
       <Gate query={personal}>
         {(data) => {
           const maxElo = data.evolution.reduce((max, point) => Math.max(max, point.rating), data.rating);
+          const firstGroup = groups.data?.[0];
           return (
             <>
-              <View style={styles.level}>
-                <T variant="tiny" color={colors.muted}>
-                  {pct(data.record.winRate)} de victorias
-                </T>
-                <T variant="tiny" color={colors.accentText}>
-                  {data.record.wins} ganados
-                </T>
-              </View>
-              <View style={styles.track}>
-                <View style={{ width: `${Math.round(data.record.winRate * 100)}%`, backgroundColor: colors.yellow, height: 8 }} />
+              <Rise index={0}>
+                <PlayerHero
+                  profile={{ ...data.profile, displayName: displayName || data.profile.displayName, avatarKey, photoUrl: profile.photoUrl }}
+                  rating={data.rating}
+                  record={data.record}
+                  place={firstGroup?.yourPlace ? { rank: firstGroup.yourPlace, groupName: firstGroup.group.name } : null}
+                  onPress={() => push('/estadisticas')}
+                />
+              </Rise>
+              <View style={styles.idRow}>
+                <View style={styles.flex}>
+                  <T variant="strong" numberOfLines={1}>
+                    {profile.displayName}
+                  </T>
+                  <T variant="tiny" color={colors.muted} style={styles.plain}>
+                    @{profile.username} · {branding.country}
+                  </T>
+                </View>
+                <PhotoButton kind="users" targetId={profile.id} label={profile.photoUrl ? 'Cambiar foto' : 'Subir foto'} />
               </View>
               <SectionHead title="Estadísticas" action="Todas" onAction={() => push('/estadisticas')} />
               <View style={styles.grid}>
@@ -283,7 +261,7 @@ const styles = StyleSheet.create({
   segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, minHeight: 48 },
   segOn: { backgroundColor: colors.yellow, borderRadius: 14 },
   segOff: { opacity: 0.5 },
-  top: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  top: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 52 },
   flex: { flex: 1 },
   iconBtn: {
     width: 40,
@@ -294,16 +272,8 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     transform: [{ skewX: '0deg' }],
   },
-  card: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  photo: { width: 132, height: 150, backgroundColor: colors.red, alignItems: 'center', justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 14 },
-  cardBody: { flex: 1, gap: 4 },
-  name: { fontSize: 30, fontStyle: 'normal', lineHeight: 30 },
+  idRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
-  tagY: { backgroundColor: colors.yellow, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
-  tagR: { backgroundColor: colors.red, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
-  level: { flexDirection: 'row', justifyContent: 'space-between' },
-  track: { height: 8, backgroundColor: colors.line, borderRadius: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   album: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   rivals: { flexDirection: 'row', gap: 8 },

@@ -19,6 +19,7 @@ import {
   searchUsers,
 } from './mutate';
 import {
+  projectBillboard,
   projectFriends,
   projectGroup,
   projectGroups,
@@ -114,6 +115,9 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
     },
     async homeSnapshot(userId) {
       return projectHome(view(), userId);
+    },
+    async billboardSnapshot(userId) {
+      return projectBillboard(view(), userId, now());
     },
     createMatch(input) {
       return commit((world, at) => mutateCreateMatch(world, input, at));

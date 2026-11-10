@@ -1,10 +1,13 @@
 import { totalRounds } from '../domain/bracket';
 import { DomainError } from '../domain/errors';
 import { rules } from '../domain/rules';
-import { faceMatrix, headToHead, personalStats, rankPlayers, standings, summarize, type SideRecord } from '../domain/stats';
+import { faceMatrix, headToHead, personalStats, rankPlayers, resultOf, standings, summarize, type SideRecord } from '../domain/stats';
+import { replayRatings } from '../domain/elo';
 import { between, byTime, involves, isOpenStatus, type Match } from '../domain/types';
 import { acceptedFriendIds, areFriends, isMember } from './mutate';
 import type {
+  BillboardPlayer,
+  BillboardSnapshot,
   FriendsSnapshot,
   GroupSnapshot,
   GroupSummary,
@@ -298,4 +301,154 @@ export function projectTournament(db: World, tournamentId: string, userId: strin
 
 export function visibleFriend(db: World, userId: string, otherId: string): boolean {
   return userId === otherId || areFriends(db, userId, otherId);
+}
+
+const DAY = 86400000;
+
+/**
+ * Portada del inicio: la estrella, el top, quién más subió, rachas, resultados, torneos y grupos
+ * más reñidos. Todo sale de los partidos confirmados que el usuario puede ver (los suyos, los de
+ * sus grupos y los de sus amigos), igual que el resto de las pantallas.
+ */
+export function projectBillboard(db: World, userId: string, now: Date = new Date(), windows: number[] = [7, 30]): BillboardSnapshot {
+  const myGroups = db.groups.filter((group) => isMember(db, group.id, userId));
+  const circle = new Set<string>([userId, ...acceptedFriendIds(db, userId)]);
+  for (const group of myGroups) {
+    for (const member of db.groupMembers) if (member.groupId === group.id) circle.add(member.userId);
+  }
+  const ids = [...circle].filter((id) => db.users.some((user) => user.id === id));
+  const visible = db.matches.filter((match) => canSeeMatch(db, userId, match));
+  const confirmed = visible.filter((match) => match.status === 'confirmed').slice().sort(byTime);
+  const { qualified, everyone } = rankPlayers(ids, visible);
+  const replay = replayRatings(confirmed);
+  const place = new Map(qualified.map((row, index) => [row.playerId, index + 1]));
+
+  const card = (playerId: string, cutoff: string): BillboardPlayer => {
+    const row = everyone.find((item) => item.playerId === playerId);
+    const record = summarize(confirmed, playerId);
+    const own = confirmed.filter((match) => involves(match, playerId));
+    const recent = own.filter((match) => (match.confirmedAt ?? match.createdAt) >= cutoff);
+    const windowDelta = replay.history
+      .filter((entry) => entry.userId === playerId && entry.at >= cutoff)
+      .reduce((sum, entry) => sum + entry.delta, 0);
+    return {
+      profile: person(db, playerId),
+      rating: row?.rating ?? rules.initialRating,
+      place: place.get(playerId) ?? null,
+      played: record.played,
+      wins: record.wins,
+      draws: record.draws,
+      losses: record.losses,
+      winRate: record.winRate,
+      streak: record.currentStreak,
+      bestWinStreak: record.bestWinStreak,
+      windowPlayed: recent.length,
+      windowWins: recent.filter((match) => resultOf(match, playerId) === 'win').length,
+      windowDelta,
+      form: own.slice().reverse().slice(0, 5).map((match) => resultOf(match, playerId)),
+    };
+  };
+
+  // Ventana: la semana; si en la semana nadie ganó, el mes.
+  let windowDays = windows[0] ?? 7;
+  let cards: BillboardPlayer[] = [];
+  for (const days of windows.length ? windows : [7]) {
+    windowDays = days;
+    const cutoff = new Date(now.getTime() - days * DAY).toISOString();
+    cards = ids.map((id) => card(id, cutoff)).filter((item) => item.played > 0);
+    if (cards.some((item) => item.windowWins > 0)) break;
+  }
+  const byId = new Map(cards.map((item) => [item.profile.id, item]));
+  const top = qualified.map((row) => byId.get(row.playerId)).filter((item): item is BillboardPlayer => Boolean(item));
+  const weekly = cards
+    .filter((item) => item.windowPlayed > 0)
+    .sort(
+      (a, b) =>
+        b.windowWins - a.windowWins ||
+        b.windowDelta - a.windowDelta ||
+        b.rating - a.rating ||
+        a.profile.id.localeCompare(b.profile.id),
+    );
+  const fallback = top[0] ?? cards.slice().sort((a, b) => b.rating - a.rating || a.profile.id.localeCompare(b.profile.id))[0];
+  const star = weekly[0] && weekly[0].windowWins > 0
+    ? { player: weekly[0], reason: windowDays <= 7 ? ('week' as const) : ('month' as const) }
+    : fallback
+      ? { player: fallback, reason: 'top' as const }
+      : null;
+
+  const movers = cards
+    .filter((item) => item.windowDelta > 0)
+    .sort((a, b) => b.windowDelta - a.windowDelta || a.profile.id.localeCompare(b.profile.id))
+    .slice(0, 3);
+  const streaks = cards
+    .filter((item) => item.streak.type === 'win' && item.streak.count >= 2)
+    .sort((a, b) => b.streak.count - a.streak.count || b.rating - a.rating || a.profile.id.localeCompare(b.profile.id))
+    .slice(0, 5);
+
+  const groupName = new Map(db.groups.map((group) => [group.id, group.name]));
+  const cupName = new Map(db.tournaments.map((cup) => [cup.id, cup.name]));
+  const results = confirmed
+    .slice()
+    .reverse()
+    .slice(0, 4)
+    .map((match) => ({
+      match,
+      label: (match.tournamentId ? cupName.get(match.tournamentId) : null) ?? (match.groupId ? groupName.get(match.groupId) : null) ?? null,
+    }));
+
+  const tournaments = db.tournaments
+    .filter((cup) => isMember(db, cup.groupId, userId))
+    .map((cup) => {
+      const games = confirmed.filter((match) => match.tournamentId === cup.id);
+      const lastAt = games.length ? (games[games.length - 1].confirmedAt ?? null) : null;
+      const table = games.length ? standings(cup.playerIds, games) : [];
+      const leaderId = cup.status === 'in_progress' && table[0] && table[0].played > 0 ? table[0].playerId : null;
+      const known = (id: string | null) => (id && db.users.some((user) => user.id === id) ? person(db, id) : null);
+      return {
+        tournament: cup,
+        groupName: groupName.get(cup.groupId) ?? '',
+        played: games.length,
+        lastAt,
+        leader: known(leaderId),
+        champion: known(cup.winnerId),
+      };
+    })
+    .sort(
+      (a, b) =>
+        Number(b.tournament.status === 'in_progress') - Number(a.tournament.status === 'in_progress') ||
+        (b.lastAt ?? b.tournament.createdAt).localeCompare(a.lastAt ?? a.tournament.createdAt) ||
+        b.played - a.played,
+    )
+    .slice(0, 8);
+
+  const rivalries = myGroups
+    .map((group) => {
+      const memberIds = db.groupMembers.filter((member) => member.groupId === group.id).map((member) => member.userId);
+      const ranked = rankPlayers(memberIds, visible.filter((match) => match.groupId === group.id)).qualified;
+      const first = ranked[0] ? byId.get(ranked[0].playerId) : undefined;
+      const second = ranked[1] ? byId.get(ranked[1].playerId) : undefined;
+      if (!first || !second) return null;
+      return { group, first, second, gap: Math.abs(ranked[0].rating - ranked[1].rating) };
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .sort((a, b) => a.gap - b.gap || a.group.name.localeCompare(b.group.name, 'es'))
+    .slice(0, 3);
+
+  const peopleIds = new Set<string>(ids);
+  for (const { match } of results) {
+    peopleIds.add(match.playerAId);
+    peopleIds.add(match.playerBId);
+  }
+  return {
+    windowDays,
+    star,
+    top: top.slice(0, 5),
+    movers,
+    streaks,
+    results,
+    tournaments,
+    rivalries,
+    people: people(db, peopleIds),
+    minMatches: rules.minMatchesForRanking,
+  };
 }

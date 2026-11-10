@@ -2,17 +2,18 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
-import { InitialsMark, QuickTile, ScoreBar, SectionHead, Wordmark } from '../../../ui/broadcast';
+import { QuickTile, ScoreBar, SectionHead, Wordmark } from '../../../ui/broadcast';
+import { HotCups, Movers, RecentResults, Rivalries, StarHero, Streaks, TopBoard } from '../../../ui/billboard';
 import { Gate } from '../../../ui/controls';
-import { elo, firstName, formatWhen, pct, scoreText, streakLabel, tagOf } from '../../../ui/format';
+import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { buildNews } from '../../../ui/news';
 import { NewsTicker, TICKER_SPACE } from '../../../ui/news-ticker';
 import { Screen } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { AI_PHOTO_NOTE, appModeOf, modeChip } from '../../../lib/app-mode';
-import { CountRoll, Pop, Rise } from '../../../ui/motion';
-import { HomeSkeleton } from '../../../ui/skeleton';
+import { Pop, Rise } from '../../../ui/motion';
+import { CardsSkeleton, HomeSkeleton } from '../../../ui/skeleton';
 import { push } from '../../../ui/nav';
 import { SportPress } from '../../../ui/press';
 
@@ -21,11 +22,7 @@ export default function Home() {
   const modeNow = appModeOf(profile, mode !== 'supabase');
   const query = useQuery(() => repo.homeSnapshot(userId!), [repo, userId, version]);
   const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
-  const firstGroupId = groups.data?.[0]?.group.id ?? null;
-  const cups = useQuery(
-    async () => (firstGroupId ? (await repo.groupSnapshot(firstGroupId, userId!)).tournaments : []),
-    [repo, userId, version, firstGroupId],
-  );
+  const board = useQuery(() => repo.billboardSnapshot(userId!), [repo, userId, version]);
   const lead = groups.data?.find((item) => item.leader);
   const news = buildNews({
     me: userId ?? '',
@@ -34,11 +31,11 @@ export default function Home() {
     actionCount: query.data?.actionMatches.length ?? 0,
     streak: query.data?.record.currentStreak ?? { type: 'none', count: 0 },
     leader: lead?.leader ? { groupName: lead.group.name, leaderName: firstName(lead.leader.displayName) } : null,
-    tournaments: (cups.data ?? []).map((cup) => ({
-      name: cup.name,
-      status: cup.status,
-      players: cup.playerIds.length,
-      winnerName: cup.winnerId ? (query.data?.people[cup.winnerId]?.displayName ?? null) : null,
+    tournaments: (board.data?.tournaments ?? []).map((item) => ({
+      name: item.tournament.name,
+      status: item.tournament.status,
+      players: item.tournament.playerIds.length,
+      winnerName: item.champion?.displayName ?? null,
     })),
   });
 
@@ -48,17 +45,83 @@ export default function Home() {
         {(home) => {
           const group = groups.data?.[0];
           const pending = [...home.actionMatches, ...home.waitingMatches];
-          const played = home.record.played;
-          const win = Math.max(home.record.wins, 0);
-          const draw = Math.max(home.record.draws, 0);
-          const loss = Math.max(home.record.losses, 0);
-          const total = Math.max(win + draw + loss, 1);
-          const streak = home.record.currentStreak;
           const rivalId = home.recent[0]
             ? home.recent[0].playerAId === userId
               ? home.recent[0].playerBId
               : home.recent[0].playerAId
             : null;
+          const quickTiles = (
+            <>
+              <SectionHead title="Accesos rápidos" />
+                <Rise index={4} style={styles.grid}>
+                  <QuickTile kicker="Nuevo partido" title="Registrar" color={colors.yellow} ink={colors.ink} icon="matches" onPress={() => push('/jugar')} />
+                  <QuickTile
+                    kicker="Cara a cara"
+                    title="Versus"
+                    color={colors.red}
+                    ink={colors.redInk}
+                    icon="versus"
+                    onPress={() => (rivalId ? push(`/versus/${rivalId}`) : push('/amigos'))}
+                  />
+                  <QuickTile
+                    kicker={group?.group.name ?? 'Tu grupo'}
+                    title="Tabla"
+                    color={colors.blue}
+                    icon="ranking"
+                    onPress={() => (group ? push(`/grupo/${group.group.id}`) : push('/grupos'))}
+                  />
+                  <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="tournaments" onPress={() => push('/torneos')} />
+                </Rise>
+            </>
+          );
+          const confirmar = (
+            <>
+              <SectionHead title={`Por confirmar · ${pending.length}`} action="Ver todos" onAction={() => {
+                  const next = pending[0];
+                  if (next) push(`/partido/${next.id}`);
+                }} />
+                {pending.length === 0 ? (
+                  <T color={colors.muted}>No tienes nada pendiente. Cuando alguien te rete, aparece aquí.</T>
+                ) : (
+                  pending.slice(0, 3).map((match, index) => {
+                    const otherId = match.playerAId === userId ? match.playerBId : match.playerAId;
+                    const other = home.people[otherId];
+                    const me = home.people[userId!];
+                    const mine = match.playerAId === userId ? match.goalsA : match.goalsB;
+                    const theirs = match.playerAId === userId ? match.goalsB : match.goalsA;
+                    const shown = scoreText(mine, theirs);
+                    const needs = home.actionMatches.some((item) => item.id === match.id);
+                    const note =
+                      match.status === 'pending_accept'
+                        ? needs
+                          ? `Te toca aceptar · lo propuso ${firstName(home.people[match.playerAId]?.displayName ?? 'tu rival')} · ${formatWhen(match.createdAt)}`
+                          : `Esperando a ${firstName(other?.displayName ?? 'tu rival')} · lo propusiste ${formatWhen(match.createdAt)}`
+                        : match.status === 'disputed'
+                          ? 'En disputa · nadie suma hasta que coincidan'
+                          : home.toConfirm.includes(match.id)
+                            ? `Te toca confirmar · ${firstName(other?.displayName ?? 'tu rival')} ya registró el resultado`
+                            : needs
+                              ? `En juego · registra el resultado al terminar · ${formatWhen(match.createdAt)}`
+                              : `Esperando que ${firstName(other?.displayName ?? 'tu rival')} confirme · ${formatWhen(match.createdAt)}`;
+                    return (
+                      <Rise key={match.id} index={index + 1}>
+                      <ScoreBar
+                        leftTag={tagOf(me?.displayName ?? 'Tú')}
+                        rightTag={tagOf(other?.displayName ?? 'Rival')}
+                        leftPhoto={me?.photoUrl}
+                        rightPhoto={other?.photoUrl}
+                        score={shown ?? 'VS'}
+                        action={match.status === 'pending_accept' ? (needs ? 'Aceptar' : 'Esperando') : home.toConfirm.includes(match.id) ? 'Confirmar' : needs ? 'Registrar' : 'Esperando'}
+                        actionTone={needs ? 'yellow' : 'ghost'}
+                        onPress={() => push(`/partido/${match.id}`)}
+                        note={note}
+                      />
+                      </Rise>
+                    );
+                  })
+                )}
+              </>
+          );
           return (
             <>
               <View style={styles.brandRow}>
@@ -97,142 +160,26 @@ export default function Home() {
                   {AI_PHOTO_NOTE}
                 </T>
               ) : null}
-              <Rise index={0}>
-              <SportPress style={styles.hero} onPress={() => push('/perfil')}>
-                <View style={styles.heroLeft}>
-                  <CountRoll value={played} format={(n) => String(Math.round(n))}>
-                    {(shown) => (
-                      <T variant="display" style={styles.bigNum}>
-                        {shown}
-                      </T>
-                    )}
-                  </CountRoll>
-                  <T variant="label" color={colors.redInk} style={{ fontSize: 12 }}>
-                    Partidos
-                  </T>
-                  <View style={styles.heroMark}>
-                    <InitialsMark name={home.profile.displayName} avatarKey={home.profile.avatarKey} photoUrl={home.profile.photoUrl} size={78} fontSize={28} />
-                  </View>
-                </View>
-                <View style={styles.heroRight}>
-                  <T variant="tiny" color={colors.accentText}>
-                    Tu ficha
-                  </T>
-                  <T variant="display" style={styles.heroName} numberOfLines={2}>
-                    {firstName(home.profile.displayName)}
-                  </T>
-                  <View style={styles.eloRow}>
-                    <View style={styles.eloTag}>
-                      <T variant="tiny" color={colors.ink}>
-                        ELO
-                      </T>
-                    </View>
-                    <View style={styles.eloNum}>
-                      <Pop value={home.rating}>
-                        <CountRoll value={home.rating} format={(n) => elo(Math.round(n))}>
-                          {(shown) => (
-                            <T variant="display" style={{ fontSize: 28, color: colors.ink, fontStyle: 'normal' }}>
-                              {shown}
-                            </T>
-                          )}
-                        </CountRoll>
-                      </Pop>
-                    </View>
-                  </View>
-                  <View style={styles.tags}>
-                    {group?.yourPlace ? (
-                      <View style={styles.tagDark}>
-                        <T variant="tiny" color={colors.accentText}>
-                          #{group.yourPlace} {group.group.name}
-                        </T>
-                      </View>
-                    ) : null}
-                    {streak.type === 'win' && streak.count > 0 ? (
-                      <View style={styles.tagRed}>
-                        <Ionicons name="flame" size={12} color={colors.redInk} />
-                        <T variant="tiny" color={colors.redInk}>
-                          Racha de {streakLabel(streak)}
-                        </T>
-                      </View>
-                    ) : null}
-                  </View>
-                  <View style={styles.barRow}>
-                    <View style={styles.bar}>
-                      <View style={{ flex: win / total, backgroundColor: colors.red }} />
-                      <View style={{ flex: draw / total, backgroundColor: colors.yellow }} />
-                      <View style={{ flex: loss / total, backgroundColor: colors.blue }} />
-                    </View>
-                    <T variant="tiny" color={colors.accentText}>
-                      {pct(home.record.winRate)} victorias
-                    </T>
-                  </View>
-                </View>
-              </SportPress>
-              </Rise>
-              <SectionHead title={`Por confirmar · ${pending.length}`} action="Ver todos" onAction={() => {
-                const next = pending[0];
-                if (next) push(`/partido/${next.id}`);
-              }} />
-              {pending.length === 0 ? (
-                <T color={colors.muted}>No tienes nada pendiente. Cuando alguien te rete, aparece aquí.</T>
+              {pending.length > 0 ? confirmar : null}
+              {board.data ? (
+                <>
+                  <Rise index={pending.length > 0 ? 2 : 0}>
+                    <StarHero board={board.data} me={userId!} />
+                  </Rise>
+                  {quickTiles}
+                  <HotCups items={board.data.tournaments} />
+                  <TopBoard board={board.data} me={userId!} />
+                  <Movers board={board.data} me={userId!} />
+                  <RecentResults board={board.data} />
+                  <Streaks board={board.data} me={userId!} />
+                  <Rivalries items={board.data.rivalries} me={userId!} />
+                </>
+              ) : board.error ? (
+                quickTiles
               ) : (
-                pending.slice(0, 3).map((match, index) => {
-                  const otherId = match.playerAId === userId ? match.playerBId : match.playerAId;
-                  const other = home.people[otherId];
-                  const me = home.people[userId!];
-                  const mine = match.playerAId === userId ? match.goalsA : match.goalsB;
-                  const theirs = match.playerAId === userId ? match.goalsB : match.goalsA;
-                  const shown = scoreText(mine, theirs);
-                  const needs = home.actionMatches.some((item) => item.id === match.id);
-                  const note =
-                    match.status === 'pending_accept'
-                      ? needs
-                        ? `Te toca aceptar · lo propuso ${firstName(home.people[match.playerAId]?.displayName ?? 'tu rival')} · ${formatWhen(match.createdAt)}`
-                        : `Esperando a ${firstName(other?.displayName ?? 'tu rival')} · lo propusiste ${formatWhen(match.createdAt)}`
-                      : match.status === 'disputed'
-                        ? 'En disputa · nadie suma hasta que coincidan'
-                        : home.toConfirm.includes(match.id)
-                          ? `Te toca confirmar · ${firstName(other?.displayName ?? 'tu rival')} ya registró el resultado`
-                          : needs
-                            ? `En juego · registra el resultado al terminar · ${formatWhen(match.createdAt)}`
-                            : `Esperando que ${firstName(other?.displayName ?? 'tu rival')} confirme · ${formatWhen(match.createdAt)}`;
-                  return (
-                    <Rise key={match.id} index={index + 1}>
-                    <ScoreBar
-                      leftTag={tagOf(me?.displayName ?? 'Tú')}
-                      rightTag={tagOf(other?.displayName ?? 'Rival')}
-                      leftPhoto={me?.photoUrl}
-                      rightPhoto={other?.photoUrl}
-                      score={shown ?? 'VS'}
-                      action={match.status === 'pending_accept' ? (needs ? 'Aceptar' : 'Esperando') : home.toConfirm.includes(match.id) ? 'Confirmar' : needs ? 'Registrar' : 'Esperando'}
-                      actionTone={needs ? 'yellow' : 'ghost'}
-                      onPress={() => push(`/partido/${match.id}`)}
-                      note={note}
-                    />
-                    </Rise>
-                  );
-                })
+                <BillboardSkeleton />
               )}
-              <SectionHead title="Accesos rápidos" />
-              <Rise index={4} style={styles.grid}>
-                <QuickTile kicker="Nuevo partido" title="Registrar" color={colors.yellow} ink={colors.ink} icon="matches" onPress={() => push('/jugar')} />
-                <QuickTile
-                  kicker="Cara a cara"
-                  title="Versus"
-                  color={colors.red}
-                  ink={colors.redInk}
-                  icon="versus"
-                  onPress={() => (rivalId ? push(`/versus/${rivalId}`) : push('/amigos'))}
-                />
-                <QuickTile
-                  kicker={group?.group.name ?? 'Tu grupo'}
-                  title="Tabla"
-                  color={colors.blue}
-                  icon="ranking"
-                  onPress={() => (group ? push(`/grupo/${group.group.id}`) : push('/grupos'))}
-                />
-                <QuickTile kicker="Copa relámpago" title="Torneos" color="#fff" ink={colors.ink} icon="tournaments" onPress={() => push('/torneos')} />
-              </Rise>
+              {pending.length === 0 ? confirmar : null}
             </>
           );
         }}
@@ -270,27 +217,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  hero: { flexDirection: 'row', minHeight: 220, overflow: 'hidden', backgroundColor: colors.navy, borderRadius: 20, borderWidth: 1, borderColor: colors.line },
-  heroLeft: { width: '38%', backgroundColor: colors.red, paddingTop: 14, paddingLeft: 12, paddingBottom: 12, justifyContent: 'flex-start', overflow: 'hidden' },
-  stripes: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    opacity: 0.45,
-  },
-  bigNum: { fontSize: 68, fontStyle: 'normal', color: colors.redInk, lineHeight: 70 },
-  heroMark: { position: 'absolute', right: -16, bottom: 8, opacity: 0.9 },
-  heroRight: { flex: 1, padding: 12, gap: 6, justifyContent: 'center' },
-  heroName: { fontSize: 36, fontStyle: 'normal', lineHeight: 36 },
-  eloRow: { flexDirection: 'row', alignItems: 'stretch' },
-  eloTag: { backgroundColor: colors.yellow, paddingHorizontal: 6, justifyContent: 'center', borderRadius: 14 },
-  eloNum: { backgroundColor: '#fff', paddingHorizontal: 8, justifyContent: 'center', borderRadius: 14 },
-  tags: { gap: 4 },
-  tagDark: { alignSelf: 'flex-start', backgroundColor: colors.bgDeep, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
-  tagRed: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.red, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
-  barRow: { gap: 4, marginTop: 4 },
-  bar: { flexDirection: 'row', height: 8, backgroundColor: colors.line, borderRadius: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 });
+
+function BillboardSkeleton() {
+  return <CardsSkeleton cards={2} />;
+}

@@ -86,5 +86,8 @@ export const enPatterns: [RegExp, string][] = [
   [/^Avisos(.*)$/, 'Notifications$1'],
 ];
 enPatterns.push(
+  [/^#(\d+) Ranking$/, 'Ranking #$1'],
+  [/^Mejor racha: (\d+)$/, 'Best streak: $1'],
+  [/^(\d+) Elo de diferencia$/, '$1 Elo apart'],
   [/^Muchos intentos seguidos\. Espera (\d+) s y vuelve a intentar\.$/, 'Too many attempts in a row. Wait $1 s and try again.'],
 );

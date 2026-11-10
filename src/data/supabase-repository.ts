@@ -11,6 +11,7 @@ import {
   projectGroups,
   projectH2H,
   projectHome,
+  projectBillboard,
   projectMatch,
   projectPersonal,
   projectRanking,
@@ -347,6 +348,9 @@ export function createSupabaseRepository(): Repository {
     },
     async homeSnapshot(userId) {
       return projectHome(await worldFor(userId), userId);
+    },
+    async billboardSnapshot(userId) {
+      return projectBillboard(await worldFor(userId), userId);
     },
     async createMatch(input) {
       const { data, error } = await supabase.rpc('create_match', {

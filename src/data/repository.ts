@@ -4,6 +4,7 @@ import type { PhotoKind, PhotoPayload } from '../lib/photos';
 import type { ReportDraft } from '../domain/types';
 import type { Match } from '../domain/types';
 import type {
+  BillboardSnapshot,
   FriendsSnapshot,
   GroupSnapshot,
   GroupSummary,
@@ -35,6 +36,8 @@ export type Repository = {
   createInvite(me: string): Promise<{ code: string; path: string }>;
   redeemInvite(me: string, code: string): Promise<'friends' | 'already'>;
   homeSnapshot(userId: string): Promise<HomeSnapshot>;
+  /** Portada del inicio (estrella, top, rachas, resultados, torneos). */
+  billboardSnapshot(userId: string): Promise<BillboardSnapshot>;
   createMatch(input: { me: string; opponentId: string; groupId?: string | null }): Promise<Match>;
   matchSnapshot(matchId: string, me: string): Promise<MatchSnapshot>;
   acceptMatch(matchId: string, me: string): Promise<Match>;

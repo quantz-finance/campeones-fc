@@ -111,3 +111,54 @@ export type TrophyView = {
   earned: boolean;
   earnedAt: string | null;
 };
+
+/** Un jugador en la portada (inicio): solo datos que salen de partidos confirmados. */
+export type BillboardPlayer = {
+  profile: Profile;
+  rating: number;
+  /** Puesto en el ranking del círculo (null si todavía no califica). */
+  place: number | null;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winRate: number;
+  streak: { type: 'win' | 'loss' | 'draw' | 'none'; count: number };
+  bestWinStreak: number;
+  /** Ventana reciente (últimos `windowDays` días). */
+  windowPlayed: number;
+  windowWins: number;
+  windowDelta: number;
+  /** Últimos resultados, del más nuevo al más viejo. */
+  form: ('win' | 'loss' | 'draw')[];
+};
+
+export type BillboardTournament = {
+  tournament: Tournament;
+  groupName: string;
+  played: number;
+  lastAt: string | null;
+  leader: Profile | null;
+  champion: Profile | null;
+};
+
+export type BillboardRivalry = {
+  group: Group;
+  first: BillboardPlayer;
+  second: BillboardPlayer;
+  gap: number;
+};
+
+export type BillboardSnapshot = {
+  windowDays: number;
+  /** Estrella: la de la semana (o del mes) si alguien ganó en la ventana; si no, el número 1 del ranking. */
+  star: { player: BillboardPlayer; reason: 'week' | 'month' | 'top' } | null;
+  top: BillboardPlayer[];
+  movers: BillboardPlayer[];
+  streaks: BillboardPlayer[];
+  results: { match: Match; label: string | null }[];
+  tournaments: BillboardTournament[];
+  rivalries: BillboardRivalry[];
+  people: People;
+  minMatches: number;
+};
