@@ -29,15 +29,17 @@ Eso tiene que aclararlo Vitalik con Cavos (nosotros no los contactamos):
 2. Qué pasa si la persona oculta el correo en «Iniciar sesión con Apple».
 3. Si hay un camino para agregar una passkey o un factor de recuperación en la web que luego sirva en el iPhone (el correo, por sí solo, no entra en RN).
 4. Confirmar el `redirectUri` exacto `campeones-fc://cavos-auth` y, si hace falta, el `rpId` de passkeys para nativo, en el panel de la app Campeones FC. El panel no acepta comodines.
-5. Si al subir a kit **0.5.2** (recomendado: acepta releases nuevas del enclave sin parche) el JWT del login nativo queda accesible para el integrador, o cómo debemos leerlo.
+5. Si conviene subir a kit **0.5.2** más adelante (acepta releases nuevas del enclave sin el parche de PCR0). El JWT nativo ya lo leemos nosotros en 0.4.4; 0.5.2 no lo expone tampoco.
 
-## Bloqueo técnico en kit 0.4.4 (por eso la bandera va apagada)
+## JWT para `/api/auth` (ya resuelto en esta rama)
 
 Nuestro `/api/auth` verifica el JWT de Cavos (JWKS + audiencia) y recién entonces acuña la sesión de Supabase. En la web el kit deja ese token en `sessionStorage` (`cavos-kit:token:<appId>`).
 
-En React Native, `NativeCavosAuth` usa el JWT para armar la identidad y **no lo persiste ni lo expone**. `useCavos()` no tiene `token`. Si el callback trae `auth_data`, podemos leerlo (eso está implementado). El flujo actual de OAuth usa `cavos_auth_code` y el intercambio queda dentro del kit: en ese caso no tenemos JWT y no podemos acuñar la sesión de la app.
+En React Native, tanto en kit **0.4.4** como en **0.5.2**, `NativeCavosAuth` usa el JWT para armar la identidad y **no lo persiste ni lo expone**. `useCavos()` no tiene `token`. El flujo actual de OAuth usa `cavos_auth_code`: el kit lo intercambia en `/api/oauth/callback/exchange` y pasa el cuerpo a `identityFromAuthData`.
 
-Hasta que Vitalik lo resuelva con Cavos (o se suba a un kit que exponga el token), `EXPO_PUBLIC_CAVOS_NATIVE` permanece apagado. El código del puente está en `src/lib/cavos/bridge.native.tsx` y no se carga en el export web (Metro usa `bridge.tsx` en web).
+En esta rama interceptamos `identityFromAuthData` (`src/lib/cavos/install-native-jwt-capture.ts`) y guardamos el JWT en memoria para `token()` / `/api/auth`. También leemos `auth_data` si el callback lo trae. No hace falta subir a 0.5.2 solo por el token (0.5.2 sigue sin exponerlo) y el parche web del enclave de 0.4.4 se conserva.
+
+`EXPO_PUBLIC_CAVOS_NATIVE=1` va en el `.env` local de la Mac (no en el export web). Sigue haciendo falta registrar `campeones-fc://cavos-auth` en el panel de Cavos (Vitalik) para que Apple/Google terminen el login.
 
 ## Qué hay que registrar cuando se active
 
@@ -49,6 +51,5 @@ Hasta que Vitalik lo resuelva con Cavos (o se suba a un kit que exponga el token
 ## Preguntas para Vitalik (él habla con Cavos)
 
 1. ¿Una cuenta web de correo se puede vincular con Apple o Google en iOS, misma identidad y misma billetera?
-2. ¿Cómo obtenemos el JWT de Cavos después de `login('apple'|'google')` en `@cavos/kit/react-native` 0.4.4 (o en 0.5.2) para `/api/auth`?
-3. ¿Confirmas el callback `campeones-fc://cavos-auth` y el `rpId` de passkeys para nativo?
-4. ¿Conviene subir a `@cavos/kit` 0.5.2 al armar el puente? (recomendado, no se hizo todavía)
+2. ¿Confirmas el callback `campeones-fc://cavos-auth` y el `rpId` de passkeys para nativo? Sin ese callback el login nativo no cierra.
+3. El JWT nativo ya lo capturamos en el kit 0.4.4 (no hace falta que Cavos lo exponga). ¿Conviene igual subir a `@cavos/kit` 0.5.2 más adelante por el enclave?

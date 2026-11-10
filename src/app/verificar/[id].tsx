@@ -4,6 +4,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { canonicalJson } from '../../domain/match-proof';
+import { apiUrl } from '../../lib/api';
 import { cavosSignedBytes, runChecks, type Check, type VerifyResponse } from '../../lib/chain-verify';
 import { Banner } from '../../ui/controls';
 import { Screen, Top } from '../../ui/screen';
@@ -73,7 +74,7 @@ export default function VerifyScreen() {
   useEffect(() => {
     if (!id) return;
     let active = true;
-    void fetch(`/api/verificar?id=${encodeURIComponent(String(id))}`)
+    void fetch(apiUrl(`/api/verificar?id=${encodeURIComponent(String(id))}`))
       .then(async (r) => {
         const body = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(body.error ?? 'No pudimos cargar el partido.');

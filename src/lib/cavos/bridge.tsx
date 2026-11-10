@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { colors } from '../../ui/theme';
 import { authErrorText, otpFill, otpGuard, sanitizeAuthError, shouldReportAuthError } from './auth-ux';
 import { APP_SALT, CAVOS_APP_ID, CAVOS_ENVIRONMENT, CAVOS_RP_ID, CAVOS_SOCIAL_RECOVERY, STELLAR_NETWORK } from './config';
+import { apiUrl } from '../api';
 import { cavosStore, type CavosBridged } from './store';
 import { clearCavosToken, currentCavosToken, persistCavosToken, rehydrateCavosToken } from './token-persist';
 
@@ -19,7 +20,7 @@ function reportAuthError(raw: string) {
   lastReport = message;
   console.error('[cavos] error de entrada', message);
   try {
-    void fetch('/api/auth', {
+    void fetch(apiUrl('/api/auth'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ step: 'client_error', message, path: window.location.pathname }),

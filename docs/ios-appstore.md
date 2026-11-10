@@ -23,3 +23,16 @@ El archivo `public/.well-known/apple-app-site-association` se sirve en esa ruta 
 ## EAS
 
 `eas.json` define los perfiles `development`, `preview` y `production`. No incluye credenciales, ni el `ascAppId` (se agrega cuando exista la ficha en App Store Connect). No subir de plan de Expo ni lanzar un build sin el OK de Rolando.
+
+## Correrla en el simulador (Mac)
+
+El kit nativo de Cavos no corre en Expo Go: hace falta un development build. En esta rama, con el `.env` local ya puesto, son dos comandos desde `~/Documents/campeones-ios`:
+
+```
+npm install
+npm run ios
+```
+
+`npm run ios` ejecuta `expo run:ios` (prebuild + Xcode + simulador). La primera vez tarda varios minutos (CocoaPods y compilación). Hace falta Xcode con los simuladores y CocoaPods. No sube nada a EAS ni a la App Store.
+
+El login real con Apple o Google abre el navegador del simulador y requiere el callback `campeones-fc://cavos-auth` registrado en el panel de Cavos. La API de `/api` apunta a `https://partido.campeonesfc.app` (testnet).

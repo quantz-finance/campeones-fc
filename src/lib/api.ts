@@ -1,4 +1,25 @@
 // Cliente de las funciones de Vercel (/api). Mensajes de error siempre en español.
+
+/** API de producción (testnet). En iOS/Android no hay origen HTTP; si falta EXPO_PUBLIC_API_BASE, usamos esta. */
+export const DEFAULT_NATIVE_API_BASE = 'https://partido.campeonesfc.app';
+
+export function apiBaseUrl(): string {
+  const raw = (process.env.EXPO_PUBLIC_API_BASE ?? '').trim().replace(/\/$/, '');
+  if (raw) return raw;
+  // Expo inyecta EXPO_OS en el bundle (ios | android | web). En tests de Node queda vacío.
+  const os = (process.env.EXPO_OS ?? '').toLowerCase();
+  if (os === 'ios' || os === 'android') return DEFAULT_NATIVE_API_BASE;
+  return '';
+}
+
+/** Convierte un path /api/... en URL absoluta cuando hay base (nativo). En la web sigue siendo relativo. */
+export function apiUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path;
+  const base = apiBaseUrl();
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return base ? `${base}${p}` : p;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -13,7 +34,7 @@ export class ApiError extends Error {
 export async function apiPost<T>(path: string, token: string, payload: unknown): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(path, {
+    res = await fetch(apiUrl(path), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload),

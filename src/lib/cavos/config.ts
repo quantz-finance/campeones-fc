@@ -15,9 +15,9 @@ export const CAVOS_ENVIRONMENT: 'development' | 'production' =
 export const CAVOS_NATIVE_REDIRECT = 'campeones-fc://cavos-auth';
 
 /**
- * Puente nativo (@cavos/kit/react-native). Apagado por defecto.
- * En kit 0.4.4 el proveedor nativo no expone el JWT que /api/auth necesita para acuñar la sesión:
- * no activar en un iPhone hasta resolver eso con Vitalik (ver docs/cavos-native.md).
+ * Puente nativo (@cavos/kit/react-native). En iOS se enciende con EXPO_PUBLIC_CAVOS_NATIVE=1
+ * (el .env local de la Mac lo trae). En la web permanece apagado: Metro usa bridge.tsx.
+ * El JWT se captura en identityFromAuthData (ver install-native-jwt-capture.ts).
  */
 export const cavosNativeEnabled =
   Platform.OS !== 'web' && /^(1|true)$/i.test(process.env.EXPO_PUBLIC_CAVOS_NATIVE ?? '');

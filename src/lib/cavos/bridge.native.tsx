@@ -3,6 +3,9 @@
 // Solo se monta si EXPO_PUBLIC_CAVOS_NATIVE=1 (ver config.ts). No contacta a Cavos
 // por su cuenta: el kit abre el navegador de OAuth cuando la persona entra.
 import { CavosProvider, useCavos } from '@cavos/kit/react-native';
+import { installNativeJwtCapture } from './install-native-jwt-capture';
+
+installNativeJwtCapture();
 import * as Linking from 'expo-linking';
 import { useEffect, useRef } from 'react';
 import { colors } from '../../ui/theme';

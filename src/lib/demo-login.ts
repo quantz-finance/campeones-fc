@@ -1,6 +1,6 @@
 // Botón "Entrar con usuario de prueba": pide al servidor la sesión de la cuenta de prueba compartida
 // (POST /api/demo) y la abre en Supabase. El cliente no guarda ni conoce ninguna credencial.
-import { ApiError } from './api';
+import { ApiError, apiUrl } from './api';
 import { getSupabase } from './supabase';
 
 type DemoResponse = { session: { access_token: string; refresh_token: string } };
@@ -8,7 +8,7 @@ type DemoResponse = { session: { access_token: string; refresh_token: string } }
 export async function signInTestUser(): Promise<void> {
   let res: Response;
   try {
-    res = await fetch('/api/demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    res = await fetch(apiUrl('/api/demo'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
   } catch {
     throw new ApiError('No hay conexión. Revisa tu internet y vuelve a intentar.', 0, 'network');
   }
