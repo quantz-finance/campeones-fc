@@ -11,6 +11,7 @@ import { push } from './nav';
 import { SocialButtons, SocialGlyph } from './social-icons';
 import { T } from './text';
 import { colors, layout, space } from './theme';
+import { humanError } from './errors';
 
 const placeholders: Record<SocialNetwork, string> = {
   tiktok: '@usuario o enlace',
@@ -61,7 +62,7 @@ export function SocialEditor({ profile, repo, startOpen = false }: { profile: Pr
         setDraft(draftFrom(next));
         setOpen(false);
       })
-      .catch((cause: unknown) => setFailure(cause instanceof Error ? cause.message : 'No se pudo guardar.'))
+      .catch((cause: unknown) => setFailure(humanError(cause)))
       .finally(() => setBusy(false));
   }
 

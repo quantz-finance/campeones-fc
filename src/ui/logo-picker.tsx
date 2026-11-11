@@ -13,6 +13,7 @@ import { PhotoButton } from './photo-button';
 import { SportPress } from './press';
 import { colors, layout, radius, space } from './theme';
 import { T } from './text';
+import { humanError } from './errors';
 
 const TILE = 56;
 const ART = 44;
@@ -160,7 +161,7 @@ export function LogoEditor({
                   void repo
                     .setLogo(kind, entity.id, draft, userId!)
                     .then(() => setOpen(false))
-                    .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'No se pudo guardar.'))
+                    .catch((cause: unknown) => setError(humanError(cause)))
                     .finally(() => setBusy(false));
                 }}
               />

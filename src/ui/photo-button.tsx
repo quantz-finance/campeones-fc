@@ -6,6 +6,7 @@ import { pickPhoto, type PhotoKind } from '../lib/photos';
 import { useApp } from '../state/app-provider';
 import { colors, space } from './theme';
 import { T } from './text';
+import { humanError } from './errors';
 
 export function PhotoButton({ kind, targetId, label = 'Cambiar foto' }: { kind: PhotoKind; targetId: string; label?: string }) {
   const { repo, mode } = useApp();
@@ -27,7 +28,7 @@ export function PhotoButton({ kind, targetId, label = 'Cambiar foto' }: { kind: 
               setBusy(true);
               await repo.uploadPhoto(kind, targetId, photo);
             })
-            .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'No se pudo subir la foto.'))
+            .catch((cause: unknown) => setError(humanError(cause)))
             .finally(() => setBusy(false));
         }}
       >

@@ -7,6 +7,7 @@ import { Screen, Top } from '../../ui/screen';
 import { T } from '../../ui/text';
 import { colors } from '../../ui/theme';
 import { replace } from '../../ui/nav';
+import { humanError } from '../../ui/errors';
 
 export default function InviteScreen() {
   const { code } = useLocalSearchParams<{ code: string }>();
@@ -31,7 +32,7 @@ export default function InviteScreen() {
       })
       .catch((cause: unknown) => {
         if (!active) return;
-        setError(cause instanceof Error ? cause.message : 'No se pudo usar el enlace.');
+        setError(humanError(cause));
       });
     return () => {
       active = false;

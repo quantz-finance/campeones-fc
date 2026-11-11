@@ -22,6 +22,7 @@ import { DeleteAccount } from '../../../ui/delete-account';
 import { push } from '../../../ui/nav';
 import { ThemeToggle } from '../../../ui/theme-toggle';
 import { LangToggle } from '../../../ui/lang-toggle';
+import { humanError } from '../../../ui/errors';
 
 const stickerMeta = {
   first_win: { title: 'Primera', icon: 'flash' as const, color: colors.accentText, tilt: '0deg' },
@@ -193,7 +194,7 @@ export default function Profile() {
               void app.repo
                 .updateProfile(app.userId!, { displayName, username, avatarKey })
                 .then(() => setSaved(true))
-                .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'No se pudo guardar.'))
+                .catch((cause: unknown) => setError(humanError(cause)))
                 .finally(() => setBusy(false));
             }}
           />

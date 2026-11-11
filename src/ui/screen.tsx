@@ -1,6 +1,6 @@
 import { useIsFocused } from 'expo-router';
 import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AudioToggle } from './audio-toggle';
@@ -64,6 +64,9 @@ export function Screen({
             style={[styles.flex, footerReserve ? { marginBottom: footerReserve } : null]}
             contentContainerStyle={{ flexGrow: 1, paddingBottom: bottom }}
             keyboardShouldPersistTaps="handled"
+            // El teclado no tapa el campo activo (iOS sube el contenido) y se cierra al deslizar.
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+            automaticallyAdjustKeyboardInsets
           >
             {body}
           </ScrollView>
@@ -106,7 +109,7 @@ export function Top({
       {back || icon ? (
         <View style={styles.topLead}>
           {back ? (
-            <SportPress onPress={() => goBack()} hitSlop={8} style={styles.back} accessibilityLabel="Volver">
+            <SportPress onPress={() => goBack()} hitSlop={8} style={styles.back} accessibilityLabel="Volver" accessibilityRole="button">
               <View style={styles.unskew}>
                 <Ionicons name="chevron-back" size={22} color={colors.text} />
               </View>
@@ -159,8 +162,8 @@ const styles = StyleSheet.create({
   titleCol: { flex: 1, minWidth: 0 },
   topRight: { flexShrink: 0, alignItems: 'flex-end' },
   back: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
