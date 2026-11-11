@@ -8,7 +8,7 @@ import type { Href } from 'expo-router';
 import type { BillboardPlayer, BillboardRivalry, BillboardSnapshot, BillboardTournament } from '../data/snapshots';
 import type { SponsorSlot } from '../content/sponsors';
 import { BrandIcon, InitialsMark, Shield, type BrandIconName } from './broadcast';
-import { PlayerPortrait } from './player-portrait';
+import { PlayerPortrait, PORTRAIT } from './player-portrait';
 import { elo, firstName, formatWhen, monogram, pct, signed, tagOf } from './format';
 import { CountRoll } from './motion';
 import { push } from './nav';
@@ -98,9 +98,19 @@ function StarCard({ star, index, total, me, width }: { star: BillboardSnapshot['
       <View style={styles.starPhoto} pointerEvents="none">
         <PlayerPortrait name={player.profile.displayName} photoUrl={player.profile.photoUrl} size={156} accent={player.place === 1 ? 'gold' : 'green'} />
       </View>
-      <T variant="display" style={styles.starIndex} pointerEvents="none">
-        {index + 1}
-      </T>
+      {player.place ? (
+        // El número grande es el puesto real del ranking (no la posición en el carrusel), sobre la foto y legible.
+        <View style={styles.starRankWrap} pointerEvents="none">
+          <View style={[styles.starRank, player.place === 1 && styles.starRankGold]} accessibilityLabel={`Ranking #${player.place}`}>
+            <T variant="display" color={colors.ink} style={styles.starRankNum}>
+              {`#${player.place}`}
+            </T>
+            <T variant="tiny" color={colors.ink} style={styles.starRankLabel}>
+              Ranking
+            </T>
+          </View>
+        </View>
+      ) : null}
       <View style={styles.starBody}>
         <View style={styles.starTopRow}>
           <View style={styles.kicker}>
@@ -135,7 +145,6 @@ function StarCard({ star, index, total, me, width }: { star: BillboardSnapshot['
           ) : (
             <Stat value={player.windowWins} label={reason === 'week' ? 'Victorias · semana' : 'Victorias · mes'} />
           )}
-          {player.place ? <Stat value={player.place} label="Ranking" format={(n) => `#${Math.round(n)}`} /> : null}
         </View>
         <View style={styles.chips}>
           {hot ? (
@@ -562,7 +571,11 @@ const styles = StyleSheet.create({
     ...(web ? ({ filter: 'blur(30px)' } as object) : null),
   },
   starPhoto: { position: 'absolute', right: -14, top: 12, width: 156, height: 156 },
-  starIndex: { position: 'absolute', right: 132, top: 4, fontSize: 64, lineHeight: 70, fontStyle: 'normal', color: colors.accentText, opacity: 0.22 },
+  starRankWrap: { position: 'absolute', right: -14, top: 148, width: 156, alignItems: 'center' },
+  starRank: { flexDirection: 'row', alignItems: 'baseline', gap: space.xs, backgroundColor: colors.yellow, paddingHorizontal: space.md, paddingVertical: space.xxs, borderRadius: 999, borderWidth: 2, borderColor: colors.navy },
+  starRankGold: { backgroundColor: PORTRAIT.gold },
+  starRankNum: { fontSize: 20, lineHeight: 24, fontStyle: 'normal' },
+  starRankLabel: { fontSize: 9 },
   starCount: { position: 'absolute', right: space.lg, bottom: space.md, fontSize: 10 },
   starBody: { gap: space.sm, maxWidth: '78%' },
   kicker: { flexDirection: 'row', alignItems: 'center', gap: space.xs, alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
