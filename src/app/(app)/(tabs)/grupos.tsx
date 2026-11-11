@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
@@ -9,10 +10,13 @@ import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { Rise } from '../../../ui/motion';
 import { push } from '../../../ui/nav';
+import { SearchEmpty, SearchField } from '../../../ui/search-field';
+import { matchesText, SEARCH_MIN_ITEMS } from '../../../domain/search';
 
 export default function Groups() {
   const { repo, userId, version } = useApp();
   const query = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
+  const [search, setSearch] = useState('');
 
   return (
     <Screen tab>
@@ -26,9 +30,12 @@ export default function Groups() {
               action={<Button label="Crear grupo" onPress={() => push('/grupo/nuevo')} />}
             />
           ) : (
-            groups.map((item, index) => (
+            <>
+            {groups.length >= SEARCH_MIN_ITEMS ? <SearchField value={search} onChange={setSearch} placeholder="Busca un grupo" /> : null}
+            {search && !groups.some((item) => matchesText(search, item.group.name)) ? <SearchEmpty query={search} hint="Revisa el nombre del grupo." /> : null}
+            {groups.filter((item) => matchesText(search, item.group.name)).map((item, index) => (
               <Rise key={item.group.id} index={index}>
-              <Pressable style={styles.card} onPress={() => push(`/grupo/${item.group.id}`)}>
+              <Pressable style={styles.card} onPress={() => push(`/grupo/${item.group.id}`)} accessibilityRole="button">
                 <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} kind="groups" id={item.group.id} logo={item.group.logo} size={48} />
                 <View style={styles.flex}>
                   <T variant="title" style={{ fontStyle: 'normal' }} numberOfLines={1}>
@@ -43,7 +50,8 @@ export default function Groups() {
                 </View>
               </Pressable>
               </Rise>
-            ))
+            ))}
+            </>
           )
         }
       </Gate>

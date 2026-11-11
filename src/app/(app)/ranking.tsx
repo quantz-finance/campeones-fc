@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import type { RankingSnapshot } from '../../data/snapshots';
 import { CountRoll, Pop, Rise } from '../../ui/motion';
@@ -14,6 +14,8 @@ import { Screen, Top } from '../../ui/screen';
 import { colors, radius, space } from '../../ui/theme';
 import { T } from '../../ui/text';
 import { push } from '../../ui/nav';
+import { SearchEmpty, SearchField } from '../../ui/search-field';
+import { filterPeople, SEARCH_MIN_ITEMS } from '../../domain/search';
 
 type RankRow = RankingSnapshot['rows'][number];
 
@@ -50,9 +52,12 @@ export default function Ranking() {
   const { repo, userId, version, mode, profile } = useApp();
   const fake = appModeOf(profile, mode !== 'supabase') === 'fake';
   const query = useQuery(() => repo.rankingSnapshot(userId!), [repo, userId, version]);
+  const [search, setSearch] = useState('');
+  // El puesto es el del ranking completo, aunque el buscador filtre.
+  const places = useMemo(() => new Map((query.data?.rows ?? []).map((row, index) => [row.playerId, index])), [query.data]);
   const renderItem = useCallback(
-    ({ item, index }: { item: RankRow; index: number }) => <Row row={item} index={index} me={item.playerId === userId} />,
-    [userId],
+    ({ item, index }: { item: RankRow; index: number }) => <Row row={item} index={places.get(item.playerId) ?? index} me={item.playerId === userId} />,
+    [userId, places],
   );
   return (
     <Screen scroll={false} fill>
@@ -61,7 +66,9 @@ export default function Ranking() {
         {(data) => (
           <FlatList
             style={styles.flex}
-            data={data.rows}
+            data={filterPeople(data.rows, search, (row) => row.profile)}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
             keyExtractor={(row) => row.playerId}
             renderItem={renderItem}
             initialNumToRender={12}
@@ -82,6 +89,7 @@ export default function Ranking() {
                     body={`Te faltan ${data.missing} ${data.missing === 1 ? 'partido' : 'partidos'} confirmados para salir en la lista.`}
                   />
                 ) : null}
+                {data.rows.length >= SEARCH_MIN_ITEMS ? <SearchField value={search} onChange={setSearch} placeholder="Busca un jugador" /> : null}
               </View>
             }
             ListFooterComponent={
@@ -91,7 +99,9 @@ export default function Ranking() {
                 </T>
               ) : undefined
             }
-            ListEmptyComponent={<T color={colors.muted}>Nadie del círculo acumula los partidos mínimos.</T>}
+            ListEmptyComponent={
+              search ? <SearchEmpty query={search} hint="Puede que aún no tenga los partidos mínimos para salir en el ranking." /> : <T color={colors.muted}>Nadie del círculo acumula los partidos mínimos.</T>
+            }
           />
         )}
       </Gate>
@@ -110,7 +120,7 @@ const styles = StyleSheet.create({
   you: { backgroundColor: colors.surface, borderRadius: 14 },
   place: { width: 28 },
   flex: { flex: 1 },
-  list: { gap: space.xs, paddingBottom: 8 },
+  list: { gap: space.sm, paddingBottom: space.sm },
   head: { gap: space.md, marginBottom: space.sm },
   note: { textAlign: 'center', marginTop: space.md, fontSize: 10, textTransform: 'none', letterSpacing: 0 },
 });

@@ -16,6 +16,7 @@ export function signed(value: number): string {
 }
 
 export function recordLine(record: Pick<SideRecord, 'wins' | 'draws' | 'losses'>): string {
+  if (record.wins + record.draws + record.losses === 0) return 'Sin partidos aún';
   return `${record.wins} V · ${record.draws} E · ${record.losses} D`;
 }
 

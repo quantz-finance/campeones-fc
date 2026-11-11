@@ -58,3 +58,12 @@ describe('i18n ficha pública y redes', () => {
     expect(translate('Tus redes', 'en')).toBe('Your socials');
   });
 });
+
+describe('buscador en inglés', () => {
+  it('traduce el estado vacío y los conteos del buscador', () => {
+    expect(translate('No encontramos a «vale».', 'en')).toBe('We couldn’t find “vale”.'.replace('’', "'"));
+    expect(translate('3 elegidos', 'en')).toBe('3 picked');
+    expect(translate('Busca por nombre o @usuario', 'en')).toBe('Search by name or @username');
+    expect(translate('@andre · Sin partidos aún', 'en')).toBe('@andre · No matches yet');
+  });
+});

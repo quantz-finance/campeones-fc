@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { STELLAR_NETWORK } from '../lib/cavos/config';
 import { Link, type Href } from 'expo-router';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { branding } from '../../config/branding';
@@ -182,17 +183,49 @@ export function StreakLine({ record }: { record: SideRecord }) {
   );
 }
 
-export function PlayerLine({ profile, detail, onPress }: { profile: Profile; detail: string; onPress?: () => void }) {
+export function PlayerLine({
+  profile,
+  detail,
+  onPress,
+  right,
+  selected = false,
+}: {
+  profile: Profile;
+  detail: string;
+  onPress?: () => void;
+  /** Acción a la derecha (p. ej. "Invitar"); reemplaza la flecha. */
+  right?: ReactNode;
+  /** Fila elegida en un selector (borde y check). */
+  selected?: boolean;
+}) {
   return (
-    <Pressable style={styles.match} onPress={onPress} disabled={!onPress}>
+    <Pressable
+      style={[styles.match, styles.line, selected && styles.lineOn]}
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityState={onPress && selected ? { selected: true } : undefined}
+    >
       <Avatar avatarKey={profile.avatarKey} name={profile.displayName} photoUrl={profile.photoUrl} />
       <View style={styles.flex}>
-        <T variant="strong">{profile.displayName}</T>
-        <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>
-          @{profile.username} · {detail}
+        <T variant="strong" numberOfLines={1}>
+          {profile.displayName}
+        </T>
+        <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }} numberOfLines={1}>
+          {detail ? `@${profile.username} · ${detail}` : `@${profile.username}`}
         </T>
       </View>
-      {onPress ? <Ionicons name="chevron-forward" size={16} color={colors.faint} /> : null}
+      {right ? (
+        <View style={styles.end}>{right}</View>
+      ) : selected ? (
+        <View style={styles.end}>
+          <Ionicons name="checkmark-circle" size={22} color={colors.accentText} />
+        </View>
+      ) : onPress ? (
+        <View style={styles.end}>
+          <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -232,6 +265,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingLeft: 8,
   },
+  line: { paddingVertical: space.sm },
+  lineOn: { borderColor: colors.accentText },
   side: { width: 42, height: 42, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   sideText: { fontSize: 13, color: colors.redInk },
   mid: { flex: 1, gap: space.xxs, paddingVertical: 8 },

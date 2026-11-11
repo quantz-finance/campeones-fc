@@ -6,9 +6,14 @@ import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { Banner, Button, Chip, Field, Gate } from '../../../ui/controls';
 import { Panel, Screen, Top } from '../../../ui/screen';
-import { colors, radius, space } from '../../../ui/theme';
+import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { replace } from '../../../ui/nav';
+import { rules } from '../../../domain/rules';
+import { humanError } from '../../../ui/errors';
+import { PersonPick } from '../../../ui/person-pick';
+import { SearchEmpty, SearchField } from '../../../ui/search-field';
+import { filterPeople, SEARCH_MIN_ITEMS } from '../../../domain/search';
 import { defaultLogo } from '../../../content/crests';
 import { LogoPicker } from '../../../ui/logo-picker';
 
@@ -23,6 +28,8 @@ export default function NewTournament() {
   const [busy, setBusy] = useState(false);
   const [logo, setLogo] = useState(() => defaultLogo('tournaments', String(Math.random())));
 
+  const [search, setSearch] = useState('');
+
   function toggle(id: string) {
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   }
@@ -33,7 +40,7 @@ export default function NewTournament() {
   return (
     <Screen>
       <Top title="Nuevo torneo" kicker="Llaves" back icon="tournaments" />
-      <Field label="Nombre" value={name} onChangeText={setName} placeholder="Copa relámpago" autoCapitalize="sentences" />
+      <Field label="Nombre" value={name} onChangeText={setName} placeholder="Copa relámpago" autoCapitalize="sentences" maxLength={rules.maxTournamentName} />
       <View style={styles.row}>
         <Chip label="Eliminación" active={format === 'single_elim'} onPress={() => setFormat('single_elim')} />
         <Chip label="Liga" active={format === 'round_robin'} onPress={() => setFormat('round_robin')} />
@@ -47,29 +54,62 @@ export default function NewTournament() {
         <LogoPicker kind="tournaments" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
       </Panel>
       <Gate query={query}>
-        {(group) => (
+        {(group) => {
+          const shown = filterPeople(group.members, search, (m) => m);
+          return (
             <Panel>
-              <T variant="strong">{group.group.name}</T>
-              {group.members.map((member) => {
+              <View style={styles.head}>
+                <T variant="strong" style={styles.flex} numberOfLines={1}>
+                  {group.group.name}
+                </T>
+                <T variant="tiny" color={selected.length ? colors.accentText : colors.faint}>
+                  {selected.length === 1 ? '1 elegido' : `${selected.length} elegidos`}
+                </T>
+              </View>
+              {group.members.length >= SEARCH_MIN_ITEMS ? <SearchField value={search} onChange={setSearch} placeholder="Busca por nombre o @usuario" /> : null}
+              {shown.map((member) => {
                 const on = selected.includes(member.id);
                 return (
-                  <Pressable key={member.id} onPress={() => toggle(member.id)} style={[styles.member, on && styles.on]}>
-                    <T>{on ? `${selected.indexOf(member.id) + 1}. ` : ''}{member.displayName}</T>
-                  </Pressable>
+                  <PersonPick
+                    key={member.id}
+                    profile={member}
+                    on={on}
+                    order={format === 'single_elim' && on ? selected.indexOf(member.id) + 1 : undefined}
+                    onPress={() => toggle(member.id)}
+                  />
                 );
               })}
+              {search && shown.length === 0 ? <SearchEmpty query={search} hint="Solo pueden jugar los miembros de este grupo." /> : null}
+              {group.members.length > 1 && selected.length < group.members.length ? (
+                <Pressable onPress={() => setSelected(group.members.map((m) => m.id))} hitSlop={8} style={styles.all} accessibilityRole="button">
+                  <T variant="label" color={colors.accentText}>
+                    Elegir a todos
+                  </T>
+                </Pressable>
+              ) : selected.length > 0 ? (
+                <Pressable onPress={() => setSelected([])} hitSlop={8} style={styles.all} accessibilityRole="button">
+                  <T variant="label" color={colors.accentText}>
+                    Quitar a todos
+                  </T>
+                </Pressable>
+              ) : null}
             </Panel>
-        )}
+          );
+        }}
       </Gate>
-      {!elimOk || !robinOk ? (
+      {selected.length === 0 ? (
+        <T color={colors.muted}>Marca a los jugadores que entran.</T>
+      ) : !elimOk || !robinOk ? (
         <Banner
           title="Revisa el cupo"
           body={format === 'single_elim' ? `Llevas ${selected.length}. Tienen que ser 4, 8 o 16.` : `Llevas ${selected.length}. La liga pide de 3 a 16.`}
         />
       ) : null}
       {error ? <Banner tone="danger" title="No se creó el torneo" body={error} /> : null}
+      {name.trim().length < 3 ? <T color={colors.muted}>Ponle un nombre de al menos 3 letras.</T> : null}
       <Button
         label={busy ? 'Creando…' : 'Crear torneo'}
+        pending={busy}
         disabled={busy || name.trim().length < 3 || !elimOk || !robinOk}
         onPress={() => {
           setBusy(true);
@@ -87,7 +127,7 @@ export default function NewTournament() {
               track('tournament_created', { format });
               replace(`/torneo/${tournament.id}`);
             })
-            .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'No se pudo crear.'))
+            .catch((cause: unknown) => setError(humanError(cause)))
             .finally(() => setBusy(false));
         }}
       />
@@ -97,11 +137,7 @@ export default function NewTournament() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: space.sm },
-  member: {
-    padding: space.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  on: { borderColor: colors.accent, backgroundColor: colors.bg, borderRadius: 14 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  flex: { flex: 1, minWidth: 0 },
+  all: { alignSelf: 'flex-start', minHeight: 32, justifyContent: 'center' },
 });

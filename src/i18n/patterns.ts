@@ -1,5 +1,8 @@
 // Frases con datos (nombres, números): patrón en español → plantilla en inglés.
 export const enPatterns: [RegExp, string][] = [
+  [/^No encontramos a «(.+)»\.$/, "We couldn't find “$1”."],
+  [/^(\d+) elegidos$/, '$1 picked'],
+  [/^Contra (.+)$/, 'Against $1'],
   [/^Ranking #(\d+) de (\d+)$/, 'Rank #$1 of $2'],
   [/^Ficha de (.+)$/, '$1 player card'],
   [/^Elige uno de los (\d+) escudos o sube tu foto\.$/, 'Pick one of the $1 crests or upload your photo.'],

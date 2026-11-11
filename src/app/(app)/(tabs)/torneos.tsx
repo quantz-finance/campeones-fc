@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
@@ -8,6 +9,8 @@ import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { monogram } from '../../../ui/format';
 import { push } from '../../../ui/nav';
+import { SearchEmpty, SearchField } from '../../../ui/search-field';
+import { matchesText, SEARCH_MIN_ITEMS } from '../../../domain/search';
 
 export default function TournamentsTab() {
   const { repo, userId, version } = useApp();
@@ -27,6 +30,7 @@ export default function TournamentsTab() {
     );
   }, [repo, userId, version]);
 
+  const [search, setSearch] = useState('');
   return (
     <Screen tab>
       <Top title="Torneos" kicker="Cuadros y copas" icon="tournaments" />
@@ -39,8 +43,11 @@ export default function TournamentsTab() {
               action={<Button label="Ver grupos" onPress={() => push('/grupos')} />}
             />
           ) : (
-            list.map((item) => (
-              <Pressable key={item.id} style={styles.card} onPress={() => push(`/torneo/${item.id}`)}>
+            <>
+            {list.length >= SEARCH_MIN_ITEMS ? <SearchField value={search} onChange={setSearch} placeholder="Busca un torneo o grupo" /> : null}
+            {search && !list.some((item) => matchesText(search, item.name, item.groupName)) ? <SearchEmpty query={search} hint="Busca por el nombre del torneo o de su grupo." /> : null}
+            {list.filter((item) => matchesText(search, item.name, item.groupName)).map((item) => (
+              <Pressable key={item.id} style={styles.card} onPress={() => push(`/torneo/${item.id}`)} accessibilityRole="button">
                 <Shield letters={monogram(item.name)} photoUrl={item.photoUrl} kind="tournaments" id={item.id} logo={item.logo} size={48} />
                 <View style={styles.flex}>
                   <T variant="title" style={{ fontStyle: 'normal' }} numberOfLines={1}>
@@ -54,7 +61,8 @@ export default function TournamentsTab() {
                   {item.status === 'completed' ? 'Finalizado' : 'En juego'}
                 </T>
               </Pressable>
-            ))
+            ))}
+            </>
           )
         }
       </Gate>

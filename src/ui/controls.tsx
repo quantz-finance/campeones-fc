@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, TextInput, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, TextInput, View, type StyleProp, type ViewStyle } from 'react-native';
 import { SkewBlock } from './broadcast';
 import { Animated } from 'react-native';
 import { useDelayed, useShimmerStyle } from './motion';
@@ -64,6 +64,26 @@ export function Button({
   );
 }
 
+/** Botón compacto dentro de una fila (p. ej. "Invitar"). Área táctil de 44 pt con el hitSlop. */
+export function MiniButton({ label, onPress, disabled = false }: { label: string; onPress: () => void; disabled?: boolean }) {
+  const lang = useLang();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={6}
+      accessibilityRole="button"
+      accessibilityLabel={translate(label, lang)}
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [styles.mini, disabled && styles.dim, pressed && { opacity: 0.8 }]}
+    >
+      <T variant="label" color={colors.accentInk}>
+        {label}
+      </T>
+    </Pressable>
+  );
+}
+
 export function Field({
   label,
   value,
@@ -71,6 +91,7 @@ export function Field({
   placeholder,
   autoCapitalize = 'none',
   keyboardType = 'default',
+  maxLength,
 }: {
   label: string;
   value: string;
@@ -78,6 +99,7 @@ export function Field({
   placeholder?: string;
   autoCapitalize?: 'none' | 'words' | 'sentences';
   keyboardType?: 'default' | 'email-address' | 'number-pad';
+  maxLength?: number;
 }) {
   const lang = useLang();
   return (
@@ -93,6 +115,10 @@ export function Field({
         autoCapitalize={autoCapitalize}
         autoCorrect={false}
         keyboardType={keyboardType}
+        maxLength={maxLength}
+        accessibilityLabel={translate(label, lang)}
+        returnKeyType="done"
+        onSubmitEditing={() => Keyboard.dismiss()}
         style={styles.input}
       />
     </View>
@@ -109,7 +135,7 @@ export function Chip({
   onPress?: () => void;
 }) {
   return (
-    <SportPress onPress={onPress} disabled={!onPress}>
+    <SportPress onPress={onPress} disabled={!onPress} hitSlop={6} accessibilityRole="button" accessibilityState={{ selected: active }}>
       {({ glint }) => (
         <SkewBlock
           color={active ? colors.red : colors.wash}
@@ -248,6 +274,15 @@ const styles = StyleSheet.create({
   },
   empty: { gap: space.sm, paddingVertical: space.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  mini: {
+    minHeight: 34,
+    minWidth: 76,
+    paddingHorizontal: space.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.pill,
+    backgroundColor: colors.yellow,
+  },
 });
 
 function PendingDots({ color }: { color: string }) {

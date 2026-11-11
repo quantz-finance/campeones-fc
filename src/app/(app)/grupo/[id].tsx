@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,11 +15,14 @@ import { colors, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { LogoEditor } from '../../../ui/logo-picker';
 import { push } from '../../../ui/nav';
+import { SearchEmpty, SearchField } from '../../../ui/search-field';
+import { matchesPerson } from '../../../domain/search';
 
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { repo, userId, version } = useApp();
   const query = useQuery(() => repo.groupSnapshot(String(id), userId!), [repo, userId, version, id]);
+  const [search, setSearch] = useState('');
 
   return (
     <Screen dock="grupos">
@@ -35,7 +39,9 @@ export default function GroupDetail() {
                 back
                 right={
                   <Pressable
-                   
+                    hitSlop={10}
+                    accessibilityRole="button"
+                    accessibilityLabel="Invitar al grupo"
                     onPress={() => {
                       void repo.createInvite(userId!).then((invite) => {
                         void copyText(inviteUrl(invite.code));
@@ -74,6 +80,8 @@ export default function GroupDetail() {
                 </View>
               </View>
               <SectionHead title="Tabla de posiciones" action="T3" />
+              {data.members.length >= 8 ? <SearchField value={search} onChange={setSearch} placeholder="Busca un jugador del grupo" /> : null}
+              {search && !data.table.some((row) => matchesPerson(row.profile, search)) ? <SearchEmpty query={search} hint="No está en este grupo." /> : null}
               <View style={styles.table}>
                 <View style={styles.headRow}>
                   {['#', 'Jugador', 'PJ', 'G', 'P', 'ELO', 'Forma'].map((label) => (
@@ -88,6 +96,7 @@ export default function GroupDetail() {
                   ))}
                 </View>
                 {data.table.map((row, index) => {
+                  if (!matchesPerson(row.profile, search)) return null;
                   const form = formOf(row.playerId, data.recent);
                   return (
                     <Pressable
@@ -206,9 +215,9 @@ const styles = StyleSheet.create({
   kingLeft: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', transform: [{ skewX: '0deg' }], marginRight: -12, borderRadius: 14 },
   kingRight: { width: 110, backgroundColor: colors.navy, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 12, borderLeftWidth: 4, borderLeftColor: colors.red, borderRadius: 14 },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  table: { gap: space.xxs },
+  table: { gap: space.xs },
   headRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
-  bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, paddingVertical: 6 },
+  bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, paddingVertical: space.sm, minHeight: 44 },
   leaderRow: { borderLeftWidth: 3, borderLeftColor: colors.yellow },
   name: { flex: 1.4 },
   cell: { width: 28, textAlign: 'center', fontSize: 13 },
@@ -225,7 +234,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.sm,
-    padding: 10,
+    padding: space.md,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.line,
