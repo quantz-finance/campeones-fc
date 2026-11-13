@@ -3,7 +3,6 @@ import { useLocalSearchParams } from 'expo-router';
 import { SocialEditor } from '../../../ui/social-editor';
 import { AchievementBadge } from '../../../ui/achievement-badge';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { APP_MODES, appModeOf } from '../../../lib/app-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { Icon } from '../../../ui/icon';
 import { avatars, branding } from '../../../../config/branding';
@@ -19,9 +18,7 @@ import { Rise, useDelayed } from '../../../ui/motion';
 import { PlayerCard, cardFromPublic } from '../../../ui/player-card';
 import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
-import { DeleteAccount } from '../../../ui/delete-account';
 import { push } from '../../../ui/nav';
-import { LangSetting } from '../../../ui/lang-toggle';
 import { humanError } from '../../../ui/errors';
 
 const stickerMeta = {
@@ -41,7 +38,6 @@ export default function Profile() {
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
   const [username, setUsername] = useState(profile?.username ?? '');
   const [avatarKey, setAvatarKey] = useState(profile?.avatarKey ?? 'rayo');
-  const [showDemo, setShowDemo] = useState(profile?.showDemo === true);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -54,7 +50,6 @@ export default function Profile() {
     setDisplayName(profile.displayName);
     setUsername(profile.username);
     setAvatarKey(profile.avatarKey);
-    setShowDemo(profile.showDemo === true);
   }, [profile]);
 
   if (!profile) {
@@ -76,6 +71,9 @@ export default function Profile() {
             Mi ficha
           </T>
         </View>
+        <Pressable accessibilityLabel="Configuración" style={styles.iconBtn} onPress={() => push('/configuracion')}>
+          <Icon name="ajustes" size={18} color={colors.text} />
+        </Pressable>
         <Pressable accessibilityLabel="Compartir ficha" style={styles.iconBtn} onPress={() => push('/estadisticas')}>
           <Icon name="compartir" size={18} color={colors.text} />
         </Pressable>
@@ -198,68 +196,16 @@ export default function Profile() {
           />
         </View>
       ) : null}
-      <View style={styles.modeBox}>
-        <T variant="label" color={colors.accentText}>
-          Modo
-        </T>
-        <View style={styles.segment} accessibilityRole="radiogroup">
-          {APP_MODES.map((m) => {
-            const current = appModeOf({ showDemo }, app.mode !== 'supabase');
-            const on = current === m.key;
-            const locked = m.disabled || app.mode !== 'supabase';
-            return (
-              <Pressable
-                key={m.key}
-                disabled={locked || on}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: on, disabled: locked }}
-                accessibilityLabel={m.label}
-                onPress={() => {
-                  const next = m.key === 'fake';
-                  setShowDemo(next);
-                  void app.repo
-                    .updateProfile(app.userId!, { showDemo: next })
-                    .then(() => app.refresh())
-                    .catch(() => setShowDemo(!next));
-                }}
-                style={[styles.segItem, on && styles.segOn, m.disabled && styles.segOff]}
-              >
-                <T variant="strong" color={on ? colors.ink : colors.text} style={{ fontSize: 13 }}>
-                  {m.label}
-                </T>
-                {m.disabled ? (
-                  <T variant="tiny" color={colors.muted} style={{ fontSize: 9 }}>
-                    Próximamente
-                  </T>
-                ) : null}
-              </Pressable>
-            );
-          })}
-        </View>
-        <T variant="tiny" color={colors.muted} style={{ textTransform: 'none', letterSpacing: 0 }}>
-          {showDemo || app.mode !== 'supabase'
-            ? 'Datos falsos: ves el mundo de demostración (jugadores, partidos, grupos). Nada va a la blockchain.'
-            : 'Testnet: solo jugadores y partidos reales. Verificación en Stellar (red de prueba, sin dinero real).'}
-        </T>
-      </View>
       <View style={styles.links}>
         <Button label="Amigos" tone="ghost" onPress={() => push('/amigos')} />
         <Button label="Ranking" tone="ghost" onPress={() => push('/ranking')} />
         <Button label="Trofeos" tone="ghost" onPress={() => push('/trofeos')} />
-        <Button label="Términos de uso" tone="ghost" onPress={() => push('/terminos')} />
-        <Button label="Aviso de privacidad" tone="ghost" onPress={() => push('/privacidad')} />
-      </View>
-      {app.mode === 'demo' ? <Button label="Restablecer datos de demostración" tone="ghost" onPress={() => void app.repo.resetDemo()} /> : null}
-      <DeleteAccount />
-      <Button label="Cerrar sesión" tone="danger" onPress={() => void app.signOut()} />
-      <View style={styles.settings}>
-        <SectionHead title="Ajustes" />
-        <View style={styles.setting}>
-          <T variant="label" color={colors.muted}>
-            Idioma
-          </T>
-          <LangSetting />
-        </View>
+        <Button
+          label="Configuración"
+          tone="ghost"
+          icon={<Icon name="ajustes" size={18} color={colors.text} />}
+          onPress={() => push('/configuracion')}
+        />
       </View>
       <Affiliation />
     </Screen>
@@ -267,11 +213,6 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  modeBox: { gap: layout.inCard, padding: 12, borderWidth: 1, borderColor: colors.line },
-  segment: { flexDirection: 'row', transform: [{ skewX: '0deg' }], borderWidth: 1, borderColor: colors.lineStrong },
-  segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, minHeight: 48 },
-  segOn: { backgroundColor: colors.yellow, borderRadius: 14 },
-  segOff: { opacity: 0.5 },
   top: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   flex: { flex: 1 },
   topLabel: { flex: 1, minWidth: 0 },
@@ -305,8 +246,6 @@ const styles = StyleSheet.create({
   },
   avatarOn: { borderColor: colors.yellow },
   links: { gap: layout.stack },
-  settings: { gap: layout.title, paddingTop: layout.section - layout.stack },
-  setting: { gap: space.md },
 });
 
 function ProfileSkeleton() {

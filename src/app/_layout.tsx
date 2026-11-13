@@ -10,6 +10,7 @@ import { AppProvider, useAppMaybe } from '../state/app-provider';
 import { colors } from '../ui/theme';
 import { ErrorScreen } from '../ui/error-screen';
 import { TransitionHost } from '../ui/transition';
+import { LaunchIntro } from '../ui/launch-intro';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -45,6 +46,7 @@ export default function RootLayout() {
         <TransitionHost>
           <BootSplash />
           <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: colors.bg } }} />
+          <LaunchIntro />
         </TransitionHost>
       </AppProvider>
     </SafeAreaProvider>

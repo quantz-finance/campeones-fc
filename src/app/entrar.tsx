@@ -137,11 +137,11 @@ export default function Login() {
                   <TestUserButton />
                 </>
               )}
-              <T color={colors.muted} style={styles.blurb}>
-                {native
-                  ? 'Cada resultado que confirmen los dos queda verificado, sin dinero real.'
-                  : 'Al entrar recibes tu billetera. Cada resultado que confirmen los dos queda registrado, sin dinero real.'}
-              </T>
+              {native ? null : (
+                <T color={colors.muted} style={styles.blurb}>
+                  Al entrar recibes tu billetera. Cada resultado que confirmen los dos queda registrado, sin dinero real.
+                </T>
+              )}
             </>
           ) : (
             <Banner
