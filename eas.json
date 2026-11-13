@@ -16,7 +16,8 @@
       "channel": "preview",
       "env": {
         "CFC_IOS_ASSOCIATED_DOMAINS": "1"
-      }
+      },
+      "environment": "preview"
     },
     "production": {
       "distribution": "store",
@@ -24,6 +25,10 @@
       "autoIncrement": true,
       "env": {
         "CFC_IOS_ASSOCIATED_DOMAINS": "1"
+      },
+      "environment": "production",
+      "ios": {
+        "autoIncrement": true
       }
     }
   },

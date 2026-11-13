@@ -43,11 +43,19 @@ function withOptionalAssociatedDomains(config) {
 /** @param {{ config: import('expo/config').ExpoConfig }} ctx */
 module.exports = ({ config }) => {
   const ios = { ...config.ios };
+  ios.config = { ...(config.ios && config.ios.config), usesNonExemptEncryption: false };
   if (enableAssociatedDomains) ios.associatedDomains = ASSOCIATED_DOMAINS;
   else delete ios.associatedDomains;
 
+  const EAS_PROJECT_ID = '8ce19e53-b9bc-4af2-ac6d-b34ff00cc5fd';
+
   return withOptionalAssociatedDomains({
     ...config,
+    owner: 'rolandoarguello',
+    extra: {
+      ...(config.extra ?? {}),
+      eas: { ...((config.extra && config.extra.eas) || {}), projectId: EAS_PROJECT_ID },
+    },
     name: branding.name,
     slug: branding.slug,
     scheme: branding.scheme,
@@ -57,7 +65,8 @@ module.exports = ({ config }) => {
     plugins: [
       ...(config.plugins ?? []),
       [
-        '@cavos/kit',
+        // eas-cli resuelve '@cavos/kit' a dist/index.js (no es un config plugin).
+        require.resolve('@cavos/kit/app.plugin'),
         {
           rpId: CAVOS_NATIVE_RP_ID,
           scheme: branding.scheme,

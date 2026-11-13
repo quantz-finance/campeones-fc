@@ -8,18 +8,16 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "description": "Lleva el marcador de tus partidos con amigos: series, grupos, torneos y trofeos.",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#37003C"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.campeonesfc",
       "associatedDomains": [
         "applinks:partido.campeonesfc.app",
         "webcredentials:partido.campeonesfc.app"
-      ]
+      ],
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "app.campeonesfc",
@@ -82,6 +80,12 @@
       "expo-status-bar",
       "expo-font",
       "expo-web-browser"
-    ]
+    ],
+    "owner": "rolandoarguello",
+    "extra": {
+      "eas": {
+        "projectId": "8ce19e53-b9bc-4af2-ac6d-b34ff00cc5fd"
+      }
+    }
   }
 }
