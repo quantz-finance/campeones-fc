@@ -23,7 +23,7 @@ import {
   CAVOS_NATIVE_RP_ID,
   STELLAR_NETWORK,
 } from './config';
-import { extractJwtFromCallbackUrl, getNativeCavosJwt, setNativeCavosJwt } from './native-jwt';
+import { extractJwtFromCallbackUrl, getNativeCavosJwt, isCavosCallbackUrl, setNativeCavosJwt } from './native-jwt';
 import { cavosStore, type CavosBridged } from './store';
 
 // El texto amable oculta la causa: el error crudo (sin correo ni tokens) va al log del servidor (/api/auth client_error).
@@ -84,6 +84,7 @@ function Bridge() {
 
   useEffect(() => {
     const onUrl = (url: string) => {
+      if (!isCavosCallbackUrl(url)) return; // invitaciones y otros enlaces no son la vuelta del login
       const jwt = extractJwtFromCallbackUrl(url);
       if (jwt) setNativeCavosJwt(jwt);
       void ref.current.handleCallback(url).catch((e) => {

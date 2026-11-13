@@ -61,3 +61,12 @@ export function extractJwtFromCallbackUrl(url: string): string | null {
   if (!authData) return null;
   return extractJwtFromAuthPayload(authData);
 }
+
+/**
+ * ¿La URL que abrió la app es la vuelta del login de Cavos? Solo esas van a handleCallback.
+ * Cualquier otro enlace (invitación campeones-fc://i/…, enlace universal, el del dev client) no es un callback:
+ * antes el puente se lo pasaba igual al kit, que respondía "kit/native-auth: malformed JWT" y pintaba un error de entrada.
+ */
+export function isCavosCallbackUrl(url: string): boolean {
+  return /[?&#](cavos_auth_code|auth_data|zk_auth_data)=/.test(url);
+}
