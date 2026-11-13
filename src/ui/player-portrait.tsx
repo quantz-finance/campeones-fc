@@ -1,6 +1,6 @@
 // Marco de foto de jugador (estrella del inicio, ficha pública, perfil). Sobrio, de club: anillo exterior en
 // verde (o dorado para el #1), filete morado y un hilo lila interior, con un degradado morado sutil detrás de la
-// foto. La foto entra recortada al círculo (cover, centrada arriba para no cortar la cara). Sin foto: iniciales
+// foto. La foto (cuadrada, 1:1) entra recortada al círculo en cover y centrada. Sin foto: iniciales
 // en Outfit 800 sobre el mismo degradado, nada de avatares de colores. Igual en modo claro y oscuro.
 import { Image } from 'expo-image';
 import { memo, useId } from 'react';
@@ -88,7 +88,7 @@ export const PlayerPortrait = memo(function PlayerPortrait({
             recyclingKey={photoUrl}
             style={StyleSheet.absoluteFill}
             contentFit="cover"
-            contentPosition="top"
+            contentPosition="center"
             cachePolicy="memory-disk"
             transition={reduced ? 0 : 180}
             accessible={false}

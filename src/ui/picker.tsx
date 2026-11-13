@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   quickWrap: { gap: space.sm },
   quick: { gap: space.md, paddingRight: space.sm },
   chip: { width: 64, alignItems: 'center', gap: space.xs },
-  ring: { padding: 2, borderRadius: 999, borderWidth: 2, borderColor: 'transparent' },
+  ring: { padding: 2, borderRadius: 14, borderWidth: 2, borderColor: 'transparent' },
   ringOn: { borderColor: colors.accentText },
   chipText: { maxWidth: 64, textAlign: 'center' },
   list: { gap: space.xxs },

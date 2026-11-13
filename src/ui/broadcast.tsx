@@ -12,6 +12,7 @@ import { useResolvedColor } from './theme-mode';
 import { Icon, type UiIconName } from './icon';
 import { Image } from 'expo-image';
 import { PhotoLayer } from './entity-image';
+import { photoRadius } from './avatar';
 
 export function tabBarSpace(bottomInset: number): number {
   return 64 + Math.max(bottomInset, 10);
@@ -226,7 +227,7 @@ export function InitialsMark({
           height: size,
           backgroundColor: avatar.background,
         },
-        Platform.OS === 'web' ? styles.markClip : { transform: [{ skewX: '0deg' }] },
+        { borderRadius: photoRadius(size) },
         Platform.OS === 'web'
           ? ({
               backgroundImage: `linear-gradient(160deg, ${avatar.background}, ${avatar.wash})`,
@@ -239,12 +240,11 @@ export function InitialsMark({
         style={{
           fontSize: fontSize ?? Math.round(size * 0.38),
           color: avatar.foreground,
-          transform: Platform.OS === 'web' ? undefined : [{ skewX: '0deg' }],
         }}
       >
         {letters || '·'}
       </T>
-      <PhotoLayer uri={photoUrl} counterSkew={Platform.OS === 'web' ? undefined : '10deg'} />
+      <PhotoLayer uri={photoUrl} />
     </View>
   );
 }
@@ -309,7 +309,7 @@ export function ScoreBar({
     <View style={styles.scoreWrap}>
       <SportPress onPress={onPress} disabled={!onPress} style={styles.scoreRow}>
         <View style={[styles.scoreSide, { backgroundColor: colors.red }]}>
-          <PhotoLayer uri={leftPhoto} counterSkew="8deg" />
+          <PhotoLayer uri={leftPhoto} />
           {leftPhoto ? <View style={styles.scoreShade} /> : null}
           <T variant="display" style={[styles.scoreTag, { color: leftPhoto ? '#fff' : colors.redInk }, leftPhoto ? styles.scoreTagOnPhoto : null]}>
             {leftTag}
@@ -319,7 +319,7 @@ export function ScoreBar({
           <ScoreFigure score={score} />
         </View>
         <View style={[styles.scoreSide, { backgroundColor: colors.blue }]}>
-          <PhotoLayer uri={rightPhoto} counterSkew="8deg" />
+          <PhotoLayer uri={rightPhoto} />
           {rightPhoto ? <View style={styles.scoreShade} /> : null}
           <T variant="display" style={[styles.scoreTag, rightPhoto ? styles.scoreTagOnPhoto : null]}>
             {rightTag}
@@ -573,7 +573,6 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: layout.section - layout.stack },
   headLine: { flex: 1, height: 1, backgroundColor: colors.line },
   mark: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  markClip: { borderRadius: 999, overflow: 'hidden' } as object,
   scoreWrap: { gap: 0, borderRadius: 16, overflow: 'hidden' },
   scoreShade: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(8,11,19,0.35)' },
   scoreTagOnPhoto: { textShadowColor: 'rgba(0,0,0,0.85)', textShadowRadius: 6, textShadowOffset: { width: 0, height: 1 } },

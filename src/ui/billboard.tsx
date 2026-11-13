@@ -1,6 +1,8 @@
 // Portada del inicio en mosaico: los jugadores del círculo como estrellas. Solo datos de partidos confirmados.
-import { SocialDots } from './social-icons';
-import { useState } from 'react';
+import { SocialGlyph, socialEntries } from './social-icons';
+import { useId, useState } from 'react';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { PhotoLayer } from './entity-image';
 import { Linking, Platform, ScrollView, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Icon, type UiIconName } from './icon';
 import { Image } from 'expo-image';
@@ -8,8 +10,8 @@ import type { Href } from 'expo-router';
 import type { BillboardPlayer, BillboardRivalry, BillboardSnapshot, BillboardTournament } from '../data/snapshots';
 import type { SponsorSlot } from '../content/sponsors';
 import { InitialsMark, Shield } from './broadcast';
-import { PlayerPortrait, PORTRAIT } from './player-portrait';
-import { elo, firstName, formatWhen, monogram, pct, signed, tagOf } from './format';
+import { initialsOf } from './player-portrait';
+import { elo, firstName, formatWhen, monogram, signed, tagOf } from './format';
 import { CountRoll } from './motion';
 import { push } from './nav';
 import { SportPress } from './press';
@@ -84,106 +86,139 @@ function useCardWidth() {
 
 /* ---------- Las estrellas: carrusel del top 5 ---------- */
 
-function StarCard({ star, index, total, me, width }: { star: BillboardSnapshot['stars'][number]; index: number; total: number; me: string; width: number }) {
+// Cromo coleccionable (propuesta 1 de Stan, assets/estrellas-propuestas): marco dorado con filete interior,
+// foto cuadrada (1:1) a la derecha, nombre grande, @usuario, redes, grilla Elo · victorias · V-E-D y el ranking en dorado.
+// Solo datos reales del jugador. Sin foto: iniciales grandes dentro del mismo cuadro.
+const GOLD = { hi: '#F1D27A', mid: '#D4AF37', lo: '#8A6A16', line: 'rgba(241,210,122,0.4)', hair: 'rgba(241,210,122,0.45)' } as const;
+const CROMO_H = 268; // un poco más baja que la maqueta (300): menos aire entre las redes y la grilla
+const CROMO_BORDER = 4; // un poco más delgado que la maqueta (6)
+
+function Gradient({ id, stops, x2 = '0', y2 = '1' }: { id: string; stops: [number, string][]; x2?: string; y2?: string }) {
+  return (
+    <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
+      <Defs>
+        <LinearGradient id={id} x1="0" y1="0" x2={x2} y2={y2}>
+          {stops.map(([offset, color]) => (
+            <Stop key={offset} offset={String(offset)} stopColor={color} />
+          ))}
+        </LinearGradient>
+      </Defs>
+      <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${id})`} />
+    </Svg>
+  );
+}
+
+function StarCard({ star, me, width }: { star: BillboardSnapshot['stars'][number]; me: string; width: number }) {
   const { player, reason } = star;
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const rest = lastNames(player.profile.displayName);
-  const hot = player.streak.type === 'win' && player.streak.count >= 2;
+  const sub = [rest, `@${player.profile.username}`].filter(Boolean).join(' · ');
+  const socials = socialEntries(player.profile.socialLinks).slice(0, 4);
+  const inner = width - CROMO_BORDER * 2;
+  const photo = Math.min(150, Math.round(inner * 0.42));
+  // Arriba el texto convive con la foto; la grilla de abajo usa el ancho hasta el ranking.
+  const textW = inner - photo - 16 - 18 - 12;
+  const gridW = inner - 18 - 16 - (player.place ? 84 : 0);
   return (
     <SportPress
-      style={[styles.star, { width }]}
+      style={[styles.cromo, { width, height: CROMO_H }]}
       onPress={() => push(playerHref(me, player.profile.id))}
       accessibilityLabel={`${starKicker(reason)}: ${player.profile.displayName}`}
     >
-      <View style={styles.starGlow} pointerEvents="none" />
-      <View style={styles.starPhoto} pointerEvents="none">
-        <PlayerPortrait name={player.profile.displayName} photoUrl={player.profile.photoUrl} size={156} accent={player.place === 1 ? 'gold' : 'green'} />
-      </View>
-      {player.place ? (
-        // El número grande es el puesto real del ranking (no la posición en el carrusel), sobre la foto y legible.
-        <View style={styles.starRankWrap} pointerEvents="none">
-          <View style={[styles.starRank, player.place === 1 && styles.starRankGold]} accessibilityLabel={`Ranking #${player.place}`}>
-            <T variant="display" color={colors.ink} style={styles.starRankNum}>
-              {`#${player.place}`}
-            </T>
-            <T variant="tiny" color={colors.ink} style={styles.starRankLabel}>
+      <Gradient id={`g${uid}`} x2="1" y2="1" stops={[[0, GOLD.hi], [0.35, GOLD.mid], [0.7, GOLD.lo], [1, GOLD.mid]]} />
+      <View style={styles.cromoIn}>
+        <Gradient id={`b${uid}`} stops={[[0, '#4A0A55'], [1, '#2A0030']]} />
+        <View style={styles.cromoHair} pointerEvents="none" />
+        {/* Foto cuadrada arriba a la derecha, con su número de ranking como serie del cromo. */}
+        <View style={[styles.cromoPhoto, { width: photo, height: photo }]} pointerEvents="none">
+          <T variant="display" color={GOLD.hi} style={{ fontSize: Math.round(photo * 0.38), fontStyle: 'normal', opacity: 0.85 }}>
+            {initialsOf(player.profile.displayName)}
+          </T>
+          <PhotoLayer uri={player.profile.photoUrl} />
+          {player.place ? (
+            <View style={styles.cromoSerial}>
+              <T variant="tiny" color={colors.bg} style={styles.cromoSerialText}>
+                {`N.º ${String(player.place).padStart(2, '0')}`}
+              </T>
+            </View>
+          ) : null}
+        </View>
+        {player.place ? (
+          <View style={styles.cromoPlace} pointerEvents="none" accessibilityLabel={`Ranking #${player.place}`}>
+            <T variant="tiny" color={GOLD.hi} style={styles.cromoLabel}>
               Ranking
             </T>
-          </View>
-        </View>
-      ) : null}
-      <View style={styles.starBody}>
-        <View style={styles.starTopRow}>
-          <View style={styles.kicker}>
-            <Icon name="estrella" size={11} color={colors.ink} />
-            <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
-              {starKicker(reason)}
+            <T variant="display" color={GOLD.hi} style={styles.cromoPlaceNum}>
+              {`#${player.place}`}
             </T>
           </View>
-          <SocialDots links={player.profile.socialLinks} size={12} />
-        </View>
-        <View>
-          <T variant="display" style={styles.starName} numberOfLines={1} adjustsFontSizeToFit>
-            {firstName(player.profile.displayName)}
-          </T>
-          {rest ? (
-            <T variant="strong" color={colors.muted} style={styles.starLast} numberOfLines={1}>
-              {rest}
+        ) : null}
+        <View style={[styles.cromoText, { width: gridW }]}>
+          <View style={{ width: textW }}>
+            <View style={styles.cromoKicker}>
+              <Icon name="estrella" size={11} color={GOLD.hi} />
+              <T variant="tiny" color={GOLD.hi} style={styles.cromoLabel} numberOfLines={1}>
+                {starKicker(reason)}
+              </T>
+            </View>
+            <T variant="display" style={styles.cromoName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
+              {firstName(player.profile.displayName)}
             </T>
-          ) : null}
-        </View>
-        <View style={styles.starStats}>
-          <Stat value={player.rating} label="Elo" format={(n) => elo(Math.round(n))} />
-          {reason === 'top' ? (
-            <View>
-              <T variant="display" style={styles.starNum}>
-                {pct(player.winRate)}
+            <T color="#C9A2FF" style={styles.cromoSub} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+              {sub}
+            </T>
+            {socials.length ? (
+              <View style={styles.cromoSocial}>
+                {socials.map(([network]) => (
+                  <SocialGlyph key={network} network={network} size={15} color={GOLD.hi} />
+                ))}
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.cromoGrid}>
+            <CromoStat value={player.rating} label="Elo" format={(n) => elo(Math.round(n))} />
+            {reason === 'top' ? (
+              <CromoStat value={Math.round(player.winRate * 100)} label="% Vict." />
+            ) : (
+              <CromoStat value={player.windowWins} label={reason === 'week' ? 'Vict · semana' : 'Vict · mes'} />
+            )}
+            <View style={styles.cromoCell}>
+              <T variant="display" style={styles.cromoNum} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
+                {`${player.wins}-${player.draws}-${player.losses}`}
               </T>
-              <T variant="tiny" color={colors.accentText} style={{ fontSize: 10 }}>
-                Victorias
-              </T>
-            </View>
-          ) : (
-            <Stat value={player.windowWins} label={reason === 'week' ? 'Victorias · semana' : 'Victorias · mes'} />
-          )}
-        </View>
-        <View style={styles.chips}>
-          {hot ? (
-            <View style={[styles.chip, { backgroundColor: colors.red }]}>
-              <Icon name="racha" size={11} color={colors.redInk} />
-              <T variant="tiny" color={colors.redInk} style={{ fontSize: 10 }}>
-                Racha de {player.streak.count} victorias
-              </T>
-            </View>
-          ) : null}
-          {reason !== 'top' && player.windowDelta > 0 ? (
-            <View style={[styles.chip, { backgroundColor: colors.yellow }]}>
-              <Icon name="tendencia-sube" size={11} color={colors.ink} />
-              <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
-                {signed(Math.round(player.windowDelta))} Elo
+              <T variant="tiny" color={GOLD.hi} style={styles.cromoStatLabel} numberOfLines={1}>
+                V-E-D
               </T>
             </View>
-          ) : null}
-          <FormDots form={player.form} size={15} />
+          </View>
+          <View style={styles.cromoFoot}>
+            {reason !== 'top' && player.windowDelta > 0 ? (
+              <View style={styles.cromoDelta}>
+                <Icon name="tendencia-sube" size={11} color={colors.accentText} />
+                <T variant="tiny" color={colors.accentText} style={styles.cromoDeltaText}>
+                  {`${signed(Math.round(player.windowDelta))} Elo`}
+                </T>
+              </View>
+            ) : null}
+            <FormDots form={player.form.slice(0, 5)} size={14} />
+          </View>
         </View>
       </View>
-      <T variant="tiny" color={colors.faint} style={styles.starCount} pointerEvents="none">
-        {index + 1} / {total}
-      </T>
     </SportPress>
   );
 }
 
-function Stat({ value, label, format = (n) => String(Math.round(n)) }: { value: number; label: string; format?: (n: number) => string }) {
+function CromoStat({ value, label, format = (n) => String(Math.round(n)) }: { value: number; label: string; format?: (n: number) => string }) {
   return (
-    <View>
+    <View style={styles.cromoCell}>
       <CountRoll value={value} format={format}>
         {(shown) => (
-          <T variant="display" style={styles.starNum}>
+          <T variant="display" style={styles.cromoNum} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
             {shown}
           </T>
         )}
       </CountRoll>
-      <T variant="tiny" color={colors.accentText} style={{ fontSize: 10 }}>
+      <T variant="tiny" color={GOLD.hi} style={styles.cromoStatLabel} numberOfLines={1}>
         {label}
       </T>
     </View>
@@ -227,8 +262,8 @@ export function StarsCarousel({ board, me }: { board: BillboardSnapshot; me: str
         scrollEventThrottle={32}
         onScroll={(event) => setPage(Math.round(event.nativeEvent.contentOffset.x / step))}
       >
-        {board.stars.map((star, index) => (
-          <StarCard key={star.player.profile.id} star={star} index={index} total={board.stars.length} me={me} width={width} />
+        {board.stars.map((star) => (
+          <StarCard key={star.player.profile.id} star={star} me={me} width={width} />
         ))}
       </ScrollView>
       {board.stars.length > 1 ? (
@@ -527,7 +562,6 @@ export function RivalryTile({ items, me, style }: { items: BillboardRivalry[]; m
 const cardBase = { borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line } as const;
 
 const styles = StyleSheet.create({
-  starTopRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' },
   plain: { textTransform: 'none', letterSpacing: 0 },
   block: { gap: GAP },
   bentoRow: { flexDirection: 'row', gap: GAP, alignItems: 'stretch' },
@@ -536,36 +570,32 @@ const styles = StyleSheet.create({
   tileHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 20 },
   tileTitle: { flex: 1, fontSize: 12 },
   tile: { ...cardBase, flex: 1, padding: space.md, gap: GAP },
-  /* estrellas */
+  /* estrellas: cromo */
+  cromo: { borderRadius: 20, padding: CROMO_BORDER, overflow: 'hidden' },
+  cromoIn: { flex: 1, borderRadius: 16, overflow: 'hidden' },
+  cromoHair: { position: 'absolute', top: 6, left: 6, right: 6, bottom: 6, borderWidth: 1, borderColor: GOLD.hair, borderRadius: 11 },
+  cromoPhoto: { position: 'absolute', top: 16, right: 16, borderRadius: 10, overflow: 'hidden', borderWidth: 1, borderColor: GOLD.line, backgroundColor: '#3E0748', alignItems: 'center', justifyContent: 'center' },
+  cromoSerial: { position: 'absolute', top: 6, right: 6, backgroundColor: GOLD.hi, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 },
+  cromoSerialText: { fontSize: 10, letterSpacing: 1.2 },
+  cromoPlace: { position: 'absolute', right: 16, bottom: 14, alignItems: 'flex-end' },
+  cromoPlaceNum: { fontSize: 38, lineHeight: 40, fontStyle: 'normal' },
+  cromoText: { position: 'absolute', left: 18, top: 18, bottom: 16 },
+  cromoKicker: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  cromoLabel: { fontSize: 10, letterSpacing: 1.3 },
+  cromoName: { fontSize: 42, lineHeight: 44, marginTop: 10, fontStyle: 'normal', letterSpacing: -1 },
+  cromoSub: { fontSize: 16, lineHeight: 20 },
+  cromoSocial: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
+  cromoGrid: { flexDirection: 'row', gap: 16, marginTop: 'auto', borderTopWidth: 1, borderTopColor: GOLD.line, paddingTop: 8 },
+  cromoCell: { flexShrink: 1 },
+  cromoNum: { fontSize: 20, lineHeight: 22, fontStyle: 'normal' },
+  cromoStatLabel: { fontSize: 9, letterSpacing: 1.1, marginTop: 2 },
+  cromoFoot: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: 8, minHeight: 14 },
+  cromoDelta: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  cromoDeltaText: { fontSize: 11, letterSpacing: 0 },
   star: { ...cardBase, minHeight: 232, overflow: 'hidden', backgroundColor: colors.navy, padding: space.lg, justifyContent: 'flex-end', borderRadius: 22 },
   starEmpty: { gap: layout.inCard, justifyContent: 'center', minHeight: 200 },
   emptyTitle: { fontSize: 30, lineHeight: 32, fontStyle: 'normal' },
   cta: { alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999 },
-  starGlow: {
-    position: 'absolute',
-    right: -50,
-    top: -50,
-    width: 230,
-    height: 230,
-    borderRadius: 999,
-    backgroundColor: colors.blue,
-    opacity: web ? 0.35 : 0.16,
-    ...(web ? ({ filter: 'blur(30px)' } as object) : null),
-  },
-  starPhoto: { position: 'absolute', right: -14, top: 12, width: 156, height: 156 },
-  starRankWrap: { position: 'absolute', right: -14, top: 148, width: 156, alignItems: 'center' },
-  starRank: { flexDirection: 'row', alignItems: 'baseline', gap: space.xs, backgroundColor: colors.yellow, paddingHorizontal: space.md, paddingVertical: space.xxs, borderRadius: 999, borderWidth: 2, borderColor: colors.navy },
-  starRankGold: { backgroundColor: PORTRAIT.gold },
-  starRankNum: { fontSize: 20, lineHeight: 24, fontStyle: 'normal' },
-  starRankLabel: { fontSize: 9 },
-  starCount: { position: 'absolute', right: space.lg, bottom: space.md, fontSize: 10 },
-  starBody: { gap: layout.inCard, maxWidth: '78%' },
-  kicker: { flexDirection: 'row', alignItems: 'center', gap: space.xs, alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
-  starName: { fontSize: 46, lineHeight: 48, fontStyle: 'normal' },
-  starLast: { fontSize: 16, lineHeight: 18 },
-  starStats: { flexDirection: 'row', gap: space.lg },
-  starNum: { fontSize: 26, lineHeight: 28, fontStyle: 'normal' },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
   chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   form: { flexDirection: 'row', gap: space.xs },
   formDot: { borderRadius: 5, alignItems: 'center', justifyContent: 'center' },
@@ -606,7 +636,7 @@ const styles = StyleSheet.create({
   resultScore: { flex: 1, alignItems: 'center' },
   resultNum: { fontSize: 24, lineHeight: 26, fontStyle: 'normal' },
   side: { alignItems: 'center', gap: space.xxs },
-  sideRing: { borderWidth: 2, borderColor: 'transparent', borderRadius: 999, padding: 1, overflow: 'hidden' },
+  sideRing: { borderWidth: 2, borderColor: 'transparent', borderRadius: 10, padding: 1, overflow: 'hidden' },
   /* reñidos */
   rivalryHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
 });

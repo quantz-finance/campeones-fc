@@ -29,6 +29,7 @@ export const EntityImage = memo(function EntityImage({
           recyclingKey={uri}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
+          contentPosition="center"
           cachePolicy="memory-disk"
           transition={reduced ? 0 : 180}
           accessible={false}
@@ -38,16 +39,17 @@ export const EntityImage = memo(function EntityImage({
   );
 });
 
-/** Solo la capa de foto (para componentes con su propia forma: avatar sesgado, escudo). */
-export const PhotoLayer = memo(function PhotoLayer({ uri, counterSkew }: { uri?: string | null; counterSkew?: string }) {
+/** Solo la capa de foto (para componentes con su propia forma: avatar cuadrado, escudo). Cover y centrada. */
+export const PhotoLayer = memo(function PhotoLayer({ uri }: { uri?: string | null }) {
   const reduced = useReducedMotion();
   if (!uri) return null;
   return (
     <Image
       source={{ uri }}
       recyclingKey={uri}
-      style={[StyleSheet.absoluteFill, counterSkew ? { transform: [{ skewX: counterSkew }, { scale: 1.2 }] } : null]}
+      style={StyleSheet.absoluteFill}
       contentFit="cover"
+      contentPosition="center"
       cachePolicy="memory-disk"
       transition={reduced ? 0 : 180}
       accessible={false}
