@@ -134,7 +134,7 @@ export default function EmailHandoffPage() {
         <Banner
           tone="warn"
           title="Abre esta página desde la app"
-          body="Esta pantalla solo sirve para entrar a la app Campeones FC del iPhone. Toca «Continuar con mi correo» en la app."
+          body="Esta pantalla solo sirve para entrar a la app Campeones FC del iPhone. Toca «Continuar con correo» en la app."
         />
       ) : step === 'done' ? (
         <Banner tone="accent" title="Listo" body="Volviendo a la app Campeones FC… Si no pasa nada, cierra esta ventana y vuelve a intentarlo." />

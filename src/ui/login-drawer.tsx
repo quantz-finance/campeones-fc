@@ -1,20 +1,15 @@
 // Cajón inferior de entrada (iOS/Android): en la pantalla queda un solo botón «Entrar»
 // y aquí viven las tres opciones. Mismo estilo que la hoja de Cavos (src/ui/cavos-sheet.tsx).
-import type { ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeProvider } from '../lib/cavos/use-entry';
 import { Wordmark } from './broadcast';
-import { Button } from './controls';
+import { ProviderButton } from './login-buttons';
 import { colors, layout, radius, space } from './theme';
 import { T } from './text';
 
-// `icon`: aquí van los iconos de Apple, Google y correo cuando Stan los entregue (se pintan a la izquierda del texto).
-const OPTIONS: { provider: NativeProvider; label: string; icon?: ReactNode }[] = [
-  { provider: 'apple', label: 'Continuar con Apple' },
-  { provider: 'google', label: 'Continuar con Google' },
-  { provider: 'email', label: 'Continuar con mi correo' },
-];
+// Orden y botones oficiales: src/ui/login-buttons.tsx (logos de Apple y Google según sus guías).
+const OPTIONS: NativeProvider[] = ['apple', 'google', 'email'];
 
 export function LoginDrawer({
   open,
@@ -48,8 +43,8 @@ export function LoginDrawer({
             <T color={colors.muted}>Si todavía no tienes cuenta, se crea en el mismo paso.</T>
           </View>
           <View style={styles.actions}>
-            {OPTIONS.map((o, i) => (
-              <Button key={o.provider} label={o.label} icon={o.icon} tone={i === 0 ? 'accent' : 'ghost'} onPress={() => onPick(o.provider)} />
+            {OPTIONS.map((provider) => (
+              <ProviderButton key={provider} provider={provider} onPress={() => onPick(provider)} />
             ))}
           </View>
           <T color={colors.muted} style={styles.hint}>

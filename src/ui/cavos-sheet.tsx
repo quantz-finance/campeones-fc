@@ -5,6 +5,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, Sc
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Wordmark } from './broadcast';
 import { Banner, Button, Field } from './controls';
+import { ProviderButton } from './login-buttons';
 import { colors, layout, space } from './theme';
 import { T } from './text';
 import { authErrorText } from '../lib/cavos/auth-ux';
@@ -141,11 +142,10 @@ export function CavosSheet(p: CavosSheetProps) {
                 </T>
                 <T color={colors.muted}>Si todavía no tienes cuenta, se crea en el mismo paso.</T>
               </View>
-              {(['apple', 'google', 'email'] as const).map((provider, i) => (
-                <Button
+              {(['apple', 'google', 'email'] as const).map((provider) => (
+                <ProviderButton
                   key={provider}
-                  label={provider === 'apple' ? 'Continuar con Apple' : provider === 'google' ? 'Continuar con Google' : 'Continuar con mi correo'}
-                  tone={i === 0 ? 'accent' : 'ghost'}
+                  provider={provider}
                   pending={doing === provider}
                   disabled={busy && doing !== provider}
                   onPress={() => void run(provider, () => p.loginWith(provider))}
