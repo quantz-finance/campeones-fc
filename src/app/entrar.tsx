@@ -1,5 +1,6 @@
+import type { ReactNode } from 'react';
 import { Redirect } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { branding } from '../../config/branding';
 import { cavosSupported } from '../lib/cavos/config';
 import { useCavosEntry } from '../lib/cavos/use-entry';
@@ -9,137 +10,157 @@ import { Affiliation, Wordmark } from '../ui/broadcast';
 import { Banner, Button } from '../ui/controls';
 import { transit } from '../ui/nav';
 import { Screen } from '../ui/screen';
-import { colors, space } from '../ui/theme';
+import { colors, layout, space } from '../ui/theme';
 import { T } from '../ui/text';
 import { TestUserButton } from '../ui/test-user';
-import { HeroPhoto, HeroPhotoNote } from '../ui/hero-photo';
 import { LegalLinks } from '../ui/legal-links';
+
+/** iPhone SE (667pt) y similares: el contenido puede no caber y ahí sí hay scroll. */
+const SCROLL_BELOW = 700;
+
+/** Columna a pantalla completa, sin huecos fijos: el aire lo reparte el flex. */
+function LoginBody({ children }: { children: ReactNode }) {
+  return <View style={styles.body}>{children}</View>;
+}
+(LoginBody as { passthrough?: boolean }).passthrough = true;
 
 export default function Login() {
   const app = useApp();
   const { configured, phase, error, busy, label, signingWith, openCavos, approveDevice, otherAccount, loginWith, native } = useCavosEntry();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
+  const { height } = useWindowDimensions();
+  const allowScroll = height < SCROLL_BELOW;
 
   // Después de todos los hooks: un return temprano antes de un hook rompe el orden (error #300 de React).
   if (app.ready && app.userId) return <Redirect href="/inicio" />;
 
   return (
     <Screen
+      scroll={allowScroll}
+      fill={!allowScroll}
       footer={
         <View style={styles.legal}>
           <Affiliation />
         </View>
       }
     >
-      <View style={styles.hero}>
-        <HeroPhoto height={270} />
-        <Wordmark size={30} />
-        <T variant="display" style={styles.title}>
-          Entra a tu cuenta
-        </T>
-        <T color={colors.muted}>{branding.tagline}</T>
-        <HeroPhotoNote />
-      </View>
+      <LoginBody>
+        <View style={styles.hero}>
+          <Wordmark size={30} />
+          <T variant="display" style={styles.title}>
+            Entra a tu cuenta
+          </T>
+          <T color={colors.muted}>{branding.tagline}</T>
+        </View>
 
-      {app.mode === 'demo' ? (
-        <>
-          <Banner
-            tone="accent"
-            title="Modo demostración"
-            body="Los datos viven en este navegador. Abre otra ventana e inicia sesión con otra cuenta para confirmar un partido entre los dos."
-          />
-          <TestUserButton tone="accent" />
-          <View style={styles.list}>
-            <T variant="label" color={colors.accentText}>
-              Cuentas de ejemplo
-            </T>
-            {accounts.map((account) => (
-              <Pressable key={account.id} style={styles.account} onPress={() => transit(() => app.signInDemo(account.id))}>
-                <Avatar avatarKey={account.avatarKey} name={account.displayName} photoUrl={account.photoUrl} size={40} />
-                <View style={styles.flex}>
-                  <T variant="strong">{account.displayName}</T>
-                  <T variant="tiny" color={colors.muted} style={styles.plain}>
-                    @{account.username}
-                  </T>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        </>
-      ) : configured ? (
-        <>
-          {phase === 'approve' ? (
+        <View style={styles.main}>
+          {app.mode === 'demo' ? (
             <>
               <Banner
                 tone="accent"
-                title="Confirma que eres tú"
-                body="Tu billetera de Cavos se creó en otro dispositivo. Usa tu passkey para traerla a este."
+                title="Modo demostración"
+                body="Los datos viven en este navegador. Abre otra ventana e inicia sesión con otra cuenta para confirmar un partido entre los dos."
               />
-              <Button label="Confirmar con mi passkey" onPress={approveDevice} />
-              <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
+              <TestUserButton tone="accent" />
+              <View style={styles.list}>
+                <T variant="label" color={colors.accentText}>
+                  Cuentas de ejemplo
+                </T>
+                {accounts.map((account) => (
+                  <Pressable key={account.id} style={styles.account} onPress={() => transit(() => app.signInDemo(account.id))}>
+                    <Avatar avatarKey={account.avatarKey} name={account.displayName} photoUrl={account.photoUrl} size={40} />
+                    <View style={styles.flex}>
+                      <T variant="strong">{account.displayName}</T>
+                      <T variant="tiny" color={colors.muted} style={styles.plain}>
+                        @{account.username}
+                      </T>
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
             </>
-          ) : phase === 'nokey' ? (
+          ) : configured ? (
             <>
-              <Banner
-                tone="warn"
-                title="Tu billetera está en otro dispositivo"
-                body="Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta."
-              />
-              <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
-            </>
-          ) : native ? (
-            <>
-              <Button
-                label="Continuar con Apple"
-                disabled={busy && signingWith !== 'apple'}
-                pending={signingWith === 'apple'}
-                onPress={() => void loginWith('apple')}
-              />
-              <Button
-                label="Continuar con Google"
-                tone="ghost"
-                disabled={busy && signingWith !== 'google'}
-                pending={signingWith === 'google'}
-                onPress={() => void loginWith('google')}
-              />
-              <Button
-                label="Continuar con mi correo"
-                tone="ghost"
-                disabled={busy && signingWith !== 'email'}
-                pending={signingWith === 'email'}
-                onPress={() => void loginWith('email')}
-              />
-              <SpamHint />
-              <TestUserButton />
+              {phase === 'approve' ? (
+                <View style={styles.actions}>
+                  <Banner
+                    tone="accent"
+                    title="Confirma que eres tú"
+                    body="Tu billetera de Cavos se creó en otro dispositivo. Usa tu passkey para traerla a este."
+                  />
+                  <Button label="Confirmar con mi passkey" onPress={approveDevice} />
+                  <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
+                </View>
+              ) : phase === 'nokey' ? (
+                <View style={styles.actions}>
+                  <Banner
+                    tone="warn"
+                    title="Tu billetera está en otro dispositivo"
+                    body="Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta."
+                  />
+                  <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
+                </View>
+              ) : native ? (
+                <>
+                  <View style={styles.actions}>
+                    <Button
+                      label="Continuar con Apple"
+                      disabled={busy && signingWith !== 'apple'}
+                      pending={signingWith === 'apple'}
+                      onPress={() => void loginWith('apple')}
+                    />
+                    <Button
+                      label="Continuar con Google"
+                      tone="ghost"
+                      disabled={busy && signingWith !== 'google'}
+                      pending={signingWith === 'google'}
+                      onPress={() => void loginWith('google')}
+                    />
+                    <Button
+                      label="Continuar con mi correo"
+                      tone="ghost"
+                      disabled={busy && signingWith !== 'email'}
+                      pending={signingWith === 'email'}
+                      onPress={() => void loginWith('email')}
+                    />
+                    <SpamHint />
+                  </View>
+                  <TestUserButton />
+                </>
+              ) : (
+                <>
+                  <View style={styles.actions}>
+                    <Button label={label} disabled={busy} onPress={openCavos} />
+                    <SpamHint />
+                  </View>
+                  <TestUserButton />
+                </>
+              )}
+              <T color={colors.muted} style={styles.blurb}>
+                {native
+                  ? 'Cada resultado que confirmen los dos queda verificado, sin dinero real.'
+                  : 'Al entrar recibes tu billetera. Cada resultado que confirmen los dos queda registrado, sin dinero real.'}
+              </T>
             </>
           ) : (
-            <>
-              <Button label={label} disabled={busy} onPress={openCavos} />
-              <SpamHint />
-              <TestUserButton />
-            </>
+            <Banner
+              tone="warn"
+              title="Cavos no configurado"
+              body={
+                cavosSupported
+                  ? 'La entrada con Cavos (Google, Apple o correo) se activa cuando el equipo agregue el appId de Cavos. Vuelve pronto.'
+                  : 'En el iPhone todavía no está activa la entrada con Cavos. Mientras tanto, puedes entrar con la cuenta de prueba.'
+              }
+            />
           )}
-          <T color={colors.muted}>
-            {native
-              ? 'Entra con Apple, Google o tu correo. Cada resultado que confirmen los dos queda verificado en la red de prueba de Stellar, sin dinero real.'
-              : 'Entra con Google, Apple o tu correo. Al entrar recibes tu billetera en Stellar y cada resultado que confirmen los dos queda registrado ahí.'}
-          </T>
-        </>
-      ) : (
-        <Banner
-          tone="warn"
-          title="Cavos no configurado"
-          body={
-            cavosSupported
-              ? 'La entrada con Cavos (Google, Apple o correo) se activa cuando el equipo agregue el appId de Cavos. Vuelve pronto.'
-              : 'En el iPhone todavía no está activa la entrada con Cavos. Mientras tanto, puedes entrar con la cuenta de prueba.'
-          }
-        />
-      )}
-      {!configured && app.mode !== 'demo' ? <TestUserButton /> : null}
+          {!configured && app.mode !== 'demo' ? <TestUserButton /> : null}
+          {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
+        </View>
 
-      {error ? <Banner tone="danger" title="No se pudo entrar" body={error} /> : null}
-      <LegalLinks />
+        <View style={styles.foot}>
+          <LegalLinks />
+        </View>
+      </LoginBody>
     </Screen>
   );
 }
@@ -154,9 +175,21 @@ function SpamHint() {
 }
 
 const styles = StyleSheet.create({
-  hintText: { fontSize: 14, lineHeight: 20 },
-  hero: { gap: space.md, paddingTop: 150, minHeight: 250 },
+  body: {
+    flex: 1,
+    justifyContent: 'space-between',
+    gap: layout.stack,
+  },
+  hero: {
+    gap: space.sm,
+    // Lo justo para no chocar con EN / tema / sonido, que flotan a la derecha.
+    paddingTop: 40,
+  },
   title: { fontSize: 34, lineHeight: 38 },
+  main: { gap: layout.stack },
+  actions: { gap: layout.button, alignSelf: 'stretch' },
+  hintText: { fontSize: 14, lineHeight: 20, marginTop: space.xs },
+  blurb: { fontSize: 14, lineHeight: 20 },
   list: { gap: space.sm },
   account: {
     flexDirection: 'row',
@@ -171,6 +204,7 @@ const styles = StyleSheet.create({
   },
   flex: { flex: 1 },
   plain: { textTransform: 'none', letterSpacing: 0 },
+  foot: { paddingTop: space.sm, paddingBottom: space.xs },
   legal: {
     paddingHorizontal: 16,
     backgroundColor: colors.bg,

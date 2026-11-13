@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useApp } from '../state/app-provider';
 import { Banner, Button } from './controls';
-import { colors, layout, space } from './theme';
+import { colors, space } from './theme';
 import { T } from './text';
 
 /** "Entrar con usuario de prueba": cuenta compartida con datos de ejemplo, sin registro. */
@@ -37,6 +37,6 @@ export function TestUserButton({ tone = 'ghost' }: { tone?: 'accent' | 'ghost' }
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: layout.stack, alignSelf: 'stretch' },
+  wrap: { gap: space.sm, alignSelf: 'stretch' },
   note: { textTransform: 'none', letterSpacing: 0, lineHeight: 16 },
 });
