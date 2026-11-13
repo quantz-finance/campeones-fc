@@ -3,7 +3,7 @@ import { DRAFT_NOTICE, type LegalDoc } from '../content/legal';
 import { useLang } from '../i18n/lang';
 import { Banner } from './controls';
 import { Screen, Top } from './screen';
-import { colors, space } from './theme';
+import { colors, layout, space } from './theme';
 import { T } from './text';
 
 /** Página legal en el idioma de la app (ES base, EN con su propio texto, no por diccionario). */
@@ -34,5 +34,5 @@ export function LegalPage({ doc: docs }: { doc: { es: LegalDoc; en: LegalDoc } }
 
 const styles = StyleSheet.create({
   plain: { textTransform: 'none', letterSpacing: 0 },
-  section: { gap: space.sm },
+  section: { gap: layout.title },
 });

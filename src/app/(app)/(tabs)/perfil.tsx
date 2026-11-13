@@ -12,7 +12,7 @@ import { Affiliation, SectionHead, StatCell } from '../../../ui/broadcast';
 import { Banner, Button, Field, Gate } from '../../../ui/controls';
 import { elo, firstName, goalsPerMatch, pct, recordLine } from '../../../ui/format';
 import { Screen } from '../../../ui/screen';
-import { colors, space } from '../../../ui/theme';
+import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { Rise, useDelayed } from '../../../ui/motion';
 import { PlayerCard, cardFromPublic } from '../../../ui/player-card';
@@ -260,7 +260,7 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  modeBox: { gap: space.sm, padding: 12, borderWidth: 1, borderColor: colors.line },
+  modeBox: { gap: layout.inCard, padding: 12, borderWidth: 1, borderColor: colors.line },
   segment: { flexDirection: 'row', transform: [{ skewX: '0deg' }], borderWidth: 1, borderColor: colors.lineStrong },
   segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, minHeight: 48 },
   segOn: { backgroundColor: colors.yellow, borderRadius: 14 },
@@ -279,12 +279,12 @@ const styles = StyleSheet.create({
   },
   idRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  album: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: space.sm },
-  rivals: { flexDirection: 'row', gap: space.sm },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: layout.card },
+  album: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: layout.card },
+  rivals: { flexDirection: 'row', gap: layout.card },
   rival: { flex: 1, backgroundColor: colors.card, borderLeftWidth: 4, padding: 10, gap: space.xs, borderRadius: 14 },
-  edit: { gap: space.md },
-  avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  edit: { gap: layout.field },
+  avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: layout.card },
   avatar: {
     width: 74,
     height: 64,
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   avatarOn: { borderColor: colors.yellow },
-  links: { gap: space.sm },
+  links: { gap: layout.stack },
 });
 
 function ProfileSkeleton() {

@@ -11,7 +11,7 @@ import { Avatar } from '../../ui/avatar';
 import { Banner, Gate } from '../../ui/controls';
 import { elo, pct } from '../../ui/format';
 import { Screen, Top } from '../../ui/screen';
-import { colors, radius, space } from '../../ui/theme';
+import { colors, layout, radius, space } from '../../ui/theme';
 import { T } from '../../ui/text';
 import { push } from '../../ui/nav';
 import { SearchEmpty, SearchField } from '../../ui/search-field';
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   you: { backgroundColor: colors.surface, borderRadius: 14 },
   place: { width: 28 },
   flex: { flex: 1 },
-  list: { gap: space.sm, paddingBottom: space.sm },
-  head: { gap: space.md, marginBottom: space.sm },
+  list: { gap: layout.card, paddingBottom: space.sm },
+  head: { gap: layout.stack, marginBottom: space.sm },
   note: { textAlign: 'center', marginTop: space.md, fontSize: 10, textTransform: 'none', letterSpacing: 0 },
 });

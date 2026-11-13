@@ -10,7 +10,7 @@ import { requestAnchor, signResult } from '../lib/cavos/session';
 import { cavosStore } from '../lib/cavos/store';
 import { getSupabase } from '../lib/supabase';
 import { Banner, Button } from './controls';
-import { colors, space } from './theme';
+import { colors, layout, space } from './theme';
 import { T } from './text';
 import { push } from './nav';
 
@@ -128,7 +128,7 @@ export function ChainCard({ match, userId, canSign = true }: { match: Match; use
 
 const styles = StyleSheet.create({
   card: {
-    gap: space.sm,
+    gap: layout.inCard,
     padding: space.md,
     borderWidth: 1,
     borderColor: colors.line,

@@ -6,7 +6,7 @@ import { useDelayed, useShimmerStyle } from './motion';
 import { Shine, SportPress } from './press';
 import { Scene } from './scene';
 import { CardsSkeleton } from './skeleton';
-import { colors, font, radius, space } from './theme';
+import { colors, font, layout, radius, space } from './theme';
 import { T } from './text';
 import { translate, useLang } from '../i18n/lang';
 
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   pending: { opacity: 0.85 },
   dots: { flexDirection: 'row', gap: space.xs, marginLeft: space.xxs },
   dot: { width: 5, height: 5, borderRadius: 999 },
-  field: { gap: space.sm, alignSelf: 'stretch' },
+  field: { gap: space.md, alignSelf: 'stretch' },
   input: {
     minHeight: 52,
     borderWidth: 1,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     padding: space.md,
     gap: space.xs,
   },
-  empty: { gap: space.sm, paddingVertical: space.lg },
+  empty: { gap: layout.stack, paddingVertical: space.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   mini: {
     minHeight: 34,

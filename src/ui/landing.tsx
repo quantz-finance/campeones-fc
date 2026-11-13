@@ -17,7 +17,7 @@ import { transit } from './nav';
 import { SportPress } from './press';
 import { Screen } from './screen';
 import { openExternal } from './share';
-import { colors, space } from './theme';
+import { colors, layout, space } from './theme';
 import { T } from './text';
 import { LegalLinks } from './legal-links';
 
@@ -230,9 +230,9 @@ const styles = StyleSheet.create({
   lockup: { alignItems: 'flex-start', gap: space.sm },
   title: { fontSize: 48, lineHeight: 52, letterSpacing: -1 },
   pitch: { fontSize: 18, lineHeight: 26 },
-  ctas: { gap: space.md, alignSelf: 'stretch' },
+  ctas: { gap: layout.button, alignSelf: 'stretch' },
   note: { textTransform: 'none', letterSpacing: 0, lineHeight: 16 },
-  features: { gap: space.md, marginTop: space.lg },
+  features: { gap: layout.stack, marginTop: space.lg },
   featuresTitle: { fontSize: 26, lineHeight: 30 },
   feature: {
     flexDirection: 'row',
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   },
   featureCopy: { flex: 1, gap: space.xxs },
   featureBody: { fontSize: 14, lineHeight: 20 },
-  accounts: { gap: space.sm },
+  accounts: { gap: layout.card },
   account: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
   },
   accountCopy: { flex: 1 },
-  footer: { gap: space.sm, marginTop: space.md, paddingBottom: 8 },
+  footer: { gap: layout.stack, marginTop: space.md, paddingBottom: 8 },
   socials: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   socialRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
 });

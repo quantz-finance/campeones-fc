@@ -10,7 +10,7 @@ import { cavosSignedBytes, runChecks, type Check, type VerifyResponse } from '..
 import { Banner } from '../../ui/controls';
 import { Screen, Top } from '../../ui/screen';
 import { T } from '../../ui/text';
-import { colors, space } from '../../ui/theme';
+import { colors, layout, space } from '../../ui/theme';
 import { useDelayed } from '../../ui/motion';
 import { DetailSkeleton } from '../../ui/skeleton';
 
@@ -185,7 +185,7 @@ export default function VerifyScreen() {
 
 const styles = StyleSheet.create({
   card: {
-    gap: space.sm,
+    gap: layout.inCard,
     padding: space.md,
     borderWidth: 1,
     borderColor: colors.line,

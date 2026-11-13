@@ -64,13 +64,13 @@ export const space = {
  * - bottom: aire mínimo sobre la barra de pestañas / cinta / borde seguro.
  */
 export const layout = {
-  stack: space.md,
-  section: space.xl,
-  title: space.md,
-  card: space.sm,
-  inCard: space.sm,
-  button: space.sm,
-  field: space.md,
+  stack: space.lg,
+  section: space.xxl,
+  title: space.lg,
+  card: space.md,
+  inCard: space.md,
+  button: space.md,
+  field: space.lg,
   inline: space.xs,
   bottom: space.lg,
 } as const;

@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { reportError } from '../lib/analytics';
 import { translate, useLang } from '../i18n/lang';
-import { colors, space } from './theme';
+import { colors, layout, space } from './theme';
 
 export function ErrorScreen({ error, retry }: { error: Error; retry: () => Promise<void> }) {
   const lang = useLang();
@@ -13,7 +13,7 @@ export function ErrorScreen({ error, retry }: { error: Error; retry: () => Promi
     reportError(error, { where: 'error_boundary' });
   }, [error]);
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: space.md, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: layout.stack, backgroundColor: colors.bg }}>
       <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800', textAlign: 'center' }}>{t('Algo se rompió')}</Text>
       <Text style={{ color: colors.muted, fontSize: 16, textAlign: 'center', maxWidth: 360 }}>
         {t('Ya nos llegó el aviso. Vuelve a intentarlo; si sigue pasando, recarga la página.')}

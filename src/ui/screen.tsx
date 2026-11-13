@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },
   sound: { position: 'absolute', right: 10, zIndex: 45, flexDirection: 'row', gap: space.sm },
-  top: { gap: space.md, minHeight: 44 },
+  top: { gap: layout.title, minHeight: 44 },
   topLead: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 46, paddingRight: 146 },
   topText: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   topClear: { paddingRight: 146 },
@@ -180,6 +180,6 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: radius.card,
     padding: space.lg,
-    gap: space.md,
+    gap: layout.stack,
   },
 });

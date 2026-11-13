@@ -10,7 +10,7 @@ import { ChainCard } from '../../../ui/chain-card';
 import { Banner, Button, Gate } from '../../../ui/controls';
 import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
-import { colors, space } from '../../../ui/theme';
+import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { DetailSkeleton } from '../../../ui/skeleton';
 import { Avatar } from '../../../ui/avatar';
@@ -506,8 +506,8 @@ const styles = StyleSheet.create({
   boardNum: { fontSize: 42, color: colors.ink, fontStyle: 'normal' },
   steppers: { flexDirection: 'row', gap: space.xxl },
   mini: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  block: { gap: space.md },
-  choices: { flexDirection: 'row', gap: space.sm },
+  block: { gap: layout.stack },
+  choices: { flexDirection: 'row', gap: layout.button },
   choiceHit: { flex: 1 },
   review: {
     backgroundColor: colors.card,
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
     padding: 12,
-    gap: space.sm,
+    gap: layout.inCard,
     borderRadius: 14,
   },
   reviewHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

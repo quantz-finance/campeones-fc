@@ -2,7 +2,7 @@
 import { memo } from 'react';
 import { Animated, StyleSheet, View, type DimensionValue } from 'react-native';
 import { FadeIn, useShimmerStyle } from './motion';
-import { colors, space } from './theme';
+import { colors, layout, space } from './theme';
 
 const BONE = colors.wash;
 
@@ -166,8 +166,8 @@ export function DetailSkeleton() {
 }
 
 const styles = StyleSheet.create({
-  col: { gap: space.md },
-  intro: { gap: space.sm, marginBottom: space.sm },
+  col: { gap: layout.stack },
+  intro: { gap: layout.title, marginBottom: layout.card },
   rows: { gap: space.xs, marginTop: -space.md },
   brand: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 },
   brandLeft: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.sm, minHeight: 56 },
   card: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, minHeight: 92, borderWidth: 1, borderColor: colors.line },
   hero: { flexDirection: 'row', minHeight: 184, borderWidth: 1, borderColor: colors.line },
-  heroLeft: { width: '38%', backgroundColor: 'rgba(255,90,31,0.22)', padding: 12, gap: space.sm, borderRadius: 14 },
-  heroRight: { flex: 1, padding: 12, gap: space.sm, justifyContent: 'center' },
+  heroLeft: { width: '38%', backgroundColor: 'rgba(255,90,31,0.22)', padding: 12, gap: layout.inCard, borderRadius: 14 },
+  heroRight: { flex: 1, padding: 12, gap: layout.inCard, justifyContent: 'center' },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   scorebar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, minHeight: 64, backgroundColor: colors.surface, borderRadius: 14 },
   scorebarBig: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingVertical: 20 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  tile: { width: '48%', flexGrow: 1, minHeight: 84, padding: 12, gap: space.sm, backgroundColor: colors.wash, borderRadius: 14 },
-  panel: { padding: 12, gap: space.sm, borderWidth: 1, borderColor: colors.line },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: layout.card },
+  tile: { width: '48%', flexGrow: 1, minHeight: 84, padding: 12, gap: layout.inCard, backgroundColor: colors.wash, borderRadius: 14 },
+  panel: { padding: 12, gap: layout.inCard, borderWidth: 1, borderColor: colors.line },
 });

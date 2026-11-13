@@ -7,7 +7,7 @@ import { getSupabase } from '../lib/supabase';
 import { useApp } from '../state/app-provider';
 import { Banner, Button, Field } from './controls';
 import { humanError } from './errors';
-import { colors, space } from './theme';
+import { colors, layout, space } from './theme';
 import { T } from './text';
 
 const CONFIRM = 'ELIMINAR';
@@ -108,6 +108,6 @@ export function DeleteAccount() {
 }
 
 const styles = StyleSheet.create({
-  box: { gap: space.sm },
+  box: { gap: layout.stack },
   plain: { textTransform: 'none', letterSpacing: 0 },
 });

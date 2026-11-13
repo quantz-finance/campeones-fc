@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
   tile: { ...cardBase, flex: 1, padding: space.md, gap: GAP },
   /* estrellas */
   star: { ...cardBase, minHeight: 232, overflow: 'hidden', backgroundColor: colors.navy, padding: space.lg, justifyContent: 'flex-end', borderRadius: 22 },
-  starEmpty: { gap: space.sm, justifyContent: 'center', minHeight: 200 },
+  starEmpty: { gap: layout.inCard, justifyContent: 'center', minHeight: 200 },
   emptyTitle: { fontSize: 30, lineHeight: 32, fontStyle: 'normal' },
   cta: { alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999 },
   starGlow: {
@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
   starRankNum: { fontSize: 20, lineHeight: 24, fontStyle: 'normal' },
   starRankLabel: { fontSize: 9 },
   starCount: { position: 'absolute', right: space.lg, bottom: space.md, fontSize: 10 },
-  starBody: { gap: space.sm, maxWidth: '78%' },
+  starBody: { gap: layout.inCard, maxWidth: '78%' },
   kicker: { flexDirection: 'row', alignItems: 'center', gap: space.xs, alignSelf: 'flex-start', backgroundColor: colors.yellow, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   starName: { fontSize: 46, lineHeight: 48, fontStyle: 'normal' },
   starLast: { fontSize: 16, lineHeight: 18 },
@@ -615,14 +615,14 @@ const styles = StyleSheet.create({
   cupName: { fontSize: 16, lineHeight: 18 },
   cupWho: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: 'auto' },
   /* mini filas */
-  miniList: { gap: space.sm },
+  miniList: { gap: layout.card },
   mini: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 28 },
   miniPlace: { width: 14, fontSize: 15, fontStyle: 'normal', textAlign: 'center' },
   miniName: { flex: 1, fontSize: 13 },
   miniValue: { fontSize: 14 },
   /* resultados */
   grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
-  result: { flexBasis: '48%', flexGrow: 1, padding: space.sm + 2, gap: space.sm },
+  result: { flexBasis: '48%', flexGrow: 1, padding: space.sm + 2, gap: layout.inCard },
   resultFace: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   resultScore: { flex: 1, alignItems: 'center' },
   resultNum: { fontSize: 24, lineHeight: 26, fontStyle: 'normal' },

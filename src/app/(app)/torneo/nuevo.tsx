@@ -6,7 +6,7 @@ import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { Banner, Button, Chip, Field, Gate } from '../../../ui/controls';
 import { Panel, Screen, Top } from '../../../ui/screen';
-import { colors, space } from '../../../ui/theme';
+import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { replace } from '../../../ui/nav';
 import { rules } from '../../../domain/rules';
@@ -136,7 +136,7 @@ export default function NewTournament() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: space.sm },
+  row: { flexDirection: 'row', gap: layout.button },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   flex: { flex: 1, minWidth: 0 },
   all: { alignSelf: 'flex-start', minHeight: 32, justifyContent: 'center' },
