@@ -17,7 +17,7 @@ import { LegalLinks } from '../ui/legal-links';
 
 export default function Login() {
   const app = useApp();
-  const { configured, phase, error, busy, label, openCavos, approveDevice, otherAccount, loginWith, native } = useCavosEntry();
+  const { configured, phase, error, busy, label, signingWith, openCavos, approveDevice, otherAccount, loginWith, native } = useCavosEntry();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
 
   // Después de todos los hooks: un return temprano antes de un hook rompe el orden (error #300 de React).
@@ -89,8 +89,27 @@ export default function Login() {
             </>
           ) : native ? (
             <>
-              <Button label="Continuar con Apple" disabled={busy} onPress={() => void loginWith('apple')} />
-              <Button label="Continuar con Google" tone="ghost" disabled={busy} onPress={() => void loginWith('google')} />
+              <Button
+                label="Continuar con Apple"
+                disabled={busy && signingWith !== 'apple'}
+                pending={signingWith === 'apple'}
+                onPress={() => void loginWith('apple')}
+              />
+              <Button
+                label="Continuar con Google"
+                tone="ghost"
+                disabled={busy && signingWith !== 'google'}
+                pending={signingWith === 'google'}
+                onPress={() => void loginWith('google')}
+              />
+              <Button
+                label="Continuar con mi correo"
+                tone="ghost"
+                disabled={busy && signingWith !== 'email'}
+                pending={signingWith === 'email'}
+                onPress={() => void loginWith('email')}
+              />
+              <SpamHint />
               <TestUserButton />
             </>
           ) : (
@@ -102,7 +121,7 @@ export default function Login() {
           )}
           <T color={colors.muted}>
             {native
-              ? 'Entra con Apple o Google. Cada resultado que confirmen los dos queda verificado en la red de prueba de Stellar, sin dinero real.'
+              ? 'Entra con Apple, Google o tu correo. Cada resultado que confirmen los dos queda verificado en la red de prueba de Stellar, sin dinero real.'
               : 'Entra con Google, Apple o tu correo. Al entrar recibes tu billetera en Stellar y cada resultado que confirmen los dos queda registrado ahí.'}
           </T>
         </>

@@ -5,8 +5,12 @@
 import { CavosProvider, useCavos } from '@cavos/kit/react-native';
 import { installNativeJwtCapture } from './install-native-jwt-capture';
 import { installNativeControlKeys } from './native-control-key';
+import { installNativeLogin } from './install-native-login';
+import { singleFlight } from './login-guard';
 
 installNativeJwtCapture();
+// Cierra sesiones del navegador que quedaron vivas y agrega la entrada por correo (ver install-native-login.ts).
+installNativeLogin();
 // Sin esto el kit busca WebCrypto/IndexedDB (no existen en Hermes) y la entrada falla tras Google/Apple.
 installNativeControlKeys();
 import * as Linking from 'expo-linking';
@@ -32,7 +36,8 @@ function reportAuthError(raw: string) {
   const message = sanitizeAuthError(raw);
   if (!message || message === lastReport) return;
   lastReport = message;
-  console.error('[cavos] error de entrada', message);
+  // warn y no error: en desarrollo console.error tapa la app con la pantalla roja de LogBox; el texto amable ya se ve.
+  console.warn('[cavos] error de entrada', message);
   void fetch(apiUrl('/api/auth'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -77,14 +82,30 @@ function walletFlags(c: ReturnType<typeof useCavos>) {
   };
 }
 
+type Provider = 'google' | 'apple' | 'email';
+let currentCavos: ReturnType<typeof useCavos> | null = null;
+/** Una entrada a la vez (ver login-guard.ts): un doble toque recibe la misma promesa y no abre otro navegador. */
+const login = singleFlight(async (provider: Provider) => {
+  const c = currentCavos;
+  if (!c) throw new Error('Cavos todavía está cargando. Vuelve a intentarlo.');
+  c.clearAuthError();
+  try {
+    await (c.login as (p: Provider) => Promise<void>)(provider);
+  } catch (e) {
+    throw new Error(friendly(e instanceof Error ? e.message : String(e)));
+  }
+});
+
 function Bridge() {
   const c = useCavos();
   const ref = useRef(c);
   ref.current = c;
+  currentCavos = c;
 
   useEffect(() => {
     const onUrl = (url: string) => {
       if (!isCavosCallbackUrl(url)) return; // invitaciones y otros enlaces no son la vuelta del login
+      if (login.busy()) return; // la sesión del navegador ya entrega esta vuelta al kit; no canjear el código dos veces
       const jwt = extractJwtFromCallbackUrl(url);
       if (jwt) setNativeCavosJwt(jwt);
       void ref.current.handleCallback(url).catch((e) => {
@@ -118,14 +139,7 @@ function Bridge() {
         ref.current.clearAuthError();
         ref.current.openModal();
       },
-      loginWith: async (provider) => {
-        ref.current.clearAuthError();
-        try {
-          await ref.current.login(provider);
-        } catch (e) {
-          throw new Error(friendly(e instanceof Error ? e.message : String(e)));
-        }
-      },
+      loginWith: (provider) => login(provider),
       logout: async () => {
         setNativeCavosJwt(null);
         await ref.current.logout();
@@ -171,7 +185,13 @@ function Bridge() {
     c.wallet,
   ]);
 
-  useEffect(() => () => cavosStore.setBridged(null), []);
+  useEffect(
+    () => () => {
+      currentCavos = null;
+      cavosStore.setBridged(null);
+    },
+    [],
+  );
   return null;
 }
 

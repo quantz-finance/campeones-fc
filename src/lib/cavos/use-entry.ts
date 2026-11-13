@@ -7,13 +7,15 @@ import { cavosConfigured, cavosNativeEnabled } from './config';
 import { DeviceApprovalNeeded, exchangeCavosSession, loginPath, NoDeviceKey } from './session';
 import { cavosStore, useCavosState } from './store';
 
-export type EntryPhase = 'idle' | 'opening' | 'session' | 'approve' | 'nokey';
+export type EntryPhase = 'idle' | 'opening' | 'signing' | 'session' | 'approve' | 'nokey';
+export type NativeProvider = 'google' | 'apple' | 'email';
 
 export function useCavosEntry() {
   const app = useApp();
   const { bridged, signedOut } = useCavosState();
   const [phase, setPhase] = useState<EntryPhase>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [signingWith, setSigningWith] = useState<NativeProvider | null>(null);
   const exchanging = useRef(false);
   const configured = app.mode === 'supabase' && cavosConfigured();
 
@@ -104,7 +106,8 @@ export function useCavosEntry() {
     }
   }
 
-  async function loginWith(provider: 'google' | 'apple') {
+  async function loginWith(provider: NativeProvider) {
+    if (phase === 'signing') return; // doble toque: ya hay una entrada abierta
     setError(null);
     if (signedOut) cavosStore.setSignedOut(false);
     if (!bridged || bridged.isLoading) {
@@ -112,16 +115,25 @@ export function useCavosEntry() {
       cavosStore.want();
       return;
     }
+    if (!bridged.loginWith) {
+      bridged.openModal();
+      return;
+    }
+    setPhase('signing');
+    setSigningWith(provider);
     try {
-      if (bridged.loginWith) await bridged.loginWith(provider);
-      else bridged.openModal();
+      await bridged.loginWith(provider);
     } catch (cause) {
       setError(cause instanceof Error ? authErrorText(cause.message) : 'No se pudo entrar.');
+    } finally {
+      setSigningWith(null);
+      // Si al volver ya empezó a abrir la sesión ('session'), no pisarla.
+      setPhase((p) => (p === 'signing' ? 'idle' : p));
     }
   }
 
-  const busy = phase === 'opening' || phase === 'session';
+  const busy = phase === 'opening' || phase === 'signing' || phase === 'session';
   const label = phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar con Cavos';
 
-  return { configured, phase, error, busy, label, openCavos, approveDevice, otherAccount, loginWith, native: cavosNativeEnabled };
+  return { configured, phase, error, busy, label, signingWith, openCavos, approveDevice, otherAccount, loginWith, native: cavosNativeEnabled };
 }
