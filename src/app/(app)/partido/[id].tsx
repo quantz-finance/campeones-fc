@@ -140,7 +140,7 @@ export default function MatchScreen() {
           return (
             <>
               <Top
-                icon="matches"
+               
                 title="Confirmar resultado"
                 kicker={snap.tournamentName ?? snap.groupName ?? `Partido · ${formatWhen(snap.match.createdAt)}`}
                 back

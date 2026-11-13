@@ -34,7 +34,7 @@ export default function Versus() {
           return (
             <>
               <Top
-                icon="versus"
+               
                 title="Cara a cara"
                 kicker={`Historial completo · 1 vs 1`}
                 back

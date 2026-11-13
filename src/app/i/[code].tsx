@@ -41,7 +41,7 @@ export default function InviteScreen() {
 
   return (
     <Screen>
-      <Top title="Invitación" kicker="Amigos" icon="friends" />
+      <Top title="Invitación" kicker="Amigos" />
       {message ? <Banner tone="accent" title={message} /> : null}
       {error ? <Banner tone="danger" title="Ese enlace no sirvió" body={error} /> : null}
       {!message && !error ? <T color={colors.muted}>Estamos uniendo las cuentas…</T> : null}

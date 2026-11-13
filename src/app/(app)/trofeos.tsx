@@ -13,7 +13,7 @@ export default function Trophies() {
   const query = useQuery(() => repo.trophies(userId!), [repo, userId, version]);
   return (
     <Screen>
-      <Top title="Trofeos" kicker="Vitrina" back icon="trophies" />
+      <Top title="Trofeos" kicker="Vitrina" back />
       <Gate query={query}>
         {(trophies) => (
           <>

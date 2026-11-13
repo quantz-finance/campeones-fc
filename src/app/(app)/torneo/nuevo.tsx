@@ -73,7 +73,7 @@ export default function NewTournament() {
         </>
       }
     >
-      <Top title="Nuevo torneo" kicker="Llaves" back icon="tournaments" />
+      <Top title="Nuevo torneo" kicker="Llaves" back />
       <Field label="Nombre" value={name} onChangeText={setName} placeholder="Copa relámpago" autoCapitalize="sentences" maxLength={rules.maxTournamentName} />
       <View style={styles.row}>
         <Chip label="Eliminación" active={format === 'single_elim'} onPress={() => setFormat('single_elim')} />

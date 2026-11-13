@@ -68,7 +68,7 @@ export default function NewGroup() {
         </>
       }
     >
-      <Top title="Nuevo grupo" kicker="Junta" back icon="friends" />
+      <Top title="Nuevo grupo" kicker="Junta" back />
       <Field label="Nombre" value={name} onChangeText={setName} placeholder="La junta del viernes" autoCapitalize="sentences" maxLength={rules.maxGroupName} />
       <Panel>
         <LogoPicker kind="groups" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />

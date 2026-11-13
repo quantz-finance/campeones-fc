@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './icon';
-import { Backdrop, FeatureBadge, tabBarSpace, type FeatureIconName } from './broadcast';
+import { Backdrop, tabBarSpace } from './broadcast';
 import { useGlobalExit } from './motion-context';
 import { back as goBack } from './nav';
 import { SportPress } from './press';
@@ -102,18 +102,15 @@ export function Top({
   kicker,
   back = false,
   right,
-  icon,
 }: {
   title: string;
   kicker?: string;
   back?: boolean;
   right?: ReactNode;
-  /** Ícono propio de la sección (silueta blanca sobre insignia morada). */
-  icon?: FeatureIconName;
 }) {
   return (
     <View style={styles.top}>
-      {back || icon ? (
+      {back ? (
         <View style={styles.topLead}>
           {back ? (
             <SportPress onPress={() => goBack()} hitSlop={8} style={styles.back} accessibilityLabel="Volver" accessibilityRole="button">
@@ -122,10 +119,9 @@ export function Top({
               </View>
             </SportPress>
           ) : null}
-          {icon ? <FeatureBadge name={icon} size={46} /> : null}
         </View>
       ) : null}
-      <View style={[styles.topText, null]}>
+      <View style={styles.topText}>
         <View style={styles.titleCol}>
           {kicker ? (
             <T variant="label" color={colors.accentText} style={styles.kicker} numberOfLines={2}>

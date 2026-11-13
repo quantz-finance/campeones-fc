@@ -63,7 +63,7 @@ export default function Play() {
         )
       }
     >
-      <Top title="Registrar" kicker="Nuevo partido" icon="matches" />
+      <Top title="Registrar" kicker="Nuevo partido" />
       <T color={colors.muted}>Tú lo propones y tu rival lo acepta. Al terminar, cada uno marca quién ganó. Si coinciden, el resultado cuenta.</T>
       <Gate query={friends}>
         {(data) => {

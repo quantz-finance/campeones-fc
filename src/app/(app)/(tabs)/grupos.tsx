@@ -26,7 +26,7 @@ export default function Groups() {
 
   return (
     <Screen tab>
-      <Top title="Grupos" kicker="La junta" icon="friends" right={<Button label="Crear" onPress={() => push('/grupo/nuevo')} />} />
+      <Top title="Grupos" kicker="La junta" right={<Button label="Crear" onPress={() => push('/grupo/nuevo')} />} />
       <Gate query={query}>
         {(groups) =>
           groups.length === 0 ? (

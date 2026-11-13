@@ -65,7 +65,7 @@ export default function Friends() {
 
   return (
     <Screen>
-      <Top title="Amigos" kicker="Tu círculo" back icon="friends" />
+      <Top title="Amigos" kicker="Tu círculo" back />
       <Gate query={query} skeleton={<ListSkeleton />}>
         {(data) => {
           const known = new Set([...data.friends.map((f) => f.profile.id), ...data.incoming.map((f) => f.profile.id), ...data.outgoing.map((f) => f.profile.id)]);

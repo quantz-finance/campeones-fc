@@ -33,7 +33,7 @@ export default function TournamentsTab() {
   const [search, setSearch] = useState('');
   return (
     <Screen tab>
-      <Top title="Torneos" kicker="Cuadros y copas" icon="tournaments" />
+      <Top title="Torneos" kicker="Cuadros y copas" />
       <Gate query={query}>
         {(list) =>
           list.length === 0 ? (

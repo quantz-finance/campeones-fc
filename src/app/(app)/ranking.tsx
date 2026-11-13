@@ -61,7 +61,7 @@ export default function Ranking() {
   );
   return (
     <Screen scroll={false} fill>
-      <Top title="Ranking" kicker="Tu círculo" back icon="ranking" />
+      <Top title="Ranking" kicker="Tu círculo" back />
       <Gate query={query} skeleton={<ListSkeleton rows={9} />} fill>
         {(data) => (
           <FlatList

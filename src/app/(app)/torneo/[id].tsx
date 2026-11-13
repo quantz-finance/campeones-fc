@@ -46,7 +46,7 @@ export default function TournamentScreen() {
           return (
             <>
               <Top
-                icon="tournaments"
+               
                 title={data.tournament.name}
                 kicker={formatLabel}
                 back

@@ -33,7 +33,7 @@ export default function GroupDetail() {
           return (
             <>
               <Top
-                icon="friends"
+               
                 title={data.group.name}
                 kicker={`${data.members.length} jugadores · ${matchesPlayed} partidos`}
                 back
