@@ -1,5 +1,5 @@
 import { useFocusEffect, useIsFocused } from 'expo-router';
-import { Children, isValidElement, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Children, Fragment, isValidElement, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { FlatList, Platform, StyleSheet, View } from 'react-native';
 import { ExitScopeContext, MotionModeContext, useGlobalExit } from './motion-context';
 import { BroadcastView, cssAnim, useReducedMotion } from './motion';
@@ -20,6 +20,16 @@ function variantOf(child: ReactNode): 'item' | 'header' {
   if (!isValidElement(child)) return 'item';
   const type = child.type as { broadcast?: string };
   return type && typeof type === 'object' && type.broadcast === 'header' ? 'header' : 'item';
+}
+
+/**
+ * Abre los fragmentos (<>...</>) que devuelven las compuertas: así cada bloque es hijo directo
+ * de la columna de la pantalla y recibe su `gap`. Sin esto, todo lo de un fragmento quedaba pegado.
+ */
+function flatten(children: ReactNode): ReactNode[] {
+  return Children.toArray(children).flatMap((child) =>
+    isValidElement(child) && child.type === Fragment ? flatten((child.props as { children?: ReactNode }).children) : [child],
+  );
 }
 
 /**
@@ -49,13 +59,13 @@ export function Scene({ children }: { children: ReactNode }) {
     }, []),
   );
 
-  const items = Children.toArray(children);
+  const items = flatten(children);
   return (
     <MotionModeContext.Provider value={mode}>
       <ExitScopeContext.Provider value={mode === 'exit'}>
         {items.map((child, index) =>
           isPassthrough(child) ? (
-            child
+            <Fragment key={index}>{child}</Fragment>
           ) : (
             <BroadcastView key={index} index={index} variant={variantOf(child)} replay={replay}>
               {child}
