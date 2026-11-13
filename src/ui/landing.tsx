@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
-import { cavosSupported } from '../lib/cavos/config';
+import { cavosNativeEnabled, cavosSupported } from '../lib/cavos/config';
 import { useCavosEntry } from '../lib/cavos/use-entry';
 import { useApp } from '../state/app-provider';
 import { playIntro } from './audio';
@@ -80,6 +81,11 @@ export function Landing() {
 
   function enter() {
     playIntro();
+    // iPhone: a la pantalla con Apple, Google y correo (en español, con una entrada a la vez), no al modal del kit.
+    if (cavosNativeEnabled) {
+      router.push('/entrar');
+      return;
+    }
     openCavos();
   }
 
