@@ -1,6 +1,6 @@
 // Ficha pública de un jugador: se abre sin cuenta y se comparte como partido.campeonesfc.app/jugador/<id>.
 // Marcador grande arriba (estilo transmisión), luego redes, títulos, logros, grupos y últimos partidos.
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '../../ui/icon';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Share, StyleSheet, View } from 'react-native';
@@ -78,7 +78,7 @@ export default function PlayerPage() {
                     {mine ? (
                       <Button label="Editar mi perfil" tone="ghost" onPress={() => push('/perfil')} />
                     ) : userId ? (
-                      <Button label="Cara a cara" onPress={() => push(`/versus/${data.profile.id}`)} icon={<Ionicons name="git-compare" size={16} color={colors.accentInk} />} />
+                      <Button label="Cara a cara" onPress={() => push(`/versus/${data.profile.id}`)} icon={<Icon name="vs" size={16} color={colors.accentInk} />} />
                     ) : (
                       <Button label="Entra para retarlo" onPress={() => push('/entrar')} />
                     )}
@@ -88,7 +88,7 @@ export default function PlayerPage() {
                       label={copied ? 'Enlace copiado' : 'Compartir'}
                       tone="ghost"
                       onPress={() => void share(data)}
-                      icon={<Ionicons name={copied ? 'checkmark' : 'share-outline'} size={16} color={colors.text} />}
+                      icon={<Icon name={copied ? 'check' : 'compartir'} size={16} color={colors.text} />}
                     />
                   </View>
                 </View>
@@ -145,7 +145,7 @@ export default function PlayerPage() {
                         <T variant="strong" style={styles.flex} numberOfLines={1}>
                           {group.name}
                         </T>
-                        <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+                        <Icon name="adelante" size={16} color={colors.faint} />
                       </SportPress>
                     ))}
                   </View>

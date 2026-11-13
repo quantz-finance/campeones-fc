@@ -1,5 +1,5 @@
 // Aviso flotante (abajo) cuando llega algo nuevo: amigo que entró por tu enlace, reto, resultado por confirmar…
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './icon';
 import { usePathname } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -112,7 +112,7 @@ export function NoticeToast() {
             if (toast.href) push(toast.href as never);
           }}
         >
-          <Ionicons name={danger ? 'alert-circle' : 'notifications'} size={20} color={danger ? colors.danger : colors.accent} />
+          <Icon name={danger ? 'alerta' : 'notificaciones'} size={20} color={danger ? colors.danger : colors.accent} />
           <View style={styles.copy}>
             <T variant="strong" numberOfLines={2}>
               {toast.title}
@@ -129,7 +129,7 @@ export function NoticeToast() {
             ) : null}
           </View>
           <Pressable accessibilityLabel="Cerrar aviso" hitSlop={10} onPress={dismiss}>
-            <Ionicons name="close" size={18} color={colors.muted} />
+            <Icon name="cerrar" size={18} color={colors.muted} />
           </Pressable>
         </Pressable>
       </View>
@@ -152,5 +152,5 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderRadius: 14,
   },
-  copy: { flex: 1, gap: space.xxs },
+  copy: { flex: 1, gap: space.xs },
 });

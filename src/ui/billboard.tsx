@@ -2,12 +2,12 @@
 import { SocialDots } from './social-icons';
 import { useState } from 'react';
 import { Linking, Platform, ScrollView, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type UiIconName } from './icon';
 import { Image } from 'expo-image';
 import type { Href } from 'expo-router';
 import type { BillboardPlayer, BillboardRivalry, BillboardSnapshot, BillboardTournament } from '../data/snapshots';
 import type { SponsorSlot } from '../content/sponsors';
-import { BrandIcon, InitialsMark, Shield, type BrandIconName } from './broadcast';
+import { InitialsMark, Shield } from './broadcast';
 import { PlayerPortrait, PORTRAIT } from './player-portrait';
 import { elo, firstName, formatWhen, monogram, pct, signed, tagOf } from './format';
 import { CountRoll } from './motion';
@@ -54,10 +54,10 @@ export function FormDots({ form, size = 16 }: { form: BillboardPlayer['form']; s
 }
 
 /** Encabezado compacto de bloque del mosaico. */
-function TileHead({ title, action, onAction, icon }: { title: string; action?: string; onAction?: () => void; icon?: keyof typeof Ionicons.glyphMap }) {
+function TileHead({ title, action, onAction, icon }: { title: string; action?: string; onAction?: () => void; icon?: UiIconName }) {
   return (
     <View style={styles.tileHead}>
-      {icon ? <Ionicons name={icon} size={14} color={colors.accentText} /> : null}
+      {icon ? <Icon name={icon} size={16} color={colors.accentText} /> : null}
       <T variant="label" color={colors.text} style={styles.tileTitle} numberOfLines={1}>
         {title}
       </T>
@@ -114,7 +114,7 @@ function StarCard({ star, index, total, me, width }: { star: BillboardSnapshot['
       <View style={styles.starBody}>
         <View style={styles.starTopRow}>
           <View style={styles.kicker}>
-            <Ionicons name="star" size={11} color={colors.ink} />
+            <Icon name="estrella" size={11} color={colors.ink} />
             <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
               {starKicker(reason)}
             </T>
@@ -149,7 +149,7 @@ function StarCard({ star, index, total, me, width }: { star: BillboardSnapshot['
         <View style={styles.chips}>
           {hot ? (
             <View style={[styles.chip, { backgroundColor: colors.red }]}>
-              <Ionicons name="flame" size={11} color={colors.redInk} />
+              <Icon name="racha" size={11} color={colors.redInk} />
               <T variant="tiny" color={colors.redInk} style={{ fontSize: 10 }}>
                 Racha de {player.streak.count} victorias
               </T>
@@ -157,7 +157,7 @@ function StarCard({ star, index, total, me, width }: { star: BillboardSnapshot['
           ) : null}
           {reason !== 'top' && player.windowDelta > 0 ? (
             <View style={[styles.chip, { backgroundColor: colors.yellow }]}>
-              <Ionicons name="trending-up" size={11} color={colors.ink} />
+              <Icon name="tendencia-sube" size={11} color={colors.ink} />
               <T variant="tiny" color={colors.ink} style={{ fontSize: 10 }}>
                 {signed(Math.round(player.windowDelta))} Elo
               </T>
@@ -216,7 +216,7 @@ export function StarsCarousel({ board, me }: { board: BillboardSnapshot; me: str
   const step = width + GAP;
   return (
     <View style={styles.block}>
-      <TileHead title="Las estrellas" icon="star" action="Ranking" onAction={() => push('/ranking')} />
+      <TileHead title="Las estrellas" icon="estrella" action="Ranking" onAction={() => push('/ranking')} />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -238,24 +238,6 @@ export function StarsCarousel({ board, me }: { board: BillboardSnapshot; me: str
           ))}
         </View>
       ) : null}
-    </View>
-  );
-}
-
-/* ---------- Accesos rápidos: cuatro fichas cuadradas ---------- */
-
-export function QuickRow({ items }: { items: { title: string; en?: string; icon: BrandIconName; color: string; ink: string; onPress: () => void }[] }) {
-  const lang = useLang();
-  return (
-    <View style={styles.quickRow}>
-      {items.map((item) => (
-        <SportPress key={item.title} style={[styles.quick, { backgroundColor: item.color }]} onPress={item.onPress} accessibilityLabel={item.title}>
-          <BrandIcon name={item.icon} size={22} color={item.ink} />
-          <T variant="title" color={item.ink} style={styles.quickTitle} numberOfLines={1} adjustsFontSizeToFit>
-            {lang === 'en' && item.en ? item.en : item.title}
-          </T>
-        </SportPress>
-      ))}
     </View>
   );
 }
@@ -284,7 +266,7 @@ export function SponsorBanner({ slot }: { slot: SponsorSlot }) {
       {slot.imageUrl ? <SponsorImage uri={slot.imageUrl} /> : <View style={styles.sponsorStripes} pointerEvents="none" />}
       <SponsorTag />
       <View style={styles.sponsorIcon}>
-        <Ionicons name="megaphone" size={22} color={colors.ink} />
+        <Icon name="notificaciones" size={22} color={colors.ink} />
       </View>
       <View style={{ flex: 1, gap: space.xs }}>
         <T variant="display" style={styles.sponsorTitle} numberOfLines={1}>
@@ -316,7 +298,7 @@ export function SponsorTile({ slot, style }: { slot: SponsorSlot; style?: StyleP
     <SportPress style={[styles.tile, styles.sponsorTile, style]} onPress={slot.href ? () => openSponsor(slot) : undefined} accessibilityLabel={`Patrocinado: ${slot.title}`}>
       {slot.imageUrl ? <SponsorImage uri={slot.imageUrl} /> : null}
       <SponsorTag />
-      <Ionicons name={slot.placement === 'tournament' || /torneo/i.test(slot.title) ? 'trophy-outline' : 'megaphone-outline'} size={24} color={colors.accentText} />
+      <Icon name={slot.placement === 'tournament' || /torneo/i.test(slot.title) ? 'trofeo' : 'notificaciones'} size={24} color={colors.accentText} />
       <T variant="title" style={{ fontSize: 16, lineHeight: 18 }} numberOfLines={2}>
         {slot.title}
       </T>
@@ -335,7 +317,7 @@ export function HotCups({ items, sponsored }: { items: BillboardTournament[]; sp
   if (!items.length && !sponsored.length) return null;
   return (
     <View style={styles.block}>
-      <TileHead title="Torneos más calientes" icon="flame" action="Ver todos" onAction={() => push('/torneos')} />
+      <TileHead title="Torneos más calientes" icon="racha" action="Ver todos" onAction={() => push('/torneos')} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.bleedContent}>
         {items.map((item) => {
           const live = item.tournament.status === 'in_progress';
@@ -350,7 +332,7 @@ export function HotCups({ items, sponsored }: { items: BillboardTournament[]; sp
               <View style={styles.cupTop}>
                 <Shield letters={monogram(item.tournament.name)} photoUrl={item.tournament.photoUrl} kind="tournaments" id={item.tournament.id} logo={item.tournament.logo} size={40} />
                 <View style={[styles.status, { backgroundColor: live ? colors.yellow : colors.gold }]}>
-                  {live ? <View style={styles.liveDot} /> : <Ionicons name="trophy" size={9} color={colors.ink} />}
+                  {live ? <View style={styles.liveDot} /> : <Icon name="trofeo" size={9} color={colors.ink} />}
                   <T variant="tiny" color={colors.ink} style={{ fontSize: 9 }}>
                     {live ? 'En juego' : 'Finalizado'}
                   </T>
@@ -415,7 +397,7 @@ function MiniRow({ player, me, left, right, accent }: { player: BillboardPlayer;
 export function TopTile({ board, me, style }: { board: BillboardSnapshot; me: string; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.tile, style]}>
-      <TileHead title="Top ranking" icon="podium" action="Ver" onAction={() => push('/ranking')} />
+      <TileHead title="Top ranking" icon="podio" action="Ver" onAction={() => push('/ranking')} />
       <View style={styles.miniList}>
         {board.top.map((player, index) => (
           <MiniRow key={player.profile.id} player={player} me={me} left={String(index + 1)} right={elo(player.rating)} accent={index === 0} />
@@ -428,7 +410,7 @@ export function TopTile({ board, me, style }: { board: BillboardSnapshot; me: st
 export function MoversTile({ board, me, style }: { board: BillboardSnapshot; me: string; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.tile, style]}>
-      <TileHead title="En alza" icon="trending-up" />
+      <TileHead title="En alza" icon="tendencia-sube" />
       <View style={styles.miniList}>
         {board.movers.map((player) => (
           <MiniRow key={player.profile.id} player={player} me={me} right={signed(Math.round(player.windowDelta))} accent />
@@ -444,7 +426,7 @@ export function MoversTile({ board, me, style }: { board: BillboardSnapshot; me:
 export function StreaksTile({ board, me, style }: { board: BillboardSnapshot; me: string; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.tile, style]}>
-      <TileHead title="Rachas" icon="flame" />
+      <TileHead title="Rachas" icon="racha" />
       <View style={styles.miniList}>
         {board.streaks.slice(0, 3).map((player) => (
           <MiniRow key={player.profile.id} player={player} me={me} right={String(player.streak.count)} accent />
@@ -463,7 +445,7 @@ export function ResultsGrid({ board }: { board: BillboardSnapshot }) {
   if (!board.results.length) return null;
   return (
     <View style={styles.block}>
-      <TileHead title="Resultados recientes" icon="football" />
+      <TileHead title="Resultados recientes" icon="balon" />
       <View style={styles.grid2}>
         {board.results.map(({ match, label }) => {
           const a = board.people[match.playerAId];
@@ -512,7 +494,7 @@ export function RivalryTile({ items, me, style }: { items: BillboardRivalry[]; m
   if (!item) return null;
   return (
     <SportPress style={[styles.tile, style]} onPress={() => push(`/grupo/${item.group.id}`)} accessibilityLabel={item.group.name}>
-      <TileHead title="Grupo más reñido" icon="flash" />
+      <TileHead title="Grupo más reñido" icon="rayo" />
       <View style={styles.rivalryHead}>
         <Shield letters={monogram(item.group.name)} photoUrl={item.group.photoUrl} kind="groups" id={item.group.id} logo={item.group.logo} size={28} />
         <T variant="strong" numberOfLines={1} style={{ flex: 1, fontSize: 13 }}>
@@ -591,9 +573,6 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lineStrong },
   dotOn: { width: 18, backgroundColor: colors.accentText },
   /* accesos */
-  quickRow: { flexDirection: 'row', gap: GAP },
-  quick: { flex: 1, aspectRatio: 1, maxHeight: 96, borderRadius: 18, padding: space.sm + 2, justifyContent: 'space-between', borderWidth: 1, borderColor: colors.line },
-  quickTitle: { fontSize: 14, lineHeight: 16 },
   /* patrocinios */
   sponsorBanner: { ...cardBase, minHeight: 96, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, overflow: 'hidden', borderStyle: 'dashed', borderColor: colors.lineStrong, backgroundColor: colors.surface },
   sponsorStripes: {
@@ -607,7 +586,7 @@ const styles = StyleSheet.create({
   sponsorCta: { borderWidth: 1, borderColor: colors.lineStrong, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: space.xs },
   sponsorTile: { borderStyle: 'dashed', borderColor: colors.lineStrong, justifyContent: 'flex-end', minHeight: 120 },
   /* torneos */
-  cup: { ...cardBase, width: 168, minHeight: 168, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', padding: space.md, gap: space.xs },
+  cup: { ...cardBase, width: 168, minHeight: 168, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', padding: space.md, gap: space.sm },
   cupLive: { borderColor: colors.yellow },
   cupTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.xs },
   status: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999 },

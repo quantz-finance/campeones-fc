@@ -1,5 +1,5 @@
 import { Platform, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '../../../ui/icon';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { ScoreBar, SectionHead, Wordmark } from '../../../ui/broadcast';
@@ -7,7 +7,6 @@ import {
   BentoRow,
   HotCups,
   MoversTile,
-  QuickRow,
   ResultsGrid,
   RivalryTile,
   SponsorBanner,
@@ -18,7 +17,6 @@ import {
 } from '../../../ui/billboard';
 import { sponsorsFor } from '../../../content/sponsors';
 import type { BillboardSnapshot } from '../../../data/snapshots';
-import type { ReactNode } from 'react';
 import { Gate } from '../../../ui/controls';
 import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
 import { buildNews } from '../../../ui/news';
@@ -56,23 +54,7 @@ export default function Home() {
     <Screen tab footer={<NewsTicker items={news} />} footerHeight={TICKER_SPACE}>
       <Gate query={query} skeleton={<HomeSkeleton />}>
         {(home) => {
-          const group = groups.data?.[0];
           const pending = [...home.actionMatches, ...home.waitingMatches];
-          const rivalId = home.recent[0]
-            ? home.recent[0].playerAId === userId
-              ? home.recent[0].playerBId
-              : home.recent[0].playerAId
-            : null;
-          const quickTiles = (
-            <QuickRow
-              items={[
-                { title: 'Registrar', en: 'Log', icon: 'matches', color: colors.yellow, ink: colors.ink, onPress: () => push('/jugar') },
-                { title: 'Versus', icon: 'versus', color: colors.red, ink: colors.redInk, onPress: () => (rivalId ? push(`/versus/${rivalId}`) : push('/amigos')) },
-                { title: 'Tabla', icon: 'ranking', color: colors.blue, ink: '#fff', onPress: () => (group ? push(`/grupo/${group.group.id}`) : push('/grupos')) },
-                { title: 'Torneos', en: 'Cups', icon: 'tournaments', color: '#fff', ink: colors.ink, onPress: () => push('/torneos') },
-              ]}
-            />
-          );
           const confirmar = (
             <>
               <SectionHead title={`Por confirmar · ${pending.length}`} action="Ver todos" onAction={() => {
@@ -130,7 +112,7 @@ export default function Home() {
                   onPress={() => push('/avisos')}
                   style={styles.bell}
                 >
-                  <Ionicons name={unread ? 'notifications' : 'notifications-outline'} size={20} color={colors.text} />
+                  <Icon name={unread ? 'notificaciones-punto' : 'notificaciones'} size={20} color={colors.text} />
                   {unread + home.actionMatches.length > 0 ? (
                     <View style={styles.badge}>
                       <Pop value={unread + home.actionMatches.length}>
@@ -149,15 +131,13 @@ export default function Home() {
               ) : null}
               {pending.length > 0 ? <View style={styles.block}>{confirmar}</View> : null}
               {board.data ? (
-                <Mosaic board={board.data} me={userId!} quick={quickTiles} first={pending.length > 0 ? 2 : 0} />
-              ) : board.error ? (
-                quickTiles
-              ) : (
+                <Mosaic board={board.data} me={userId!} first={pending.length > 0 ? 2 : 0} />
+              ) : board.error ? null : (
                 <BillboardSkeleton />
               )}
               {pending.length === 0 ? (
                 <SportPress style={styles.allClear} onPress={() => push('/avisos')} accessibilityLabel="Por confirmar · 0">
-                  <Ionicons name="checkmark-circle" size={18} color={colors.accentText} />
+                  <Icon name="confirmado" size={18} color={colors.accentText} />
                   <T variant="tiny" color={colors.muted} style={[styles.plain, { flex: 1 }]}>
                     No tienes nada pendiente. Cuando alguien te rete, aparece aquí.
                   </T>
@@ -204,7 +184,7 @@ const styles = StyleSheet.create({
 });
 
 /** Portada en mosaico: piezas de distintos tamaños (ancho completo, medio ancho, fichas cuadradas). */
-function Mosaic({ board, me, quick, first }: { board: BillboardSnapshot; me: string; quick: ReactNode; first: number }) {
+function Mosaic({ board, me, first }: { board: BillboardSnapshot; me: string; first: number }) {
   const banner = sponsorsFor('home', 'banner')[0];
   const tiles = sponsorsFor('home', 'tile');
   const cupAds = sponsorsFor('tournament');
@@ -214,7 +194,6 @@ function Mosaic({ board, me, quick, first }: { board: BillboardSnapshot; me: str
       <Rise index={first}>
         <StarsCarousel board={board} me={me} />
       </Rise>
-      <Rise index={first + 1}>{quick}</Rise>
       {board.top.length ? (
         <Rise index={first + 2}>
           <BentoRow>

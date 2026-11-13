@@ -62,15 +62,16 @@ export const space = {
  * - bottom: aire mínimo sobre la barra de pestañas / cinta / borde seguro.
  */
 export const layout = {
-  stack: space.lg,
-  section: space.xxl,
-  title: space.lg,
-  card: space.md,
-  inCard: space.md,
-  button: space.md,
-  field: space.lg,
-  inline: space.xs,
-  bottom: space.lg,
+  // Aire generoso (pedido de Rolando): nada pegado, siempre la misma escala.
+  stack: 28,
+  section: 52,
+  title: 20,
+  card: 16,
+  inCard: 16,
+  button: 16,
+  field: 20,
+  inline: space.sm,
+  bottom: space.xl,
 } as const;
 
 export const radius = {

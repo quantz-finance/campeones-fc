@@ -1,5 +1,4 @@
 import { entityPhoto, logoSource, resolveLogo, type LogoKind } from '../content/crests';
-import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-svg';
@@ -11,6 +10,7 @@ import { T } from './text';
 import { toroPaths, toroTransform, toroViewBox } from './toro-data';
 import { featureIcons, type FeatureIconName } from './feature-icons-data';
 import { useResolvedColor } from './theme-mode';
+import { Icon, type UiIconName } from './icon';
 import { Image } from 'expo-image';
 import { PhotoLayer } from './entity-image';
 
@@ -100,9 +100,6 @@ export function BracketIcon({ size = 22, color = colors.text }: { size?: number;
 }
 
 export type { FeatureIconName } from './feature-icons-data';
-export type BrandIconName = keyof typeof Ionicons.glyphMap | 'bracket' | FeatureIconName;
-
-const isFeature = (name: string): name is FeatureIconName => name in featureIcons;
 
 /**
  * Íconos propios de Campeones (siluetas de la landing). `color` en hex: los fills de SVG
@@ -119,6 +116,17 @@ export function FeatureIcon({ name, size = 24, color = '#FFFFFF' }: { name: Feat
   );
 }
 
+/** Secciones de la app → icono de interfaz (paquete de Stan). Sin «escudo»: no choca con Grupos (escudo con check). */
+const featureToUi: Record<FeatureIconName, UiIconName> = {
+  friends: 'amigos',
+  matches: 'marcador',
+  ranking: 'podio',
+  tournaments: 'trofeo',
+  trophies: 'medalla',
+  versus: 'vs',
+  install: 'descargar',
+};
+
 /** Insignia morada con el ícono blanco: igual en modo claro y oscuro (como las tarjetas de la landing). */
 export function FeatureBadge({ name, size = 44, tone = 'purple' }: { name: FeatureIconName; size?: number; tone?: 'purple' | 'lilac' }) {
   return (
@@ -129,15 +137,9 @@ export function FeatureBadge({ name, size = 44, tone = 'purple' }: { name: Featu
         Platform.OS === 'web' ? ({ backgroundImage: tone === 'lilac' ? 'linear-gradient(150deg,#A855FF,#6A1FD0)' : 'linear-gradient(150deg,#5A1A6E,#37003C)' } as object) : null,
       ]}
     >
-      <FeatureIcon name={name} size={Math.round(size * 0.72)} />
+      <Icon name={featureToUi[name]} size={Math.round(size * 0.56)} color="#FFFFFF" />
     </View>
   );
-}
-
-export function BrandIcon({ name, size = 22, color = colors.text }: { name: BrandIconName; size?: number; color?: string }) {
-  if (name === 'bracket') return <BracketIcon size={size} color={color} />;
-  if (isFeature(name)) return <FeatureIcon name={name} size={Math.round(size * 1.2)} color={color} />;
-  return <Ionicons name={name as keyof typeof Ionicons.glyphMap} size={size} color={color} />;
 }
 
 export function Wordmark({ size = 22 }: { size?: number }) {
@@ -367,36 +369,6 @@ export function ScoreBar({
   );
 }
 
-export function QuickTile({
-  kicker,
-  title,
-  color,
-  icon,
-  ink = '#fff',
-  onPress,
-}: {
-  kicker: string;
-  title: string;
-  color: string;
-  icon: BrandIconName;
-  ink?: string;
-  onPress: () => void;
-}) {
-  return (
-    <SportPress onPress={onPress} style={[styles.tile, { backgroundColor: color }]}>
-      <View style={styles.tileTop}>
-        <T variant="label" color={ink} style={{ fontSize: 12, opacity: 0.85 }}>
-          {kicker}
-        </T>
-        <BrandIcon name={icon} size={22} color={ink} />
-      </View>
-      <T variant="display" style={{ fontSize: 26, color: ink, fontStyle: 'normal' }} numberOfLines={1} adjustsFontSizeToFit>
-        {title}
-      </T>
-    </SportPress>
-  );
-}
-
 export function StatCell({ value, label, accent = false }: { value: string; label: string; accent?: boolean }) {
   return (
     <View style={styles.stat}>
@@ -530,7 +502,7 @@ export function Sticker({
 }: {
   title: string;
   detail: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: UiIconName;
   color: string;
   earned: boolean;
   tilt?: string;
@@ -538,7 +510,7 @@ export function Sticker({
   const ink = color === colors.blue ? colors.blueInk : colors.ink;
   return (
     <View style={[styles.sticker, { backgroundColor: earned ? color : 'transparent', transform: [{ rotate: tilt }] }, !earned && styles.stickerLocked]}>
-      <Ionicons name={earned ? icon : 'lock-closed'} size={22} color={earned ? ink : colors.faint} />
+      <Icon name={earned ? icon : 'candado'} size={22} color={earned ? ink : colors.faint} />
       <T variant="title" style={{ fontSize: 13, color: earned ? ink : colors.muted, textAlign: 'center' }}>
         {title}
       </T>
@@ -640,8 +612,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   note: { backgroundColor: colors.bgDeep, paddingHorizontal: 10, paddingVertical: 6, marginTop: 0 },
-  tile: { width: '48%', flexGrow: 1, minHeight: 96, padding: 14, justifyContent: 'space-between', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: colors.line },
-  tileTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   stat: {
     width: '31%',
     flexGrow: 1,

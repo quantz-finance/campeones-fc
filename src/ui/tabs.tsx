@@ -1,19 +1,20 @@
-import { Ionicons } from '@expo/vector-icons';
 import { type Href } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, font, space } from './theme';
 import { T } from './text';
-import { BrandIcon, tabBarSpace, type BrandIconName } from './broadcast';
+import { tabBarSpace } from './broadcast';
+import { Icon, NavIcon, type NavIconName } from './icon';
 import { navigate } from './nav';
 import { SportPress } from './press';
 
-const items: { name: string; label: string; icon: BrandIconName; plus?: boolean }[] = [
-  { name: 'inicio', label: 'Inicio', icon: 'home' },
-  { name: 'grupos', label: 'Grupos', icon: 'friends' },
-  { name: 'jugar', label: 'Registrar', icon: 'add', plus: true },
-  { name: 'torneos', label: 'Torneos', icon: 'tournaments' },
-  { name: 'perfil', label: 'Perfil', icon: 'person' },
+// Iconos de Stan (assets/iconos-ui/nav): trazo inactivo, sólido activo.
+const items: { name: string; label: string; icon: NavIconName; plus?: boolean }[] = [
+  { name: 'inicio', label: 'Inicio', icon: 'inicio' },
+  { name: 'grupos', label: 'Grupos', icon: 'grupos' },
+  { name: 'jugar', label: 'Registrar', icon: 'registrar', plus: true },
+  { name: 'torneos', label: 'Torneos', icon: 'torneos' },
+  { name: 'perfil', label: 'Perfil', icon: 'perfil' },
 ];
 
 function Bar({
@@ -41,7 +42,7 @@ function Bar({
               style={styles.tab}
             >
               <View style={styles.plus}>
-                <Ionicons name="add" size={28} color={colors.accentInk} />
+                <Icon name="agregar" size={26} color={colors.accentInk} />
               </View>
               <T variant="label" color={colors.text} style={styles.caption}>
                 {item.label}
@@ -58,7 +59,7 @@ function Bar({
             style={styles.tab}
           >
             {on ? <View style={styles.mark} /> : <View style={styles.markOff} />}
-            <BrandIcon name={item.icon} size={22} color={on ? colors.accentText : colors.faint} />
+            <NavIcon name={item.icon} active={on} size={24} color={on ? colors.text : colors.faint} />
             <T variant="label" color={on ? colors.text : colors.faint} style={styles.caption}>
               {item.label}
             </T>

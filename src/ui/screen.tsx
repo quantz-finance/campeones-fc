@@ -2,7 +2,7 @@ import { useIsFocused } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './icon';
 import { Backdrop, FeatureBadge, tabBarSpace, type FeatureIconName } from './broadcast';
 import { useGlobalExit } from './motion-context';
 import { back as goBack } from './nav';
@@ -103,7 +103,7 @@ export function Top({
           {back ? (
             <SportPress onPress={() => goBack()} hitSlop={8} style={styles.back} accessibilityLabel="Volver" accessibilityRole="button">
               <View style={styles.unskew}>
-                <Ionicons name="chevron-back" size={22} color={colors.text} />
+                <Icon name="atras" size={22} color={colors.text} />
               </View>
             </SportPress>
           ) : null}
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     alignSelf: 'center',
     paddingHorizontal: space.lg,
-    paddingTop: 8,
+    paddingTop: space.md,
     gap: layout.stack,
   },
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },

@@ -1,6 +1,6 @@
 // Selector de logo: escudo (grupos, 23 piezas blanco/lila) o trofeo (torneos, 8 piezas en oro) del set v5,
 // más «Subir tu foto». En la cuadrícula se usa la variante small (44 px); arriba, la vista previa grande.
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './icon';
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -74,7 +74,7 @@ export function LogoPicker({
       <LogoGrid kind={kind} value={value} onChange={onChange} />
       <View style={styles.photoRow}>
         <View style={styles.photoIcon}>
-          <Ionicons name="camera" size={16} color={colors.text} />
+          <Icon name="camara" size={16} color={colors.text} />
         </View>
         <View style={styles.flex}>
           <T variant="strong">Subir tu foto</T>
@@ -135,7 +135,7 @@ export function LogoEditor({
             }}
             accessibilityRole="button"
           >
-            <Ionicons name="color-palette" size={14} color={colors.text} />
+            <Icon name="galeria" size={14} color={colors.text} />
             <T variant="tiny" color={colors.text}>
               {label}
             </T>

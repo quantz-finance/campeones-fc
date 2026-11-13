@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '../../../ui/icon';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { CompareRow, EloChart, SectionHead } from '../../../ui/broadcast';
@@ -48,7 +48,7 @@ export default function Versus() {
                       void Share.share({ message: text });
                     }}
                   >
-                    <Ionicons name="share-outline" size={18} color={colors.text} />
+                    <Icon name="compartir" size={18} color={colors.text} />
                   </Pressable>
                 }
               />

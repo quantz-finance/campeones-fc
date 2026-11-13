@@ -5,6 +5,7 @@ import { AchievementBadge } from '../../../ui/achievement-badge';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { APP_MODES, appModeOf } from '../../../lib/app-mode';
 import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '../../../ui/icon';
 import { avatars, branding } from '../../../../config/branding';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
@@ -24,9 +25,9 @@ import { LangSetting } from '../../../ui/lang-toggle';
 import { humanError } from '../../../ui/errors';
 
 const stickerMeta = {
-  first_win: { title: 'Primera', icon: 'flash' as const, color: colors.accentText, tilt: '0deg' },
-  streak_5: { title: 'En fuego', icon: 'flame' as const, color: colors.red, tilt: '0deg' },
-  tournament_champion: { title: 'Campeón', icon: 'ribbon' as const, color: colors.blue, tilt: '0deg' },
+  first_win: { title: 'Primera', icon: 'rayo' as const, color: colors.accentText, tilt: '0deg' },
+  streak_5: { title: 'En fuego', icon: 'racha' as const, color: colors.red, tilt: '0deg' },
+  tournament_champion: { title: 'Campeón', icon: 'medalla' as const, color: colors.blue, tilt: '0deg' },
 };
 
 export default function Profile() {
@@ -76,10 +77,10 @@ export default function Profile() {
           </T>
         </View>
         <Pressable accessibilityLabel="Compartir ficha" style={styles.iconBtn} onPress={() => push('/estadisticas')}>
-          <Ionicons name="share-outline" size={18} color={colors.text} />
+          <Icon name="compartir" size={18} color={colors.text} />
         </Pressable>
         <Pressable accessibilityLabel="Editar ficha" style={styles.iconBtn} onPress={() => setEditing((value) => !value)}>
-          <Ionicons name={editing ? 'close' : 'create-outline'} size={18} color={colors.text} />
+          <Icon name={editing ? 'cerrar' : 'editar'} size={18} color={colors.text} />
         </Pressable>
       </View>
       <Gate query={personal}>
@@ -288,7 +289,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: layout.card },
   album: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: layout.card },
   rivals: { flexDirection: 'row', gap: layout.card },
-  rival: { flex: 1, backgroundColor: colors.card, borderLeftWidth: 4, padding: 10, gap: space.xs, borderRadius: 14 },
+  rival: { flex: 1, backgroundColor: colors.card, borderLeftWidth: 4, padding: space.md, gap: space.sm, borderRadius: 14 },
   edit: { gap: layout.field },
   avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: layout.card },
   avatar: {
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
   },
   avatarOn: { borderColor: colors.yellow },
   links: { gap: layout.stack },
-  settings: { gap: layout.title, paddingTop: space.lg },
+  settings: { gap: layout.title, paddingTop: layout.section - layout.stack },
   setting: { gap: space.md },
 });
 

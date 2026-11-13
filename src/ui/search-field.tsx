@@ -1,5 +1,5 @@
 // Buscador de listas (amigos, rivales, miembros, grupos, torneos): filtra al escribir, con botón para limpiar.
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './icon';
 import { useState } from 'react';
 import { Keyboard, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { translate, useLang } from '../i18n/lang';
@@ -22,7 +22,7 @@ export function SearchField({
   const [focused, setFocused] = useState(false);
   return (
     <View style={[styles.box, focused && styles.focused]}>
-      <Ionicons name="search" size={18} color={colors.faint} />
+      <Icon name="buscar" size={18} color={colors.faint} />
       <TextInput
         value={value}
         onChangeText={onChange}
@@ -46,7 +46,7 @@ export function SearchField({
           accessibilityRole="button"
           accessibilityLabel={translate('Borrar búsqueda', lang)}
         >
-          <Ionicons name="close-circle" size={20} color={colors.muted} />
+          <Icon name="cerrar" size={20} color={colors.muted} />
         </Pressable>
       ) : null}
     </View>
@@ -89,6 +89,6 @@ const styles = StyleSheet.create({
   // En la web el borde de la caja ya marca el foco (sin el contorno del navegador).
   input: { flex: 1, minHeight: 46, color: colors.text, fontFamily: font.body, fontSize: 16, paddingVertical: 0, ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null) },
   clear: { minWidth: 32, minHeight: 32, alignItems: 'center', justifyContent: 'center' },
-  empty: { gap: space.xs, paddingVertical: space.sm },
+  empty: { gap: space.sm, paddingVertical: space.md },
   label: { marginTop: layout.inline },
 });

@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   actions: { gap: layout.button, alignSelf: 'stretch' },
   hintText: { fontSize: 14, lineHeight: 20, marginTop: space.xs },
   blurb: { fontSize: 14, lineHeight: 20 },
-  list: { gap: space.sm },
+  list: { gap: layout.card },
   account: {
     flexDirection: 'row',
     alignItems: 'center',

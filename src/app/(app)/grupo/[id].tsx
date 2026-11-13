@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '../../../ui/icon';
 import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
@@ -11,7 +11,7 @@ import { Button, Gate } from '../../../ui/controls';
 import { elo, firstName, tagOf } from '../../../ui/format';
 import { copyText, inviteUrl, openWhatsApp } from '../../../ui/share';
 import { Screen, Top } from '../../../ui/screen';
-import { colors, space } from '../../../ui/theme';
+import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { LogoEditor } from '../../../ui/logo-picker';
 import { push } from '../../../ui/nav';
@@ -190,7 +190,7 @@ export default function GroupDetail() {
                         {tournament.status === 'completed' ? 'Finalizado' : 'En juego'}
                       </T>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+                    <Icon name="adelante" size={16} color={colors.faint} />
                   </Pressable>
                 ))
               )}
@@ -215,9 +215,9 @@ const styles = StyleSheet.create({
   kingLeft: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', transform: [{ skewX: '0deg' }], marginRight: -12, borderRadius: 14 },
   kingRight: { width: 110, backgroundColor: colors.navy, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 12, borderLeftWidth: 4, borderLeftColor: colors.red, borderRadius: 14 },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  table: { gap: space.xs },
+  table: { gap: space.sm },
   headRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
-  bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, paddingVertical: space.sm, minHeight: 44 },
+  bodyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, paddingVertical: space.md, paddingHorizontal: space.xs, minHeight: 52, borderRadius: 12 },
   leaderRow: { borderLeftWidth: 3, borderLeftColor: colors.yellow },
   name: { flex: 1.4 },
   cell: { width: 28, textAlign: 'center', fontSize: 13 },
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   player: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   form: { width: 44, flexDirection: 'row', gap: space.xxs, justifyContent: 'flex-end' },
   formHead: { width: 44, textAlign: 'right' },
-  matrix: { backgroundColor: colors.card, padding: 8, gap: space.xs, borderRadius: 14 },
+  matrix: { backgroundColor: colors.card, padding: space.md, gap: space.sm, borderRadius: 14 },
   matrixRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   matrixName: { width: 36 },
   matrixCell: { width: 46, height: 32, alignItems: 'center', justifyContent: 'center' },

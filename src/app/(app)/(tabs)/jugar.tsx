@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '../../../ui/icon';
 import { track } from '../../../lib/analytics';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
@@ -135,12 +135,13 @@ function Choice({ label, on, onPress, strong = false }: { label: string; on: boo
       <T variant={strong ? 'strong' : 'body'} style={styles.flex} numberOfLines={1}>
         {label}
       </T>
-      <Ionicons name={on ? 'radio-button-on' : 'radio-button-off'} size={20} color={on ? colors.accentText : colors.faint} />
+      {on ? <Icon name="confirmado" size={22} color={colors.accentText} /> : <View style={styles.radioOff} />}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  radioOff: { width: 20, height: 20, margin: 1, borderRadius: 999, borderWidth: 1.75, borderColor: colors.faint },
   choice: {
     flexDirection: 'row',
     alignItems: 'center',

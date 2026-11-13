@@ -37,6 +37,6 @@ export function TestUserButton({ tone = 'ghost' }: { tone?: 'accent' | 'ghost' }
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: space.sm, alignSelf: 'stretch' },
+  wrap: { gap: space.md, alignSelf: 'stretch' },
   note: { textTransform: 'none', letterSpacing: 0, lineHeight: 16 },
 });

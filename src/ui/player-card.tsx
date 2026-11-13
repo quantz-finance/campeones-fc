@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   plain: { textTransform: 'none', letterSpacing: 0 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.sm },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
-  id: { flex: 1, minWidth: 0, gap: space.xxs },
+  id: { flex: 1, minWidth: 0, gap: space.xs },
   first: { fontSize: 34, lineHeight: 38, fontStyle: 'normal' },
   last: { fontSize: 15, lineHeight: 18 },
   elo: { flexDirection: 'row', alignItems: 'baseline', gap: space.xs, marginTop: space.xs },

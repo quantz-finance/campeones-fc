@@ -127,7 +127,7 @@ export function SocialEditor({ profile, repo, startOpen = false }: { profile: Pr
 const styles = StyleSheet.create({
   box: { gap: layout.stack },
   form: { gap: layout.field },
-  fieldBox: { gap: space.xs },
+  fieldBox: { gap: space.sm },
   flex: { flex: 1 },
   plain: { textTransform: 'none', letterSpacing: 0 },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 10, paddingVertical: 8 },

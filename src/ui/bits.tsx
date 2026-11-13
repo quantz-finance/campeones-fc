@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './icon';
 import { STELLAR_NETWORK } from '../lib/cavos/config';
 import { Link, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
@@ -156,7 +156,7 @@ export function MatchRow({
           ) : (
             <Pill label={statusLabel[match.status]} tone={statusTone(match.status)} />
           )}
-          <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+          <Icon name="adelante" size={16} color={colors.faint} />
         </View>
       </Pressable>
     </Link>
@@ -219,11 +219,11 @@ export function PlayerLine({
         <View style={styles.end}>{right}</View>
       ) : selected ? (
         <View style={styles.end}>
-          <Ionicons name="checkmark-circle" size={22} color={colors.accentText} />
+          <Icon name="confirmado" size={22} color={colors.accentText} />
         </View>
       ) : onPress ? (
         <View style={styles.end}>
-          <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+          <Icon name="adelante" size={16} color={colors.faint} />
         </View>
       ) : null}
     </Pressable>
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   word: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   lockup: { flexDirection: 'row', alignItems: 'flex-end' },
   pill: { paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start', borderRadius: radius.pill },
-  stat: { flex: 1, gap: space.xxs },
+  stat: { flex: 1, gap: space.xs },
   spark: { height: 80, flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
   match: {
     flexDirection: 'row',
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   lineOn: { borderColor: colors.accentText },
   side: { width: 42, height: 42, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   sideText: { fontSize: 13, color: colors.redInk },
-  mid: { flex: 1, gap: space.xxs, paddingVertical: 8 },
+  mid: { flex: 1, gap: space.xs, paddingVertical: space.sm },
   flex: { flex: 1 },
   end: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingRight: 8 },
   record: { flexDirection: 'row', gap: space.sm },

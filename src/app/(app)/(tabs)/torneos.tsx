@@ -81,5 +81,5 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 14,
   },
-  flex: { flex: 1, gap: space.xxs },
+  flex: { flex: 1, gap: space.xs },
 });

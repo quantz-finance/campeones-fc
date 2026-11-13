@@ -70,5 +70,5 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 14,
   },
-  flex: { flex: 1, gap: space.xs },
+  flex: { flex: 1, gap: space.sm },
 });

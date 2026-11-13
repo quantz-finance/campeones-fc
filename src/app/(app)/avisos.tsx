@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type UiIconName } from '../../ui/icon';
 import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { noticeCopy } from '../../data/notices';
@@ -52,7 +52,7 @@ export default function Notices() {
                 return (
                   <Rise key={match.id} index={index}>
                     <Row
-                      icon={yours ? 'flash' : 'time-outline'}
+                      icon={yours ? 'rayo' : 'reloj'}
                       tint={yours ? colors.accent : colors.muted}
                       title={status}
                       body={formatWhen(match.createdAt)}
@@ -72,7 +72,7 @@ export default function Notices() {
                   return (
                     <Rise key={notice.id} index={index + open.length}>
                       <Row
-                        icon={notice.kind.startsWith('friend') ? 'people' : 'football'}
+                        icon={notice.kind.startsWith('friend') ? 'amigos' : 'balon'}
                         tint={fresh ? colors.accent : colors.faint}
                         title={copy.title}
                         body={`${copy.body} · ${formatWhen(notice.createdAt)}`}
@@ -99,7 +99,7 @@ function Row({
   strong,
   onPress,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: UiIconName;
   tint: string;
   title: string;
   body: string;
@@ -108,14 +108,14 @@ function Row({
 }) {
   return (
     <Pressable onPress={onPress} style={[styles.row, strong && styles.rowStrong]}>
-      <Ionicons name={icon} size={18} color={tint} />
+      <Icon name={icon} size={18} color={tint} />
       <View style={styles.copy}>
         <T variant="strong">{title}</T>
         <T variant="tiny" color={colors.muted} style={{ textTransform: 'none' }}>
           {body}
         </T>
       </View>
-      <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+      <Icon name="adelante" size={16} color={colors.faint} />
     </Pressable>
   );
 }
@@ -132,5 +132,5 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   rowStrong: { borderLeftWidth: 4, borderLeftColor: colors.accent },
-  copy: { flex: 1, gap: space.xxs },
+  copy: { flex: 1, gap: space.xs },
 });

@@ -1,0 +1,615 @@
+{
+ "grilla": 24,
+ "trazo": 1.75,
+ "color": "currentColor",
+ "iconos": [
+  {
+   "nombre": "agregar",
+   "archivo": "app/agregar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "menos",
+   "archivo": "app/menos.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "cerrar",
+   "archivo": "app/cerrar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "atras",
+   "archivo": "app/atras.svg",
+   "categoria": "navegacion",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "adelante",
+   "archivo": "app/adelante.svg",
+   "categoria": "navegacion",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "chevron-abajo",
+   "archivo": "app/chevron-abajo.svg",
+   "categoria": "navegacion",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "chevron-arriba",
+   "archivo": "app/chevron-arriba.svg",
+   "categoria": "navegacion",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "flecha-atras",
+   "archivo": "app/flecha-atras.svg",
+   "categoria": "navegacion",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "menu-mas",
+   "archivo": "app/menu-mas.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "menu",
+   "archivo": "app/menu.svg",
+   "categoria": "navegacion",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "buscar",
+   "archivo": "app/buscar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "filtrar",
+   "archivo": "app/filtrar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "ordenar",
+   "archivo": "app/ordenar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "editar",
+   "archivo": "app/editar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "borrar",
+   "archivo": "app/borrar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "compartir",
+   "archivo": "app/compartir.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "copiar",
+   "archivo": "app/copiar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "copiar-enlace",
+   "archivo": "app/copiar-enlace.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "enlace",
+   "archivo": "app/enlace.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "invitar-amigo",
+   "archivo": "app/invitar-amigo.svg",
+   "categoria": "social",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "enviar",
+   "archivo": "app/enviar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "camara",
+   "archivo": "app/camara.svg",
+   "categoria": "multimedia",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "galeria",
+   "archivo": "app/galeria.svg",
+   "categoria": "multimedia",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "subir-foto",
+   "archivo": "app/subir-foto.svg",
+   "categoria": "multimedia",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "notificaciones",
+   "archivo": "app/notificaciones.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "notificaciones-punto",
+   "archivo": "app/notificaciones-punto.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "ajustes",
+   "archivo": "app/ajustes.svg",
+   "categoria": "ajustes",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "usuario",
+   "archivo": "app/usuario.svg",
+   "categoria": "social",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "amigos",
+   "archivo": "app/amigos.svg",
+   "categoria": "social",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "cerrar-sesion",
+   "archivo": "app/cerrar-sesion.svg",
+   "categoria": "ajustes",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "candado",
+   "archivo": "app/candado.svg",
+   "categoria": "ajustes",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "ayuda",
+   "archivo": "app/ayuda.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "info",
+   "archivo": "app/info.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "check",
+   "archivo": "app/check.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "confirmado",
+   "archivo": "app/confirmado.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "verificado",
+   "archivo": "app/verificado.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "alerta",
+   "archivo": "app/alerta.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "error",
+   "archivo": "app/error.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "reloj",
+   "archivo": "app/reloj.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "pendiente",
+   "archivo": "app/pendiente.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "calendario",
+   "archivo": "app/calendario.svg",
+   "categoria": "tiempo",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "historial",
+   "archivo": "app/historial.svg",
+   "categoria": "tiempo",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "cronometro",
+   "archivo": "app/cronometro.svg",
+   "categoria": "tiempo",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "estadisticas",
+   "archivo": "app/estadisticas.svg",
+   "categoria": "datos",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "grafica",
+   "archivo": "app/grafica.svg",
+   "categoria": "datos",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "tendencia-sube",
+   "archivo": "app/tendencia-sube.svg",
+   "categoria": "datos",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "tendencia-baja",
+   "archivo": "app/tendencia-baja.svg",
+   "categoria": "datos",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "victoria",
+   "archivo": "app/victoria.svg",
+   "categoria": "partido",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "derrota",
+   "archivo": "app/derrota.svg",
+   "categoria": "partido",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "empate",
+   "archivo": "app/empate.svg",
+   "categoria": "partido",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "balon",
+   "archivo": "app/balon.svg",
+   "categoria": "partido",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "control-de-juego",
+   "archivo": "app/control-de-juego.svg",
+   "categoria": "partido",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "marcador",
+   "archivo": "app/marcador.svg",
+   "categoria": "partido",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "vs",
+   "archivo": "app/vs.svg",
+   "categoria": "partido",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "racha",
+   "archivo": "app/racha.svg",
+   "categoria": "logros",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "estrella",
+   "archivo": "app/estrella.svg",
+   "categoria": "logros",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "medalla",
+   "archivo": "app/medalla.svg",
+   "categoria": "logros",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "trofeo",
+   "archivo": "app/trofeo.svg",
+   "categoria": "logros",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "corona",
+   "archivo": "app/corona.svg",
+   "categoria": "logros",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "escudo",
+   "archivo": "app/escudo.svg",
+   "categoria": "logros",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "podio",
+   "archivo": "app/podio.svg",
+   "categoria": "logros",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "tabla-posiciones",
+   "archivo": "app/tabla-posiciones.svg",
+   "categoria": "torneos",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "llaves",
+   "archivo": "app/llaves.svg",
+   "categoria": "torneos",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "lista",
+   "archivo": "app/lista.svg",
+   "categoria": "vistas",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "cuadricula",
+   "archivo": "app/cuadricula.svg",
+   "categoria": "vistas",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "refrescar",
+   "archivo": "app/refrescar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "descargar",
+   "archivo": "app/descargar.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "qr",
+   "archivo": "app/qr.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "idioma",
+   "archivo": "app/idioma.svg",
+   "categoria": "ajustes",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "tema-oscuro",
+   "archivo": "app/tema-oscuro.svg",
+   "categoria": "ajustes",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "tema-claro",
+   "archivo": "app/tema-claro.svg",
+   "categoria": "ajustes",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "sonido",
+   "archivo": "app/sonido.svg",
+   "categoria": "ajustes",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "sonido-apagado",
+   "archivo": "app/sonido-apagado.svg",
+   "categoria": "ajustes",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "vibracion",
+   "archivo": "app/vibracion.svg",
+   "categoria": "ajustes",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "correo",
+   "archivo": "app/correo.svg",
+   "categoria": "social",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "chat",
+   "archivo": "app/chat.svg",
+   "categoria": "social",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "comentario",
+   "archivo": "app/comentario.svg",
+   "categoria": "social",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "reaccion",
+   "archivo": "app/reaccion.svg",
+   "categoria": "social",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "ojo",
+   "archivo": "app/ojo.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "ojo-oculto",
+   "archivo": "app/ojo-oculto.svg",
+   "categoria": "acciones",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "reportar",
+   "archivo": "app/reportar.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "ubicacion",
+   "archivo": "app/ubicacion.svg",
+   "categoria": "social",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "rayo",
+   "archivo": "app/rayo.svg",
+   "categoria": "logros",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "en-vivo",
+   "archivo": "app/en-vivo.svg",
+   "categoria": "estados",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "foto-perfil",
+   "archivo": "app/foto-perfil.svg",
+   "categoria": "multimedia",
+   "tipo": "trazo"
+  },
+  {
+   "nombre": "inicio-inactivo",
+   "archivo": "nav/inicio-inactivo.svg",
+   "categoria": "nav",
+   "tipo": "trazo",
+   "tab": "inicio"
+  },
+  {
+   "nombre": "inicio-activo",
+   "archivo": "nav/inicio-activo.svg",
+   "categoria": "nav",
+   "tipo": "solido",
+   "tab": "inicio"
+  },
+  {
+   "nombre": "registrar-inactivo",
+   "archivo": "nav/registrar-inactivo.svg",
+   "categoria": "nav",
+   "tipo": "trazo",
+   "tab": "registrar"
+  },
+  {
+   "nombre": "registrar-activo",
+   "archivo": "nav/registrar-activo.svg",
+   "categoria": "nav",
+   "tipo": "solido",
+   "tab": "registrar"
+  },
+  {
+   "nombre": "grupos-inactivo",
+   "archivo": "nav/grupos-inactivo.svg",
+   "categoria": "nav",
+   "tipo": "trazo",
+   "tab": "grupos"
+  },
+  {
+   "nombre": "grupos-activo",
+   "archivo": "nav/grupos-activo.svg",
+   "categoria": "nav",
+   "tipo": "solido",
+   "tab": "grupos"
+  },
+  {
+   "nombre": "torneos-inactivo",
+   "archivo": "nav/torneos-inactivo.svg",
+   "categoria": "nav",
+   "tipo": "trazo",
+   "tab": "torneos"
+  },
+  {
+   "nombre": "torneos-activo",
+   "archivo": "nav/torneos-activo.svg",
+   "categoria": "nav",
+   "tipo": "solido",
+   "tab": "torneos"
+  },
+  {
+   "nombre": "perfil-inactivo",
+   "archivo": "nav/perfil-inactivo.svg",
+   "categoria": "nav",
+   "tipo": "trazo",
+   "tab": "perfil"
+  },
+  {
+   "nombre": "perfil-activo",
+   "archivo": "nav/perfil-activo.svg",
+   "categoria": "nav",
+   "tipo": "solido",
+   "tab": "perfil"
+  },
+  {
+   "nombre": "ranking-inactivo",
+   "archivo": "nav/ranking-inactivo.svg",
+   "categoria": "nav",
+   "tipo": "trazo",
+   "tab": "ranking"
+  },
+  {
+   "nombre": "ranking-activo",
+   "archivo": "nav/ranking-activo.svg",
+   "categoria": "nav",
+   "tipo": "solido",
+   "tab": "ranking"
+  },
+  {
+   "nombre": "partidos-inactivo",
+   "archivo": "nav/partidos-inactivo.svg",
+   "categoria": "nav",
+   "tipo": "trazo",
+   "tab": "partidos"
+  },
+  {
+   "nombre": "partidos-activo",
+   "archivo": "nav/partidos-activo.svg",
+   "categoria": "nav",
+   "tipo": "solido",
+   "tab": "partidos"
+  }
+ ]
+}

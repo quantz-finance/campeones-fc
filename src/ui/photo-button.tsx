@@ -1,7 +1,7 @@
 // "Cambiar foto": elige, comprime en el cliente y sube. Estado en curso inline, sin loader de pantalla.
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './icon';
 import { pickPhoto, type PhotoKind } from '../lib/photos';
 import { useApp } from '../state/app-provider';
 import { colors, space } from './theme';
@@ -32,7 +32,7 @@ export function PhotoButton({ kind, targetId, label = 'Cambiar foto' }: { kind: 
             .finally(() => setBusy(false));
         }}
       >
-        <Ionicons name="camera" size={14} color={colors.ink} />
+        <Icon name="camara" size={14} color={colors.ink} />
         <T variant="tiny" color={colors.ink}>
           {busy ? 'Subiendo…' : label}
         </T>
