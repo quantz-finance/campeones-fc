@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { byName, filterPeople, matchesPerson, matchesText, mostFrequent, normalizeSearch } from './search';
+import { byName, filterPeople, matchesPerson, matchesText, mostFrequent, normalizeSearch, quickIds } from './search';
 
 const people = [
   { displayName: 'Andrés Pérez', username: 'andre' },
@@ -63,5 +63,12 @@ describe('buscador de personas', () => {
 
   it('ordena por nombre ignorando acentos', () => {
     expect(byName(['Óscar', 'Ana', 'Nico'], (x) => x)).toEqual(['Ana', 'Nico', 'Óscar']);
+  });
+});
+
+describe('quickIds', () => {
+  it('recientes primero, luego respaldo, sin repetir ni ids que ya no existen', () => {
+    const exists = (id: string) => id !== 'gone';
+    expect(quickIds(['b', 'gone', 'a'], ['a', 'c', 'd'], exists, 3)).toEqual(['b', 'a', 'c']);
   });
 });

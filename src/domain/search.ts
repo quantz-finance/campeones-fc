@@ -67,3 +67,13 @@ export function byName<T>(items: readonly T[], name: (item: T) => string): T[] {
 
 /** A partir de cuántos elementos vale la pena mostrar el buscador. */
 export const SEARCH_MIN_ITEMS = 6;
+
+/** Accesos rápidos: primero los recientes, luego los de respaldo (p. ej. los más jugados), sin repetir y solo ids que existen. */
+export function quickIds(recent: readonly string[], fallback: readonly string[], exists: (id: string) => boolean, limit = 8): string[] {
+  const out: string[] = [];
+  for (const id of [...recent, ...fallback]) {
+    if (out.length >= limit) break;
+    if (!out.includes(id) && exists(id)) out.push(id);
+  }
+  return out;
+}

@@ -1,5 +1,5 @@
 import { useIsFocused } from 'expo-router';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './icon';
@@ -23,6 +23,7 @@ export function Screen({
   footer,
   footerHeight = 40,
   fill = false,
+  action,
 }: {
   children: ReactNode;
   scroll?: boolean;
@@ -33,6 +34,8 @@ export function Screen({
   footerHeight?: number;
   /** Sin scroll propio: el contenido (p. ej. FlatList) ocupa el alto y hace scroll. */
   fill?: boolean;
+  /** Barra fija abajo con la acción principal (p. ej. «Proponer partido»): siempre visible, sobre la barra de pestañas y el borde seguro. */
+  action?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const exiting = useGlobalExit();
@@ -40,7 +43,10 @@ export function Screen({
   const docked = tab || Boolean(dock);
   const footerReserve = !docked && footer ? 36 + Math.max(insets.bottom, 8) : 0;
   // Aire bajo el contenido: nada queda tapado por la barra de pestañas, la cinta ni el borde seguro.
-  const bottom = docked ? tabBarSpace(insets.bottom) + (footer ? footerHeight : 0) + layout.bottom : Math.max(insets.bottom, space.md) + layout.bottom;
+  const [actionH, setActionH] = useState(0);
+  const bottom = docked
+    ? tabBarSpace(insets.bottom) + (footer ? footerHeight : 0) + (action ? actionH : 0) + layout.bottom
+    : (action ? actionH : Math.max(insets.bottom, space.md)) + layout.bottom;
   const body = (
     <View style={[styles.inner, fill && styles.flex]}>
       <Scene>{children}</Scene>
@@ -74,6 +80,15 @@ export function Screen({
             ]}
           >
             {footer}
+          </View>
+        ) : null}
+        {action ? (
+          <View
+            onLayout={(e) => setActionH(e.nativeEvent.layout.height)}
+            style={[styles.action, docked ? { bottom: tabBarSpace(insets.bottom) } : { bottom: 0, paddingBottom: Math.max(insets.bottom, space.md) }]}
+            testID="screen-action"
+          >
+            <View style={styles.actionInner}>{action}</View>
           </View>
         ) : null}
         {dock ? <TabReplica active={dock} /> : null}
@@ -146,6 +161,19 @@ const styles = StyleSheet.create({
     gap: layout.stack,
   },
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },
+  action: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 6,
+    paddingTop: space.md,
+    paddingBottom: space.md,
+    paddingHorizontal: space.lg,
+    backgroundColor: colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  actionInner: { width: '100%', maxWidth: 480 - space.lg * 2, alignSelf: 'center', gap: space.sm },
   top: { gap: layout.title, minHeight: 44 },
   topLead: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 46 },
   topText: { flexDirection: 'row', alignItems: 'center', gap: space.md },
