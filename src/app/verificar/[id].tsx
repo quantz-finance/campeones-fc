@@ -1,4 +1,5 @@
 // Página pública: cualquiera (sin cuenta) comprueba que un resultado está registrado en Stellar.
+// Solo @stellar/stellar-base (Keypair): el SDK completo arrastra eventsource → módulo `url` de Node, que rompe el bundle de iOS.
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -20,7 +21,7 @@ async function verifySignatures(v: VerifyResponse): Promise<Record<string, boole
   const players: any[] = Array.isArray(v.payload?.players) ? v.payload.players : [];
   if (!players.some((p) => p.signature)) return out;
   await import('../../lib/polyfills');
-  const { Keypair } = await import('@stellar/stellar-sdk');
+  const { Keypair } = await import('@stellar/stellar-base');
   for (const p of players) {
     if (!p.signature || !p.address) continue;
     try {
