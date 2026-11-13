@@ -89,6 +89,6 @@ const styles = StyleSheet.create({
   // En la web el borde de la caja ya marca el foco (sin el contorno del navegador).
   input: { flex: 1, minHeight: 46, color: colors.text, fontFamily: font.body, fontSize: 16, paddingVertical: 0, ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null) },
   clear: { minWidth: 32, minHeight: 32, alignItems: 'center', justifyContent: 'center' },
-  empty: { gap: space.sm, paddingVertical: space.md },
+  empty: { gap: 6, paddingVertical: 10 },
   label: { marginTop: layout.inline },
 });

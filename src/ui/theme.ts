@@ -63,15 +63,15 @@ export const space = {
  */
 export const layout = {
   // Aire generoso (pedido de Rolando): nada pegado, siempre la misma escala.
-  stack: 28,
-  section: 52,
-  title: 20,
-  card: 16,
-  inCard: 16,
-  button: 16,
-  field: 20,
-  inline: space.sm,
-  bottom: space.xl,
+  stack: 22,
+  section: 40,
+  title: 18,
+  card: 14,
+  inCard: 14,
+  button: 14,
+  field: 18,
+  inline: 6,
+  bottom: 20,
 } as const;
 
 export const radius = {

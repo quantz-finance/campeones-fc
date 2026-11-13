@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: layout.card },
   album: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: layout.card },
   rivals: { flexDirection: 'row', gap: layout.card },
-  rival: { flex: 1, backgroundColor: colors.card, borderLeftWidth: 4, padding: space.md, gap: space.sm, borderRadius: 14 },
+  rival: { flex: 1, backgroundColor: colors.card, borderLeftWidth: 4, padding: 11, gap: 6, borderRadius: 14 },
   edit: { gap: layout.field },
   avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: layout.card },
   avatar: {

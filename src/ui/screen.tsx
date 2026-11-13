@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     alignSelf: 'center',
     paddingHorizontal: space.lg,
-    paddingTop: space.md,
+    paddingTop: 10,
     gap: layout.stack,
   },
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },

@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   place: { width: 24, color: colors.muted },
   flex: { flex: 1 },
   bracket: { gap: space.lg, paddingVertical: 8, alignItems: 'stretch' },
-  column: { width: 168, gap: space.md, justifyContent: 'space-around' },
+  column: { width: 168, gap: 10, justifyContent: 'space-around' },
   roundTag: { alignSelf: 'flex-start', backgroundColor: colors.navy, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   block: { gap: layout.card },
   fixture: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 14 },
