@@ -15,6 +15,14 @@
 //     producción la release v2 (cavos-labs/cavos-recovery, 2026-11-05) y el código por correo fallaba con
 //     "kit/nitro: enclave image measurement is not accepted". Se agregan v1 y v2 de las releases firmadas de Cavos
 //     (las mismas que acepta @cavos/kit 0.5.x) en los chunks del kit. La firma de AWS Nitro se sigue verificando.
+//  9) Nativo (iOS): CavosStellar.connect crea la llave de control con WebCrypto (crypto.subtle Ed25519) y la guarda en
+//     IndexedDB. En React Native/Hermes no existe ninguno de los dos, así que el login con Google/Apple fallaba justo
+//     después del OAuth con "Cavos: WebCrypto is unavailable…" (texto genérico en la app). Los métodos estáticos de
+//     WebCryptoControlKey consultan globalThis.__cfcControlKeys (solo lo instala src/lib/cavos/native-control-key.ts,
+//     nunca la web) y el caché de direcciones consulta globalThis.__cfcAddressCache.
+// 10) Nativo: el registro de billeteras (/api/wallets) pide el JWT de Cavos, pero el CavosProvider nativo no pasa
+//     `auth`, así que la búsqueda fallaba con "registry lookup skipped: no login token". Se usa
+//     globalThis.__cfcCavosToken (el JWT que captura install-native-jwt-capture.ts) cuando no hay `auth`.
 // Falla fuerte si 1), 2), 4), 5), 6) o 7) ya no calzan (el kit cambió): hay que revisar el parche antes de subir de versión.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -137,6 +145,56 @@ export function patchAttestationSource(src) {
 /** Archivos del kit que llevan su propia copia de la lista (ESM comparte el chunk; CJS la duplica). */
 export const ATTESTATION_FILES = ['chunk-T2ZMQHFD.mjs', 'index.js', 'react/index.js', 'vault/index.js', 'react-native/index.js'];
 
+
+/** 9) y 10): ganchos para React Native. Sin los globales (web) el kit se comporta igual que antes. */
+export const NATIVE_MARK = '/* campeones-patch:cavos-native v1 */';
+/** Archivos que usa Metro en iOS (ESM: react-native/index.mjs importa estos chunks) y la copia CJS por si acaso. */
+export const NATIVE_FILES = ['chunk-TLAPAQBY.mjs', 'chunk-H2NKGPUW.mjs', 'chunk-ICMZOVJ3.mjs', 'chunk-RN3M44LX.mjs', 'react-native/index.js'];
+
+const CONTROL_HOOKS = [
+  [/(static async create\(opts\) \{\n)/, 'if (globalThis.__cfcControlKeys) return globalThis.__cfcControlKeys.create(opts);'],
+  [/(static async importFromSeed\(seed, opts\) \{\n)/, 'if (globalThis.__cfcControlKeys) return globalThis.__cfcControlKeys.importFromSeed(seed, opts);'],
+  [/(static async load\(opts\) \{\n)/, 'if (globalThis.__cfcControlKeys) return globalThis.__cfcControlKeys.load(opts);'],
+  [/(static async remove\(keyId\) \{\n)/, 'if (globalThis.__cfcControlKeys) return globalThis.__cfcControlKeys.remove(keyId);'],
+];
+
+/** Devuelve { out, applied } o null si el archivo no tiene nada que parchar. Idempotente; lanza si el kit cambió. */
+export function patchNativeSource(src) {
+  if (src.includes(NATIVE_MARK)) return { out: src, applied: [] };
+  let out = src;
+  const applied = [];
+  const classStart = out.search(/var WebCryptoControlKey\d* = class _WebCryptoControlKey\d* extends LocalControlKey\d* \{\n/);
+  if (classStart >= 0) {
+    const classEnd = out.indexOf('\n};\n', classStart);
+    if (classEnd < 0) throw new Error('patch-cavos-kit: no encontré el final de WebCryptoControlKey. ¿Cambió @cavos/kit?');
+    let body = out.slice(classStart, classEnd);
+    for (const [re, hook] of CONTROL_HOOKS) {
+      const m = body.match(re);
+      if (!m) throw new Error(`patch-cavos-kit: "control-key" no calzó ${re}. ¿Cambió @cavos/kit?`);
+      body = body.replace(re, (_m, head) => `${head}    ${hook}\n`);
+    }
+    out = out.slice(0, classStart) + body + out.slice(classEnd);
+    applied.push('control-key');
+  }
+  const read = /(async function readCachedAddress\d*\(key\) \{\n)/;
+  const write = /(async function writeCachedAddress\d*\(key, (address\d*)\) \{\n)/;
+  if (read.test(out) || write.test(out)) {
+    if (!read.test(out) || !write.test(out)) throw new Error('patch-cavos-kit: "address-cache" a medias. ¿Cambió @cavos/kit?');
+    out = out
+      .replace(read, (_m, h) => `${h}  if (globalThis.__cfcAddressCache) return globalThis.__cfcAddressCache.read(key);\n`)
+      .replace(write, (_m, h, a) => `${h}  if (globalThis.__cfcAddressCache) return globalThis.__cfcAddressCache.write(key, ${a});\n`);
+    applied.push('address-cache');
+  }
+  const token = /(\b(?:opts|input)\.auth\?\.getAuthToken\?\.\(\)) \?\? null/g;
+  const hits = out.match(token)?.length ?? 0;
+  if (hits) {
+    out = out.replace(token, (_m, call) => `${call} ?? globalThis.__cfcCavosToken?.() ?? null`);
+    applied.push(`token x${hits}`);
+  }
+  if (!applied.length) return null;
+  return { out: `${NATIVE_MARK}\n${out}`, applied };
+}
+
 /** Devuelve el fuente parchado. Idempotente; lanza si falta un punto requerido. */
 export function patchKitSource(src) {
   if (src.includes(PATCH_MARK)) return { out: src, applied: [], missingCopy: [] };
@@ -178,6 +236,22 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     }
   }
   if (existsSync(fileURLToPath(dist)) && !pcrHits) throw new Error('patch-cavos-kit: no encontré la lista PCR0 del enclave. ¿Cambió @cavos/kit?');
+  const nativeSeen = new Set();
+  for (const f of NATIVE_FILES) {
+    const p = fileURLToPath(new URL(f, dist));
+    if (!existsSync(p)) continue;
+    const r = patchNativeSource(readFileSync(p, 'utf8'));
+    if (!r) continue;
+    for (const a of r.applied) nativeSeen.add(a.split(' ')[0]);
+    if (r.applied.length) {
+      writeFileSync(p, r.out);
+      console.log(`[patch-cavos-kit] ${f}: nativo (${r.applied.join(', ')})`);
+    } else {
+      nativeSeen.add('control-key').add('address-cache').add('token');
+    }
+  }
+  if (existsSync(fileURLToPath(dist)) && !['control-key', 'address-cache', 'token'].every((k) => nativeSeen.has(k)))
+    throw new Error(`patch-cavos-kit: parche nativo incompleto (${[...nativeSeen].join(', ')}). ¿Cambió @cavos/kit?`);
   const base = new URL('../node_modules/@cavos/kit/dist/react/', import.meta.url);
   for (const f of ['index.js', 'index.mjs']) {
     const p = fileURLToPath(new URL(f, base));

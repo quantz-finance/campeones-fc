@@ -71,3 +71,38 @@ describe('parche del modal de @cavos/kit', () => {
     ]);
   });
 });
+
+describe('parche nativo de @cavos/kit (WebCrypto/IndexedDB y token en iOS)', async () => {
+  // @ts-expect-error módulo .mjs sin tipos
+  const { NATIVE_MARK, patchNativeSource } = await import('./patch-cavos-kit.mjs');
+
+  it('el kit instalado consulta los ganchos nativos en los chunks que usa Metro', () => {
+    const tl = readFileSync('node_modules/@cavos/kit/dist/chunk-TLAPAQBY.mjs', 'utf8');
+    expect(tl.startsWith(NATIVE_MARK)).toBe(true);
+    for (const m of ['create(opts)', 'importFromSeed(seed, opts)', 'load(opts)', 'remove(keyId)'])
+      expect(tl).toContain(`if (globalThis.__cfcControlKeys) return globalThis.__cfcControlKeys.${m};`);
+    const h2 = readFileSync('node_modules/@cavos/kit/dist/chunk-H2NKGPUW.mjs', 'utf8');
+    expect(h2).toContain('globalThis.__cfcAddressCache.read(key)');
+    expect(h2).toContain('globalThis.__cfcAddressCache.write(key, address)');
+    expect(h2).not.toMatch(/getAuthToken\?\.\(\) \?\? null/);
+    expect(h2).toContain('?? globalThis.__cfcCavosToken?.() ?? null');
+    const cjs = readFileSync('node_modules/@cavos/kit/dist/react-native/index.js', 'utf8');
+    expect(cjs).toContain('globalThis.__cfcControlKeys.create(opts)');
+    expect(cjs).toContain('globalThis.__cfcAddressCache.write(key, address');
+  });
+
+  it('el gancho va antes de crypto.subtle y es idempotente', () => {
+    const tl = readFileSync('node_modules/@cavos/kit/dist/chunk-TLAPAQBY.mjs', 'utf8');
+    const i = tl.indexOf('globalThis.__cfcControlKeys.create(opts)');
+    expect(i).toBeGreaterThan(0);
+    expect(i).toBeLessThan(tl.indexOf('crypto.subtle.generateKey'));
+    expect(patchNativeSource(tl).applied).toEqual([]);
+  });
+
+  it('ignora archivos sin nada que parchar y falla si la clase cambió', () => {
+    expect(patchNativeSource('const x = 1;')).toBeNull();
+    expect(() =>
+      patchNativeSource('var WebCryptoControlKey = class _WebCryptoControlKey extends LocalControlKey {\n  static async make() {}\n};\n'),
+    ).toThrow(/control-key/);
+  });
+});

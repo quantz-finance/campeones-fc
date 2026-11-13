@@ -4,9 +4,14 @@
 // por su cuenta: el kit abre el navegador de OAuth cuando la persona entra.
 import { CavosProvider, useCavos } from '@cavos/kit/react-native';
 import { installNativeJwtCapture } from './install-native-jwt-capture';
+import { installNativeControlKeys } from './native-control-key';
 
 installNativeJwtCapture();
+// Sin esto el kit busca WebCrypto/IndexedDB (no existen en Hermes) y la entrada falla tras Google/Apple.
+installNativeControlKeys();
 import * as Linking from 'expo-linking';
+import { Platform } from 'react-native';
+import { apiUrl } from '../api';
 import { useEffect, useRef } from 'react';
 import { colors } from '../../ui/theme';
 import { authErrorText, sanitizeAuthError, shouldReportAuthError } from './auth-ux';
@@ -21,10 +26,24 @@ import {
 import { extractJwtFromCallbackUrl, getNativeCavosJwt, setNativeCavosJwt } from './native-jwt';
 import { cavosStore, type CavosBridged } from './store';
 
+// El texto amable oculta la causa: el error crudo (sin correo ni tokens) va al log del servidor (/api/auth client_error).
+let lastReport = '';
 function reportAuthError(raw: string) {
   const message = sanitizeAuthError(raw);
-  if (!message) return;
+  if (!message || message === lastReport) return;
+  lastReport = message;
   console.error('[cavos] error de entrada', message);
+  void fetch(apiUrl('/api/auth'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ step: 'client_error', message, path: `/${Platform.OS}` }),
+  }).catch(() => void 0);
+}
+
+function friendly(raw: string) {
+  const text = authErrorText(raw);
+  if (shouldReportAuthError(raw, text)) reportAuthError(raw);
+  return text;
 }
 
 function b64(u: Uint8Array) {
@@ -68,8 +87,7 @@ function Bridge() {
       const jwt = extractJwtFromCallbackUrl(url);
       if (jwt) setNativeCavosJwt(jwt);
       void ref.current.handleCallback(url).catch((e) => {
-        const raw = e instanceof Error ? e.message : String(e);
-        if (shouldReportAuthError(raw, authErrorText(raw))) reportAuthError(raw);
+        friendly(e instanceof Error ? e.message : String(e));
       });
     };
     const sub = Linking.addEventListener('url', ({ url }) => onUrl(url));
@@ -91,10 +109,10 @@ function Bridge() {
           await ref.current.approveDeviceWithPasskey();
         } catch (e) {
           console.error('[cavos] approveDevice', e);
-          throw new Error(authErrorText(e instanceof Error ? e.message : String(e)));
+          throw new Error(friendly(e instanceof Error ? e.message : String(e)));
         }
       },
-      error: c.authError ? authErrorText(c.authError) : null,
+      error: c.authError ? friendly(c.authError) : null,
       openModal: () => {
         ref.current.clearAuthError();
         ref.current.openModal();
@@ -104,7 +122,7 @@ function Bridge() {
         try {
           await ref.current.login(provider);
         } catch (e) {
-          throw new Error(authErrorText(e instanceof Error ? e.message : String(e)));
+          throw new Error(friendly(e instanceof Error ? e.message : String(e)));
         }
       },
       logout: async () => {

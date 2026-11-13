@@ -53,3 +53,22 @@ En esta rama interceptamos `identityFromAuthData` (`src/lib/cavos/install-native
 1. ¿Una cuenta web de correo se puede vincular con Apple o Google en iOS, misma identidad y misma billetera?
 2. ¿Confirmas el callback `campeones-fc://cavos-auth` y el `rpId` de passkeys para nativo? Sin ese callback el login nativo no cierra.
 3. El JWT nativo ya lo capturamos en el kit 0.4.4 (no hace falta que Cavos lo exponga). ¿Conviene igual subir a `@cavos/kit` 0.5.2 más adelante por el enclave?
+
+## Llave de la billetera en iOS (arreglo del 12 nov 2026, build 1 de TestFlight)
+
+Síntoma: tras volver de Google/Apple, «No se pudo entrar — No pudimos completar la entrada con Cavos».
+Causa: en `@cavos/kit` 0.4.4 (igual en 0.5.3) el `CavosProvider` nativo conecta Stellar sin vault, recuperación ni passkey,
+así que `CavosStellar.connect` cae en `WebCryptoControlKey.create()` (`crypto.subtle` Ed25519 + IndexedDB). Hermes no
+tiene ninguno: el kit lanza `Cavos: WebCrypto is unavailable…`, que la app traducía al texto genérico. Además el
+registro `/api/wallets` necesita el JWT y el proveedor nativo no le pasa `auth` («registry lookup skipped: no login token»).
+
+Arreglo (parche 9 y 10 de `scripts/patch-cavos-kit.mjs` + `src/lib/cavos/native-control-key.ts`):
+- La semilla Ed25519 se cifra (ECIES P-256 + AES-GCM, formato de `CavosKitModule.swift`) para una llave del Secure
+  Enclave (`cfc-control-wrap:campeones-fc`) y se firma con `NativeControlSigner` (`unwrapControlAndSign`): la semilla
+  no se guarda en claro ni vuelve a JS. El sobre cifrado y la dirección se guardan con `CavosKit.setStoredValue`.
+- El registro usa el JWT capturado (`globalThis.__cfcCavosToken`).
+- Los errores crudos del login nativo van a `/api/auth` (`client_error`, sin correos ni tokens) como en la web.
+
+Límites: borrar la app o restaurar en otro iPhone pierde la llave (el Secure Enclave no viaja); sin passkey ni recuperación
+la billetera queda en ese dispositivo, igual que en la web sin passkey. El correo sigue sin estar disponible en nativo
+(el kit lo rechaza: no puede verificar la atestación del enclave).
