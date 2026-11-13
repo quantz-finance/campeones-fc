@@ -13,6 +13,11 @@ export const NETWORK = 'No hay conexión con Cavos. Revisa tu internet y vuelve 
 export const POPUP_CLOSED = 'Cerraste la ventana antes de terminar. Vuelve a intentarlo.';
 export const RELOGIN = 'Tu sesión de Cavos terminó. Vuelve a entrar con la misma cuenta.';
 export const PASSKEY = 'No pudimos crear tu passkey en este navegador. Puedes saltar este paso y seguir.';
+export const RECOVERY_EMPTY = 'Escribe tu código de recuperación.';
+export const RECOVERY_WRONG = 'Ese código de recuperación no corresponde a esta cuenta. Revisa las 16 palabras y vuelve a intentar.';
+export const PASSKEY_WRONG = 'Esa passkey no corresponde a esta cuenta. Prueba con tu código de recuperación.';
+export const PASSKEY_UNAVAILABLE = 'Las passkeys no funcionan en esta versión de la app. Usa tu código de recuperación.';
+export const PASSKEY_CANCELLED = 'Cancelaste la passkey. Vuelve a intentarlo cuando quieras.';
 export const GENERIC = 'No pudimos completar la entrada con Cavos. Vuelve a intentarlo en un momento.';
 export const ENCLAVE = 'Cavos está actualizando su seguridad y no pudimos verificar tu código. Pide un código nuevo en unos minutos; si sigue pasando, avísale al equipo de Campeones FC.';
 
@@ -26,7 +31,7 @@ export function sanitizeAuthError(raw: unknown): string {
 
 /** ¿Este error se tradujo a un texto genérico o de infraestructura y conviene reportar el crudo? */
 export function shouldReportAuthError(raw: string, text: string): boolean {
-  return !!raw && (text === GENERIC || text === ENCLAVE || text === NETWORK || text === RELOGIN);
+  return !!raw && (text === GENERIC || text === ENCLAVE || text === NETWORK || text === RELOGIN || text === PASSKEY_UNAVAILABLE);
 }
 
 /** Error del kit (o nuestro) -> texto para la persona. */
@@ -44,6 +49,13 @@ export function authErrorText(raw: string | null | undefined): string {
   if (/email_undeliverable|provider is not supported/i.test(m)) return EMAIL_UNSUPPORTED;
   if (/invalid_email|valid email/i.test(m)) return EMAIL_INVALID;
   if (/allowed web origins|origin/i.test(m) && /vault|cavos/i.test(m)) return ORIGIN_NOT_ALLOWED;
+  // Recuperar este dispositivo (código de 16 palabras o passkey): antes que la regla genérica de passkey.
+  if (/recovery code is empty/i.test(m)) return RECOVERY_EMPTY;
+  if (/with the recovery code/i.test(m)) return RECOVERY_WRONG;
+  if (/with the passkey/i.test(m)) return PASSKEY_WRONG;
+  // iOS sin Associated Domains (build local del simulador) o PRF no disponible.
+  if (/not associated with domain|associated domains?|webcredentials|kit\/native: passkey PRF is unsupported/i.test(m)) return PASSKEY_UNAVAILABLE;
+  if (/AuthorizationError error 1001|canceled|cancelled/i.test(m) && /passkey|authorization|AuthenticationServices/i.test(m)) return PASSKEY_CANCELLED;
   if (/passkey|webauthn|prf|NotAllowedError|not allowed|timed out or was not allowed/i.test(m)) return PASSKEY;
   if (/popup|closed by user|cancel/i.test(m)) return POPUP_CLOSED;
   if (/Failed to fetch|NetworkError|network|timed? ?out|ECONN/i.test(m)) return NETWORK;

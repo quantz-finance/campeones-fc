@@ -59,6 +59,12 @@ export function useCavosEntry() {
     }
   }, [bridged?.error]);
 
+  // Recuperó la billetera desde la hoja (código o passkey): salir de «otro dispositivo» para que se abra la sesión.
+  const walletReady = !!bridged?.wallet.ready || !!bridged?.wallet.undeployed;
+  useEffect(() => {
+    if ((phase === 'approve' || phase === 'nokey') && walletReady) setPhase('idle');
+  }, [phase, walletReady]);
+
   useEffect(() => {
     if (phase !== 'opening' || !bridged || bridged.isLoading) return;
     setPhase('idle');
@@ -106,6 +112,12 @@ export function useCavosEntry() {
     }
   }
 
+  /** Solo nativo: abre la hoja de Cavos en «Trae tu billetera» (passkey o código de recuperación). */
+  function openRecovery() {
+    setError(null);
+    bridged?.openModal();
+  }
+
   async function loginWith(provider: NativeProvider) {
     if (phase === 'signing') return; // doble toque: ya hay una entrada abierta
     setError(null);
@@ -135,5 +147,20 @@ export function useCavosEntry() {
   const busy = phase === 'opening' || phase === 'signing' || phase === 'session';
   const label = phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar con Cavos';
 
-  return { configured, phase, error, busy, label, signingWith, openCavos, approveDevice, otherAccount, loginWith, native: cavosNativeEnabled };
+  const canRecover = cavosNativeEnabled && !!bridged?.recover;
+  return {
+    configured,
+    phase,
+    error,
+    busy,
+    label,
+    signingWith,
+    openCavos,
+    approveDevice,
+    otherAccount,
+    loginWith,
+    openRecovery,
+    canRecover,
+    native: cavosNativeEnabled,
+  };
 }

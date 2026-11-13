@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.campeonesfc",
+      "appleTeamId": "66MB4G5UG4",
       "associatedDomains": [
         "applinks:partido.campeonesfc.app",
         "webcredentials:partido.campeonesfc.app"

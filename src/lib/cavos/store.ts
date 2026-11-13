@@ -12,6 +12,8 @@ export type CavosBridged = {
   wallet: { ready: boolean; undeployed: boolean; needsApproval: boolean; hasPasskey: boolean; deploying: boolean };
   /** Restaura la llave en este navegador con la passkey (necesita un toque de la persona). */
   approveDevice: () => Promise<void>;
+  /** Solo nativo: restaura la llave en este dispositivo con el código de recuperación (16 palabras). */
+  recover?: (code: string) => Promise<void>;
   error: string | null;
   openModal: () => void;
   /** Solo nativo: entra con Google, Apple o correo (este por la página web, ver email-handoff.ts). */

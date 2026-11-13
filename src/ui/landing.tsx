@@ -68,7 +68,7 @@ function SocialLink({ icon, label, url }: { icon: 'logo-instagram' | 'logo-x'; l
 
 export function Landing() {
   const app = useApp();
-  const { configured, phase, error, busy, openCavos, approveDevice, otherAccount } = useCavosEntry();
+  const { configured, phase, error, busy, openCavos, approveDevice, otherAccount, openRecovery, canRecover } = useCavosEntry();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
   const cavosLabel = phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar';
 
@@ -121,6 +121,7 @@ export function Landing() {
               body="Tu billetera de Cavos se creó en otro dispositivo. Usa tu passkey para traerla a este."
             />
             <Button label="Confirmar con mi passkey" onPress={approveDevice} />
+            {canRecover ? <Button label="Usar mi código de recuperación" tone="ghost" onPress={openRecovery} /> : null}
             <Button label="Entrar con otra cuenta" tone="ghost" onPress={() => void otherAccount()} />
           </>
         ) : phase === 'nokey' ? (
@@ -128,8 +129,13 @@ export function Landing() {
             <Banner
               tone="warn"
               title="Tu billetera está en otro dispositivo"
-              body="Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta."
+              body={
+                canRecover
+                  ? 'Tu billetera de Cavos se creó en otro dispositivo. Si guardaste tu código de recuperación, úsalo para traerla a este iPhone. Si no, entra desde ese dispositivo.'
+                  : 'Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta.'
+              }
             />
+            {canRecover ? <Button label="Usar mi código de recuperación" onPress={openRecovery} /> : null}
             <Button label="Entrar con otra cuenta" tone="ghost" onPress={() => void otherAccount()} />
           </>
         ) : (

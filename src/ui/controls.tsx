@@ -92,6 +92,8 @@ export function Field({
   autoCapitalize = 'none',
   keyboardType = 'default',
   maxLength,
+  multiline = false,
+  onSubmit,
 }: {
   label: string;
   value: string;
@@ -100,6 +102,9 @@ export function Field({
   autoCapitalize?: 'none' | 'words' | 'sentences';
   keyboardType?: 'default' | 'email-address' | 'number-pad';
   maxLength?: number;
+  /** Varias líneas (p. ej. el código de recuperación de 16 palabras). «Listo» sigue cerrando el teclado. */
+  multiline?: boolean;
+  onSubmit?: () => void;
 }) {
   const lang = useLang();
   return (
@@ -118,8 +123,13 @@ export function Field({
         maxLength={maxLength}
         accessibilityLabel={translate(label, lang)}
         returnKeyType="done"
-        onSubmitEditing={() => Keyboard.dismiss()}
-        style={styles.input}
+        multiline={multiline}
+        submitBehavior={multiline ? 'blurAndSubmit' : undefined}
+        onSubmitEditing={() => {
+          Keyboard.dismiss();
+          onSubmit?.();
+        }}
+        style={[styles.input, multiline && styles.inputMulti]}
       />
     </View>
   );
@@ -252,6 +262,7 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', gap: space.xs, marginLeft: space.xxs },
   dot: { width: 5, height: 5, borderRadius: 999 },
   field: { gap: space.md, alignSelf: 'stretch' },
+  inputMulti: { minHeight: 96, paddingTop: space.md, paddingBottom: space.md, textAlignVertical: 'top' },
   input: {
     minHeight: 52,
     borderWidth: 1,

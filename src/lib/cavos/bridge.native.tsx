@@ -16,9 +16,11 @@ installNativeControlKeys();
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import { apiUrl } from '../api';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { colors } from '../../ui/theme';
-import { authErrorText, sanitizeAuthError, shouldReportAuthError } from './auth-ux';
+import { CavosSheet } from '../../ui/cavos-sheet';
+import { normalizeRecoveryCode } from './recovery-code';
+import { authErrorText, RECOVERY_EMPTY, sanitizeAuthError, shouldReportAuthError } from './auth-ux';
 import {
   APP_SALT,
   CAVOS_APP_ID,
@@ -96,11 +98,43 @@ const login = singleFlight(async (provider: Provider) => {
   }
 });
 
+const messageOf = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+/** Passkey: errores del kit y de iOS (p. ej. sin Associated Domains en el build local) -> texto amable, nunca sin catch. */
+async function approveWithPasskey(c: ReturnType<typeof useCavos>) {
+  try {
+    await c.approveDeviceWithPasskey();
+  } catch (e) {
+    console.warn('[cavos] approveDevice', sanitizeAuthError(messageOf(e)));
+    throw new Error(friendly(messageOf(e)));
+  }
+}
+
+/** Código de recuperación (16 palabras): nunca vacío al kit ("kit/stellar: recovery code is empty"). */
+async function recoverWithCode(c: ReturnType<typeof useCavos>, raw: string) {
+  const code = normalizeRecoveryCode(raw);
+  if (!code) throw new Error(RECOVERY_EMPTY);
+  try {
+    await c.recover(code);
+  } catch (e) {
+    console.warn('[cavos] recover', sanitizeAuthError(messageOf(e)));
+    throw new Error(friendly(messageOf(e)));
+  }
+}
+
 function Bridge() {
   const c = useCavos();
   const ref = useRef(c);
   ref.current = c;
   currentCavos = c;
+  // Nuestra hoja (src/ui/cavos-sheet.tsx) en lugar del modal del kit: nunca se llama c.openModal().
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const flags = walletFlags(c);
+  const walletUsable = c.isAuthenticated && !!c.address && (flags.ready || flags.undeployed);
+
+  useEffect(() => {
+    if (sheetOpen && walletUsable) setSheetOpen(false);
+  }, [sheetOpen, walletUsable]);
 
   useEffect(() => {
     const onUrl = (url: string) => {
@@ -126,18 +160,12 @@ function Bridge() {
       address: c.address,
       email: c.user?.email ?? null,
       wallet: walletFlags(c),
-      approveDevice: async () => {
-        try {
-          await ref.current.approveDeviceWithPasskey();
-        } catch (e) {
-          console.error('[cavos] approveDevice', e);
-          throw new Error(friendly(e instanceof Error ? e.message : String(e)));
-        }
-      },
+      approveDevice: () => approveWithPasskey(ref.current),
+      recover: (code) => recoverWithCode(ref.current, code),
       error: c.authError ? friendly(c.authError) : null,
       openModal: () => {
         ref.current.clearAuthError();
-        ref.current.openModal();
+        setSheetOpen(true);
       },
       loginWith: (provider) => login(provider),
       logout: async () => {
@@ -192,7 +220,23 @@ function Bridge() {
     },
     [],
   );
-  return null;
+  return (
+    <CavosSheet
+      open={sheetOpen}
+      onClose={() => setSheetOpen(false)}
+      loading={c.isLoading || flags.deploying}
+      authenticated={c.isAuthenticated}
+      needsApproval={flags.needsApproval}
+      hasPasskey={flags.hasPasskey}
+      loginWith={(provider) => login(provider)}
+      approveWithPasskey={() => approveWithPasskey(ref.current)}
+      recover={(code) => recoverWithCode(ref.current, code)}
+      otherAccount={async () => {
+        setNativeCavosJwt(null);
+        await ref.current.logout().catch(() => undefined);
+      }}
+    />
+  );
 }
 
 export default function CavosBridge() {

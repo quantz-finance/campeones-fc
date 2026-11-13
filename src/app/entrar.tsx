@@ -26,7 +26,7 @@ function LoginBody({ children }: { children: ReactNode }) {
 
 export default function Login() {
   const app = useApp();
-  const { configured, phase, error, busy, label, signingWith, openCavos, approveDevice, otherAccount, loginWith, native } = useCavosEntry();
+  const { configured, phase, error, busy, label, signingWith, openCavos, approveDevice, otherAccount, loginWith, openRecovery, canRecover, native } = useCavosEntry();
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
   const { height } = useWindowDimensions();
   const allowScroll = height < SCROLL_BELOW;
@@ -89,6 +89,7 @@ export default function Login() {
                     body="Tu billetera de Cavos se creó en otro dispositivo. Usa tu passkey para traerla a este."
                   />
                   <Button label="Confirmar con mi passkey" onPress={approveDevice} />
+                  {canRecover ? <Button label="Usar mi código de recuperación" tone="ghost" onPress={openRecovery} /> : null}
                   <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
                 </View>
               ) : phase === 'nokey' ? (
@@ -96,8 +97,13 @@ export default function Login() {
                   <Banner
                     tone="warn"
                     title="Tu billetera está en otro dispositivo"
-                    body="Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta."
+                    body={
+                canRecover
+                  ? 'Tu billetera de Cavos se creó en otro dispositivo. Si guardaste tu código de recuperación, úsalo para traerla a este iPhone. Si no, entra desde ese dispositivo.'
+                  : 'Creaste tu cuenta en otro navegador y no le agregaste una passkey, así que tu billetera solo vive allá. Entra desde ese navegador para seguir jugando con tu cuenta.'
+              }
                   />
+                  {canRecover ? <Button label="Usar mi código de recuperación" onPress={openRecovery} /> : null}
                   <Button label="Entrar con otra cuenta" tone="ghost" onPress={otherAccount} />
                 </View>
               ) : native ? (
