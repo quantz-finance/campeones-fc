@@ -12,7 +12,8 @@ function isPassthrough(child: ReactNode): boolean {
   if (!isValidElement(child)) return false;
   if (child.type === FlatList) return true;
   const type = child.type as { passthrough?: boolean };
-  return Boolean(type && typeof type === 'object' && type.passthrough);
+  // Las funciones también cuentan: typeof Component === 'function', no 'object'.
+  return Boolean(type && typeof type !== 'string' && type.passthrough);
 }
 
 function variantOf(child: ReactNode): 'item' | 'header' {

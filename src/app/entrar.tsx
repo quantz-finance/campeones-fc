@@ -182,11 +182,12 @@ const styles = StyleSheet.create({
   },
   hero: {
     gap: space.sm,
+    flexShrink: 0,
     // Lo justo para no chocar con EN / tema / sonido, que flotan a la derecha.
     paddingTop: 40,
   },
   title: { fontSize: 34, lineHeight: 38 },
-  main: { gap: layout.stack },
+  main: { gap: layout.stack, flexShrink: 0 },
   actions: { gap: layout.button, alignSelf: 'stretch' },
   hintText: { fontSize: 14, lineHeight: 20, marginTop: space.xs },
   blurb: { fontSize: 14, lineHeight: 20 },
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
   },
   flex: { flex: 1 },
   plain: { textTransform: 'none', letterSpacing: 0 },
-  foot: { paddingTop: space.sm, paddingBottom: space.xs },
+  foot: { paddingTop: space.sm, paddingBottom: space.xs, flexShrink: 0 },
   legal: {
     paddingHorizontal: 16,
     backgroundColor: colors.bg,
