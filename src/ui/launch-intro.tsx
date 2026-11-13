@@ -77,7 +77,7 @@ function Intro() {
           style={[
             styles.halo,
             {
-              opacity: halo.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.32, 0.18] }),
+              opacity: halo.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.2, 0.1] }),
               transform: [{ scale: halo.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.15] }) }],
             },
           ]}
