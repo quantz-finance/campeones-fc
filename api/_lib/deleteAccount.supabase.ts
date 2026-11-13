@@ -5,6 +5,8 @@ import type { DeleteAccountStore, DeleteAccountUser } from './deleteAccount';
 import { TOMBSTONE_NAME } from './deleteAccount';
 
 const OPEN_MATCHES = ['pending_accept', 'in_progress', 'disputed'];
+/** ~100 años: la tumba no puede volver a entrar ni refrescar tokens. */
+const BAN_FOREVER = '876000h';
 
 export function supabaseDeleteAccountStore(db: SupabaseClient): DeleteAccountStore {
   const check = (error: { message: string } | null, what: string) => {
@@ -85,8 +87,19 @@ export function supabaseDeleteAccountStore(db: SupabaseClient): DeleteAccountSto
     },
 
     async deleteCavosIdentities(userId) {
+      const { data: ids, error: readError } = await db.from('cavos_identities').select('iss, sub').eq('user_id', userId);
+      check(readError, 'deleteCavosIdentities.read');
+      for (const id of ids ?? []) {
+        const { error: nonceError } = await db.from('session_nonces').delete().eq('iss', id.iss).eq('sub', id.sub);
+        check(nonceError, 'deleteSessionNonces');
+      }
       const { error } = await db.from('cavos_identities').delete().eq('user_id', userId);
       check(error, 'deleteCavosIdentities');
+    },
+
+    async deleteWallet(userId) {
+      const { error } = await db.from('wallets').delete().eq('user_id', userId);
+      check(error, 'deleteWallet');
     },
 
     async anonymizeProfile(userId, username, displayName) {
@@ -98,6 +111,7 @@ export function supabaseDeleteAccountStore(db: SupabaseClient): DeleteAccountSto
           photo_url: null,
           show_demo: false,
           avatar_key: 'rayo',
+          deleted_at: new Date().toISOString(),
         })
         .eq('id', userId);
       check(error, 'anonymizeProfile');
@@ -109,8 +123,15 @@ export function supabaseDeleteAccountStore(db: SupabaseClient): DeleteAccountSto
         email_confirm: false,
         user_metadata: {},
         app_metadata: { deleted: true },
+        ban_duration: BAN_FOREVER,
       });
       check(error, 'disableAuth');
+    },
+
+    async revokeSessions(userId) {
+      // RPC solo para service_role (migración 20261113010000): borra auth.sessions y auth.refresh_tokens.
+      const { error } = await db.rpc('revoke_user_sessions', { p_user: userId });
+      check(error, 'revokeSessions');
     },
   };
 }

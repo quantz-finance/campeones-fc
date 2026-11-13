@@ -2,8 +2,10 @@
 // Solo opera sobre el userId que viene del token de Supabase: nunca se toma del cuerpo.
 // Los partidos confirmados y las huellas en Stellar se conservan (el rival y la cadena los necesitan);
 // el perfil queda como tumba sin datos personales y se corta el acceso.
-// La función SQL equivalente está en supabase/migrations/20261111000000_delete_my_account.sql
-// (PENDIENTE DE APLICAR; no se ha ejecutado en ninguna base).
+// Se libera la fila de wallets: Cavos devuelve la misma dirección para el mismo Google/Apple/correo,
+// así que si se quedara, volver a registrarse daría 409 address_taken.
+// Al final se revocan TODAS las sesiones y refresh tokens (todos los dispositivos) y se banea la tumba.
+// La función SQL equivalente es public.delete_my_account (20261111000000 + 20261113010000).
 
 import { HttpError } from './http';
 
@@ -27,9 +29,15 @@ export type DeleteAccountStore = {
   deleteNotifications(userId: string): Promise<void>;
   deleteAchievements(userId: string): Promise<void>;
   deleteGroupMemberships(userId: string): Promise<void>;
+  /** Borra las identidades de Cavos y los nonces de login de esas identidades. */
   deleteCavosIdentities(userId: string): Promise<void>;
+  /** Libera la dirección de la billetera (UNIQUE(address)) para que la misma persona pueda volver. */
+  deleteWallet(userId: string): Promise<void>;
   anonymizeProfile(userId: string, username: string, displayName: string): Promise<void>;
+  /** Cambia el correo a la tumba, marca deleted y banea la cuenta (no se puede refrescar ni volver a entrar). */
   disableAuth(userId: string, tombstoneEmail: string): Promise<void>;
+  /** Borra todas las sesiones y refresh tokens de la cuenta, en todos los dispositivos. */
+  revokeSessions(userId: string): Promise<void>;
 };
 
 export type DeleteAccountResult = { status: 'anonymized'; userId: string };
@@ -72,8 +80,11 @@ export async function deleteAccount(
   await store.deleteAchievements(userId);
   await store.deleteGroupMemberships(userId);
   await store.deleteCavosIdentities(userId);
+  await store.deleteWallet(userId);
   await store.anonymizeProfile(userId, tombstoneUsername(userId), TOMBSTONE_NAME);
   await store.disableAuth(userId, tombstoneEmail(userId));
+  // Al último, ya baneada: así ningún dispositivo alcanza a refrescar entre medio.
+  await store.revokeSessions(userId);
 
   return { status: 'anonymized', userId };
 }

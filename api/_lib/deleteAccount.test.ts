@@ -41,11 +41,17 @@ function store(user: DeleteAccountUser | null, extras?: Partial<DeleteAccountSto
     async deleteCavosIdentities(userId) {
       calls.push(`cavos:${userId}`);
     },
+    async deleteWallet(userId) {
+      calls.push(`wallet:${userId}`);
+    },
     async anonymizeProfile(userId, username, displayName) {
       calls.push(`anon:${userId}:${username}:${displayName}`);
     },
     async disableAuth(userId, email) {
       calls.push(`auth:${userId}:${email}`);
+    },
+    async revokeSessions(userId) {
+      calls.push(`sessions:${userId}`);
     },
     ...extras,
   };
@@ -100,10 +106,19 @@ describe('eliminar cuenta', () => {
     expect(result).toEqual({ status: 'anonymized', userId: me });
     expect(calls.some((c) => c.includes(other))).toBe(false);
     expect(calls[0]).toBe(`load:${me}`);
-    expect(calls.at(-2)).toBe(`anon:${me}:${tombstoneUsername(me)}:${TOMBSTONE_NAME}`);
-    expect(calls.at(-1)).toBe(`auth:${me}:${tombstoneEmail(me)}`);
+    expect(calls.at(-3)).toBe(`anon:${me}:${tombstoneUsername(me)}:${TOMBSTONE_NAME}`);
+    expect(calls.at(-2)).toBe(`auth:${me}:${tombstoneEmail(me)}`);
+    expect(calls.at(-1)).toBe(`sessions:${me}`);
     expect(tombstoneUsername(me)).toMatch(/^[a-z0-9_]{3,16}$/);
     expect(tombstoneEmail(me)).toMatch(/@deleted\.campeonesfc\.invalid$/);
+  });
+
+  it('libera la billetera para poder volver a registrarse y cierra todas las sesiones al final', async () => {
+    const { s, calls } = store(real);
+    await deleteAccount(s, me, DELETE_CONFIRM);
+    expect(calls).toContain(`wallet:${me}`);
+    expect(calls.indexOf(`wallet:${me}`)).toBeGreaterThan(calls.indexOf(`cavos:${me}`));
+    expect(calls.indexOf(`sessions:${me}`)).toBeGreaterThan(calls.indexOf(`auth:${me}:${tombstoneEmail(me)}`));
   });
 
   it('si el usuario no existe, no toca nada', async () => {
