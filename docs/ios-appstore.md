@@ -24,7 +24,7 @@ Esos entitlements obligan a firmar incluso en el simulador. En el development bu
 
 ## EAS
 
-`eas.json` define los perfiles `development`, `preview` y `production`. No incluye credenciales, ni el `ascAppId` (se agrega cuando exista la ficha en App Store Connect). No subir de plan de Expo ni lanzar un build sin el OK de Rolando.
+`eas.json` define los perfiles `development`, `preview` y `production`. El perfil `submit.production.ios` ya tiene `ascAppId` `6834224443` y `appleTeamId` `66MB4G5UG4`. No incluye credenciales de Apple. No subir de plan de Expo ni lanzar un build sin el OK de Rolando.
 
 ## Correrla en el simulador (Mac)
 
