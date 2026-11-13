@@ -26,7 +26,6 @@ import { NewsTicker, TICKER_SPACE } from '../../../ui/news-ticker';
 import { Screen } from '../../../ui/screen';
 import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
-import { AI_PHOTO_NOTE, appModeOf, modeChip } from '../../../lib/app-mode';
 import { Pop, Rise } from '../../../ui/motion';
 import { CardsSkeleton, HomeSkeleton } from '../../../ui/skeleton';
 import { push } from '../../../ui/nav';
@@ -34,7 +33,6 @@ import { SportPress } from '../../../ui/press';
 
 export default function Home() {
   const { repo, userId, version, mode, profile, unread } = useApp();
-  const modeNow = appModeOf(profile, mode !== 'supabase');
   const query = useQuery(() => repo.homeSnapshot(userId!), [repo, userId, version]);
   const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
   const board = useQuery(() => repo.billboardSnapshot(userId!), [repo, userId, version]);
@@ -126,14 +124,7 @@ export default function Home() {
           return (
             <>
               <View style={styles.brandRow}>
-                <View style={styles.brandLeft}>
-                  <Wordmark size={20} />
-                  <View style={[styles.modeChip, modeNow === 'fake' && styles.modeChipFake]}>
-                    <T variant="tiny" color={modeNow === 'fake' ? colors.ink : colors.text} style={{ fontSize: 10 }}>
-                      {modeChip(modeNow)}
-                    </T>
-                  </View>
-                </View>
+                <Wordmark size={20} />
                 <SportPress
                   accessibilityLabel={`Avisos${unread + home.actionMatches.length ? `, ${unread + home.actionMatches.length} pendientes` : ''}`}
                   onPress={() => push('/avisos')}
@@ -154,11 +145,6 @@ export default function Home() {
               {mode === 'demo' ? (
                 <T variant="tiny" color={colors.faint} style={styles.plain}>
                   Modo demostración · los datos viven en este navegador
-                </T>
-              ) : null}
-              {modeNow === 'fake' ? (
-                <T variant="tiny" color={colors.faint} style={[styles.plain, { fontSize: 10 }]}>
-                  {AI_PHOTO_NOTE}
                 </T>
               ) : null}
               {pending.length > 0 ? <View style={styles.block}>{confirmar}</View> : null}
@@ -187,10 +173,7 @@ export default function Home() {
 
 
 const styles = StyleSheet.create({
-  brandLeft: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  modeChip: { paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: colors.accentText, borderRadius: 999 },
-  modeChipFake: { backgroundColor: colors.yellow, borderRadius: 14 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 62 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bell: {
     width: 42,
     height: 42,

@@ -19,9 +19,9 @@
     <meta name="application-name" content="Campeones FC" />
     <meta name="format-detection" content="telephone=no" />
     <script>
-      // Modo claro/oscuro antes del primer frame (src/ui/theme-mode.ts). Oscuro por defecto.
+      // Un solo tema (oscuro morado), fijado antes del primer frame (src/ui/theme-mode.ts).
       (function () { try { var signed = false; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i) || ''; if (/^sb-.*-auth-token$/.test(k) || k === 'campeonesfc.session') { signed = true; break; } } if (!signed) { var l = document.createElement('link'); l.rel = 'preload'; l.as = 'image'; l.type = 'image/webp'; l.href = '/media/hero-player.webp'; l.setAttribute('fetchpriority', 'high'); document.head.appendChild(l); } } catch (e) {} })();
-      (function () { try { var m = localStorage.getItem('cfc-theme') === 'light' ? 'light' : 'dark'; var d = document.documentElement; d.setAttribute('data-theme', m); if (m === 'light') { d.style.backgroundColor = '#FAF9FA'; d.style.colorScheme = 'light'; } } catch (e) {} })();
+      (function () { try { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.removeItem('cfc-theme'); } catch (e) {} })();
     </script>
     <!-- Fondo morado desde el primer frame (antes del JS): sin destello blanco. -->
     <!-- Outfit (SIL OFL 1.1, public/fonts/OFL-Outfit.txt): una familia por peso de la fuente variable. -->
@@ -38,12 +38,6 @@
       #root {
         background-color: #37003C;
         color: #FFFFFF;
-      }
-      :root[data-theme="light"] body,
-      :root[data-theme="light"] #root,
-      :root[data-theme="light"] #boot-splash {
-        background-color: #FAF9FA;
-        color: #1A0A1C;
       }
       html,
       body {

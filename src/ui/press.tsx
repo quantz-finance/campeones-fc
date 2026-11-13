@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle, type PressableProps } from 'react-native';
-import { playClick, unlockAudio } from './audio';
 import { cssAnim, useReducedMotion } from './motion';
 
 const shineFrames = {
@@ -54,8 +53,6 @@ export function SportPress({
       onHoverOut={() => setHover(false)}
       onPress={() => {
         if (disabled || !onPress) return;
-        unlockAudio();
-        playClick();
         if (!reduced) setGlint((n) => n + 1);
         onPress();
       }}

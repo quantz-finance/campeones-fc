@@ -20,8 +20,7 @@ import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
 import { DeleteAccount } from '../../../ui/delete-account';
 import { push } from '../../../ui/nav';
-import { ThemeToggle } from '../../../ui/theme-toggle';
-import { LangToggle } from '../../../ui/lang-toggle';
+import { LangSetting } from '../../../ui/lang-toggle';
 import { humanError } from '../../../ui/errors';
 
 const stickerMeta = {
@@ -70,14 +69,12 @@ export default function Profile() {
   return (
     <Screen tab>
       <View style={styles.top}>
-        {/* Una sola línea: con los cuatro botones al lado, «Ficha del jugador» se partía en dos. */}
+        {/* Una sola línea, con compartir y editar al lado. */}
         <View style={styles.topLabel}>
           <T variant="label" color={colors.muted} numberOfLines={1}>
             Mi ficha
           </T>
         </View>
-        <LangToggle />
-        <ThemeToggle />
         <Pressable accessibilityLabel="Compartir ficha" style={styles.iconBtn} onPress={() => push('/estadisticas')}>
           <Ionicons name="share-outline" size={18} color={colors.text} />
         </Pressable>
@@ -254,6 +251,15 @@ export default function Profile() {
       {app.mode === 'demo' ? <Button label="Restablecer datos de demostración" tone="ghost" onPress={() => void app.repo.resetDemo()} /> : null}
       <DeleteAccount />
       <Button label="Cerrar sesión" tone="danger" onPress={() => void app.signOut()} />
+      <View style={styles.settings}>
+        <SectionHead title="Ajustes" />
+        <View style={styles.setting}>
+          <T variant="label" color={colors.muted}>
+            Idioma
+          </T>
+          <LangSetting />
+        </View>
+      </View>
       <Affiliation />
     </Screen>
   );
@@ -265,7 +271,7 @@ const styles = StyleSheet.create({
   segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, minHeight: 48 },
   segOn: { backgroundColor: colors.yellow, borderRadius: 14 },
   segOff: { opacity: 0.5 },
-  top: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingRight: 52 },
+  top: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   flex: { flex: 1 },
   topLabel: { flex: 1, minWidth: 0 },
   iconBtn: {
@@ -298,6 +304,8 @@ const styles = StyleSheet.create({
   },
   avatarOn: { borderColor: colors.yellow },
   links: { gap: layout.stack },
+  settings: { gap: layout.title, paddingTop: space.lg },
+  setting: { gap: space.md },
 });
 
 function ProfileSkeleton() {

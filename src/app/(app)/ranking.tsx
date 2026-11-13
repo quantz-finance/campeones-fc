@@ -4,7 +4,7 @@ import type { RankingSnapshot } from '../../data/snapshots';
 import { CountRoll, Pop, Rise } from '../../ui/motion';
 import { ListSkeleton } from '../../ui/skeleton';
 import { rules } from '../../domain/rules';
-import { AI_PHOTO_NOTE, appModeOf } from '../../lib/app-mode';
+import { appModeOf } from '../../lib/app-mode';
 import { useApp } from '../../state/app-provider';
 import { useQuery } from '../../state/use-query';
 import { Avatar } from '../../ui/avatar';
@@ -91,13 +91,6 @@ export default function Ranking() {
                 ) : null}
                 {data.rows.length >= SEARCH_MIN_ITEMS ? <SearchField value={search} onChange={setSearch} placeholder="Busca un jugador" /> : null}
               </View>
-            }
-            ListFooterComponent={
-              fake ? (
-                <T variant="tiny" color={colors.faint} style={styles.note}>
-                  {AI_PHOTO_NOTE}
-                </T>
-              ) : undefined
             }
             ListEmptyComponent={
               search ? <SearchEmpty query={search} hint="Puede que aún no tenga los partidos mínimos para salir en el ranking." /> : <T color={colors.muted}>Nadie del círculo acumula los partidos mínimos.</T>

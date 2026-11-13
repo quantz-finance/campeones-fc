@@ -1,22 +1,15 @@
-// Modo claro / oscuro. Oscuro por defecto (como la landing). Se guarda en este navegador.
+// Un solo tema: el oscuro morado (como la landing). Sin modo claro ni interruptor.
 import { useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
 import { palettes } from './theme';
 
-export type ThemeMode = 'dark' | 'light';
+export type ThemeMode = 'dark';
 const KEY = 'cfc-theme';
 const listeners = new Set<() => void>();
 const web = Platform.OS === 'web' && typeof document !== 'undefined';
 
 function read(): ThemeMode {
-  if (!web) return 'dark';
-  const attr = document.documentElement.getAttribute('data-theme');
-  if (attr === 'light' || attr === 'dark') return attr;
-  try {
-    return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark';
-  } catch {
-    return 'dark';
-  }
+  return 'dark';
 }
 
 let current: ThemeMode = read();
@@ -30,9 +23,9 @@ export function applyTheme(mode: ThemeMode) {
     root.style.backgroundColor = bg;
     document.body.style.backgroundColor = bg;
     root.style.colorScheme = mode;
-    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', mode === 'dark' ? palettes.dark.bg : '#37003C'));
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', palettes.dark.bg));
     try {
-      localStorage.setItem(KEY, mode);
+      localStorage.removeItem(KEY);
     } catch {}
   }
   listeners.forEach((l) => l());
@@ -42,10 +35,6 @@ if (web) applyTheme(current);
 
 export function themeMode(): ThemeMode {
   return current;
-}
-
-export function toggleTheme() {
-  applyTheme(current === 'dark' ? 'light' : 'dark');
 }
 
 export function useThemeMode(): ThemeMode {

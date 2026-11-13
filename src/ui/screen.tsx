@@ -3,9 +3,6 @@ import type { ReactNode } from 'react';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { AudioToggle } from './audio-toggle';
-import { ThemeToggle } from './theme-toggle';
-import { LangToggle } from './lang-toggle';
 import { Backdrop, FeatureBadge, tabBarSpace, type FeatureIconName } from './broadcast';
 import { useGlobalExit } from './motion-context';
 import { back as goBack } from './nav';
@@ -53,11 +50,6 @@ export function Screen({
     <View style={styles.root}>
       <Backdrop />
       {exiting && focused ? <BroadcastSlash /> : null}
-      <View pointerEvents="box-none" style={[styles.sound, { top: insets.top + 8 }]}>
-        {docked ? null : <LangToggle />}
-        {docked ? null : <ThemeToggle />}
-        <AudioToggle />
-      </View>
       <View style={[styles.safe, { paddingTop: insets.top + TOP_AIR }]}>
         {scroll ? (
           <ScrollView
@@ -118,7 +110,7 @@ export function Top({
           {icon ? <FeatureBadge name={icon} size={46} /> : null}
         </View>
       ) : null}
-      <View style={[styles.topText, !(back || icon) && styles.topClear]}>
+      <View style={[styles.topText, null]}>
         <View style={styles.titleCol}>
           {kicker ? (
             <T variant="label" color={colors.accentText} style={styles.kicker} numberOfLines={2}>
@@ -154,11 +146,9 @@ const styles = StyleSheet.create({
     gap: layout.stack,
   },
   footer: { position: 'absolute', left: 0, right: 0, zIndex: 5 },
-  sound: { position: 'absolute', right: 10, zIndex: 45, flexDirection: 'row', gap: space.sm },
   top: { gap: layout.title, minHeight: 44 },
-  topLead: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 46, paddingRight: 146 },
+  topLead: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 46 },
   topText: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  topClear: { paddingRight: 146 },
   titleCol: { flex: 1, minWidth: 0 },
   topRight: { flexShrink: 0, alignItems: 'flex-end' },
   back: {

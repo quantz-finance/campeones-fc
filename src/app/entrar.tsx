@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Redirect } from 'expo-router';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { branding } from '../../config/branding';
@@ -14,6 +14,7 @@ import { colors, layout, space } from '../ui/theme';
 import { T } from '../ui/text';
 import { TestUserButton } from '../ui/test-user';
 import { LegalLinks } from '../ui/legal-links';
+import { LoginDrawer } from '../ui/login-drawer';
 
 /** iPhone SE (667pt) y similares: el contenido puede no caber y ahí sí hay scroll. */
 const SCROLL_BELOW = 700;
@@ -30,6 +31,7 @@ export default function Login() {
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
   const { height } = useWindowDimensions();
   const allowScroll = height < SCROLL_BELOW;
+  const [drawer, setDrawer] = useState(false);
 
   // Después de todos los hooks: un return temprano antes de un hook rompe el orden (error #300 de React).
   if (app.ready && app.userId) return <Redirect href="/inicio" />;
@@ -110,28 +112,21 @@ export default function Login() {
                 <>
                   <View style={styles.actions}>
                     <Button
-                      label="Continuar con Apple"
-                      disabled={busy && signingWith !== 'apple'}
-                      pending={signingWith === 'apple'}
-                      onPress={() => void loginWith('apple')}
+                      label={phase === 'session' ? 'Abriendo tu sesión…' : busy ? 'Entrando…' : 'Entrar'}
+                      pending={busy}
+                      onPress={() => setDrawer(true)}
                     />
-                    <Button
-                      label="Continuar con Google"
-                      tone="ghost"
-                      disabled={busy && signingWith !== 'google'}
-                      pending={signingWith === 'google'}
-                      onPress={() => void loginWith('google')}
-                    />
-                    <Button
-                      label="Continuar con mi correo"
-                      tone="ghost"
-                      disabled={busy && signingWith !== 'email'}
-                      pending={signingWith === 'email'}
-                      onPress={() => void loginWith('email')}
-                    />
-                    <SpamHint />
                   </View>
                   <TestUserButton />
+                  <LoginDrawer
+                    open={drawer}
+                    onClose={() => setDrawer(false)}
+                    onPick={(provider) => {
+                      setDrawer(false);
+                      // Espera a que el cajón termine de cerrarse: iOS no abre el login encima de un modal.
+                      setTimeout(() => void loginWith(provider), 450);
+                    }}
+                  />
                 </>
               ) : (
                 <>
@@ -189,8 +184,7 @@ const styles = StyleSheet.create({
   hero: {
     gap: space.sm,
     flexShrink: 0,
-    // Lo justo para no chocar con EN / tema / sonido, que flotan a la derecha.
-    paddingTop: 40,
+    paddingTop: space.xl,
   },
   title: { fontSize: 34, lineHeight: 38 },
   main: { gap: layout.stack, flexShrink: 0 },

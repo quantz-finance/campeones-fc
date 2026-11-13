@@ -1,5 +1,4 @@
 import { router, type Href } from 'expo-router';
-import { playWhoosh, unlockAudio } from './audio';
 import { transitController } from './transit';
 
 function schedule(run: () => void, ms: number) {
@@ -8,9 +7,7 @@ function schedule(run: () => void, ms: number) {
 
 /** Sale la pantalla actual y, al terminar, corre la navegación. */
 export function transit(run: () => void) {
-  unlockAudio();
-  const result = transitController.request(run, schedule);
-  if (result === 'started') playWhoosh();
+  transitController.request(run, schedule);
 }
 
 export function push(href: Href) {

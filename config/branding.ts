@@ -4,8 +4,7 @@
  *
  * Paleta "Morado de liga" (igual que la landing): morado #37003C de fondo, lila #953BFF,
  * verde #00FF87 para las acciones y cian #05F0FF. Letra Outfit (OFL, autoalojada).
- * `colors` es el tema oscuro (por defecto) y `lightColors` el claro; la app los cambia en vivo
- * con variables CSS (src/ui/theme.ts).
+ * Un solo tema: `colors` (fondo morado). Sin modo claro.
  *
  * Los nombres red/blue/yellow se mantienen como roles para no tocar cada pantalla:
  * red = Cian (tú / local), blue = Lila (rival), yellow = Verde (acento y botones).
@@ -71,47 +70,6 @@ export const branding = {
     warn: '#EBFF00',
     draw: '#B99BC6',
     loss: '#FF2882',
-  },
-  /** Tema claro: mismo morado de marca sobre fondo #FAF9FA, como la landing en modo claro. */
-  lightColors: {
-    bg: '#FAF9FA',
-    ink: '#1A0A1C',
-    navy: '#FFFFFF',
-    bgElevated: '#FFFFFF',
-    bgDeep: '#FFFFFF',
-    surface: '#FFFFFF',
-    surface2: '#F3EDF5',
-    card: '#FFFFFF',
-    cardSoft: '#FFFFFF',
-    paper: '#FFFFFF',
-    line: 'rgba(55,0,60,0.12)',
-    lineStrong: 'rgba(55,0,60,0.30)',
-    wash: 'rgba(55,0,60,0.05)',
-    text: '#1A0A1C',
-    muted: '#5C4A62',
-    faint: '#8A7590',
-    accentText: '#7A1FE0',
-    naranja: '#00C8D6',
-    cobalto: '#7A1FE0',
-    lima: '#00E07A',
-    red: '#00C8D6',
-    redInk: '#1A0A1C',
-    red2: '#0097A3',
-    blue: '#7A1FE0',
-    blueInk: '#FFFFFF',
-    blue2: '#5A12B0',
-    yellow: '#00FF87',
-    cyan: '#0097A3',
-    up: '#00A85A',
-    win: '#00A85A',
-    accent: '#00FF87',
-    accentInk: '#1A0A1C',
-    violet: '#7A1FE0',
-    gold: '#D4E600',
-    danger: '#E0145F',
-    warn: '#D4E600',
-    draw: '#8A7590',
-    loss: '#E0145F',
   },
 } as const;
 

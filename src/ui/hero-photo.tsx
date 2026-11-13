@@ -3,20 +3,11 @@ import { Image, Platform, StyleSheet, useWindowDimensions, View } from 'react-na
 import { colors, space } from './theme';
 import { T } from './text';
 
-// Jugador de la landing (personaje ficticio, imagen generada con IA) arriba a la derecha.
+// Jugador de la landing arriba a la derecha (solo web).
 // La foto se funde a la izquierda y abajo con el fondo para que el texto se lea en los dos modos.
 // En web: <picture> con WebP (precache del SW) y JPG de respaldo.
 const WEBP = '/media/hero-player.webp';
 const JPG = '/media/hero-player.jpg';
-
-/** Aviso obligatorio de la foto; va debajo del texto del hero, a la derecha. */
-export function HeroPhotoNote() {
-  return (
-    <T variant="tiny" color={colors.faint} style={styles.note}>
-      Personaje ficticio. Imagen generada con IA.
-    </T>
-  );
-}
 
 export function HeroPhoto({ height = 320 }: { height?: number }) {
   // En pantallas anchas la foto no toca el borde: se funde también arriba y a la derecha.

@@ -1,16 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { branding } from '../../config/branding';
 import { cavosNativeEnabled, cavosSupported } from '../lib/cavos/config';
 import { useCavosEntry } from '../lib/cavos/use-entry';
 import { useApp } from '../state/app-provider';
-import { playIntro } from './audio';
 import { Avatar } from './avatar';
 import { Affiliation, FeatureBadge, SkewBlock, Toro, type FeatureIconName } from './broadcast';
 import { TestUserButton } from './test-user';
-import { HeroPhoto, HeroPhotoNote } from './hero-photo';
+import { HeroPhoto } from './hero-photo';
 import { Banner, Button } from './controls';
 import { BroadcastView, cssAnim, useReducedMotion } from './motion';
 import { transit } from './nav';
@@ -72,15 +70,8 @@ export function Landing() {
   const accounts = app.mode === 'demo' ? app.repo.demoAccounts() : [];
   const cavosLabel = phase === 'session' ? 'Abriendo tu sesión…' : phase === 'opening' ? 'Cargando Cavos…' : 'Entrar';
 
-  useEffect(() => {
-    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
-    const onGesture = () => playIntro();
-    window.addEventListener('pointerdown', onGesture, { once: true });
-    return () => window.removeEventListener('pointerdown', onGesture);
-  }, []);
 
   function enter() {
-    playIntro();
     // iPhone: a la pantalla con Apple, Google y correo (en español, con una entrada a la vez), no al modal del kit.
     if (cavosNativeEnabled) {
       router.push('/entrar');
@@ -105,7 +96,6 @@ export function Landing() {
             {branding.tagline}
           </T>
         </View>
-        <HeroPhotoNote />
       </View>
 
       {app.mode === 'demo' ? (

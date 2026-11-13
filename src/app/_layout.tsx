@@ -8,7 +8,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { startPwaUpdates } from '../lib/pwa-update';
 import { AppProvider, useAppMaybe } from '../state/app-provider';
 import { colors } from '../ui/theme';
-import { useThemeMode } from '../ui/theme-mode';
 import { ErrorScreen } from '../ui/error-screen';
 import { TransitionHost } from '../ui/transition';
 
@@ -36,13 +35,12 @@ export default function RootLayout() {
           Outfit_800: require('../../assets/fonts/Outfit-800.ttf'),
         },
   );
-  const mode = useThemeMode();
 
   if (!loaded && !error) return null;
 
   return (
     <SafeAreaProvider>
-      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <AppProvider>
         <TransitionHost>
           <BootSplash />

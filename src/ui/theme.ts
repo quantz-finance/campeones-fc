@@ -4,10 +4,9 @@ import { branding } from '../../config/branding';
 export type ColorKey = keyof typeof branding.colors;
 type Palette = Record<ColorKey, string>;
 
-/** Paletas en hex: oscura (por defecto) y clara. Para SVG y otros lugares que no aceptan variables CSS. */
-export const palettes: { dark: Palette; light: Palette } = {
+/** Paleta en hex (un solo tema, fondo morado). Para SVG y otros lugares que no aceptan variables CSS. */
+export const palettes: { dark: Palette } = {
   dark: branding.colors,
-  light: branding.lightColors,
 };
 
 const web = Platform.OS === 'web';
@@ -25,13 +24,12 @@ export const colors: Palette = web
 /** Hex del tema oscuro (fills de SVG, gráficos). */
 export const hex = palettes.dark;
 
-/** Hoja de estilos con las variables de los dos temas. */
+/** Hoja de estilos con las variables del tema. */
 export function themeCss(): string {
   const block = (p: Palette) => keys.map((k) => `${cssVar(k)}:${p[k]}`).join(';');
-  const washDark =
+  const wash =
     'radial-gradient(70% 42% at 100% 0%, rgba(149,59,255,.38), transparent 70%), radial-gradient(60% 36% at 0% 100%, rgba(0,255,135,.10), transparent 70%)';
-  const washLight = 'radial-gradient(70% 42% at 100% 0%, rgba(149,59,255,.10), transparent 70%)';
-  return `:root{${block(palettes.dark)};--bg-wash:${washDark};color-scheme:dark}:root[data-theme="light"]{${block(palettes.light)};--bg-wash:${washLight};color-scheme:light}`;
+  return `:root{${block(palettes.dark)};--bg-wash:${wash};color-scheme:dark}`;
 }
 
 if (web && typeof document !== 'undefined' && !document.getElementById('cfc-theme-vars')) {
