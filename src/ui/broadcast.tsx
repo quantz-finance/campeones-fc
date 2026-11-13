@@ -584,8 +584,8 @@ const styles = StyleSheet.create({
   skewFill: { alignSelf: 'stretch' },
   skewFace: { zIndex: 1, position: 'relative' },
   skewShadow: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 0 },
-  // Aire extra arriba de cada título: sección a sección = layout.section; título a contenido = layout.title.
-  head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: layout.section - layout.stack, marginBottom: layout.title - layout.stack },
+  // Aire extra arriba de cada título: sección a sección = layout.section; título a contenido = layout.stack en la pantalla (layout.title dentro de un bloque).
+  head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: layout.section - layout.stack },
   headLine: { flex: 1, height: 1, backgroundColor: colors.line },
   mark: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   markClip: { borderRadius: 999, overflow: 'hidden' } as object,
