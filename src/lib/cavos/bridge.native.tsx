@@ -15,7 +15,7 @@ import {
   CAVOS_APP_ID,
   CAVOS_ENVIRONMENT,
   CAVOS_NATIVE_REDIRECT,
-  CAVOS_RP_ID,
+  CAVOS_NATIVE_RP_ID,
   STELLAR_NETWORK,
 } from './config';
 import { extractJwtFromCallbackUrl, getNativeCavosJwt, setNativeCavosJwt } from './native-jwt';
@@ -165,7 +165,7 @@ export default function CavosBridge() {
         chain: 'stellar',
         network: STELLAR_NETWORK,
         appSalt: APP_SALT,
-        rpId: CAVOS_RP_ID,
+        rpId: CAVOS_NATIVE_RP_ID,
         redirectUri: CAVOS_NATIVE_REDIRECT,
       }}
       modal={{ appName: 'Campeones FC', providers: ['google', 'apple'], primaryColor: colors.red, secureStep: 'optional' }}

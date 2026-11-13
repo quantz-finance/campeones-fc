@@ -4,6 +4,11 @@ import { Platform } from 'react-native';
 export const CAVOS_APP_ID = (process.env.EXPO_PUBLIC_CAVOS_APP_ID ?? '').trim();
 /** rpId para passkeys. No se cambia después de lanzar sin migrar passkeys. */
 export const CAVOS_RP_ID = (process.env.EXPO_PUBLIC_CAVOS_RP_ID ?? 'campeones-fc.vercel.app').trim();
+/**
+ * rpId de passkeys en iOS/Android: el dominio de producción (sirve la AASA sin redirección).
+ * Aparte del de la web a propósito; debe coincidir con el plugin de @cavos/kit en app.config.js.
+ */
+export const CAVOS_NATIVE_RP_ID = (process.env.EXPO_PUBLIC_CAVOS_NATIVE_RP_ID || 'partido.campeonesfc.app').trim();
 export const STELLAR_NETWORK: 'testnet' | 'mainnet' = process.env.EXPO_PUBLIC_STELLAR_NETWORK === 'mainnet' ? 'mainnet' : 'testnet';
 /** Ranura de la llave del dispositivo y sal de HKDF de la billetera. NUNCA cambiarla: cambiaría la dirección. */
 export const APP_SALT = 'campeones-fc';

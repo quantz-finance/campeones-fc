@@ -14,7 +14,11 @@ const raw = execFileSync(
 );
 const branding = JSON.parse(raw);
 
-const CAVOS_RP_ID = (process.env.EXPO_PUBLIC_CAVOS_RP_ID || 'campeones-fc.vercel.app').trim();
+/**
+ * rpId de passkeys para la app nativa: el dominio de producción, que sirve la AASA sin redirección.
+ * Va aparte de EXPO_PUBLIC_CAVOS_RP_ID (el de la web, que sigue igual). Debe coincidir con src/lib/cavos/config.ts.
+ */
+const CAVOS_NATIVE_RP_ID = (process.env.EXPO_PUBLIC_CAVOS_NATIVE_RP_ID || 'partido.campeonesfc.app').trim();
 
 /**
  * Associated Domains (y el webcredentials del rpId de Cavos) obligan a firmar incluso en el simulador.
@@ -25,7 +29,7 @@ const CAVOS_RP_ID = (process.env.EXPO_PUBLIC_CAVOS_RP_ID || 'campeones-fc.vercel
 const enableAssociatedDomains = /^(1|true)$/i.test(process.env.CFC_IOS_ASSOCIATED_DOMAINS ?? '');
 const ASSOCIATED_DOMAINS = [
   'applinks:partido.campeonesfc.app',
-  'webcredentials:partido.campeonesfc.app',
+  `webcredentials:${CAVOS_NATIVE_RP_ID}`,
 ];
 
 function withOptionalAssociatedDomains(config) {
@@ -55,7 +59,7 @@ module.exports = ({ config }) => {
       [
         '@cavos/kit',
         {
-          rpId: CAVOS_RP_ID,
+          rpId: CAVOS_NATIVE_RP_ID,
           scheme: branding.scheme,
           enableAssociatedDomains,
           associatedDomains: enableAssociatedDomains ? ASSOCIATED_DOMAINS : [],

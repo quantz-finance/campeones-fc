@@ -11,7 +11,7 @@ Fuentes: README y tipados de `@cavos/kit` 0.4.4 (`@cavos/kit/react-native`), el 
 | Dónde viven las llaves | Iframe en `vault.cavos.xyz` | Secure Enclave / Keychain. No hay iframe. |
 | Cómo entra la persona | Google, Apple o código al correo | **Solo Google o Apple.** El código al correo no está disponible: el build nativo no puede verificar la attestación del enclave. `sendOtp` / `verifyOtp` lanzan `unsupported`. |
 | Callback | `https://partido.campeonesfc.app/entrar` (o `/auth/callback`) | Exacto, sin comodines: `campeones-fc://cavos-auth` |
-| Passkeys | `rpId` del entorno (hoy, por defecto, `campeones-fc.vercel.app`) | El mismo `rpId` más `https://<rpId>/.well-known/apple-app-site-association` y Associated Domains |
+| Passkeys | `EXPO_PUBLIC_CAVOS_RP_ID` (web, por defecto `campeones-fc.vercel.app`); en nativo, `EXPO_PUBLIC_CAVOS_NATIVE_RP_ID` (por defecto `partido.campeonesfc.app`) | El mismo `rpId` más `https://<rpId>/.well-known/apple-app-site-association` y Associated Domains |
 | Expo Go | No aplica | No sirve. Hace falta un development build o un build de EAS. iOS 16+. |
 | Plugin | No | `["@cavos/kit", { "rpId", "scheme": "campeones-fc" }]` (ya queda en `app.config.js`) |
 
