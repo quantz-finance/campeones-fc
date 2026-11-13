@@ -91,7 +91,7 @@ export function CavosSheet(p: CavosSheetProps) {
               <T color={colors.muted}>Preparando tu billetera…</T>
             </View>
           ) : approving ? (
-            <View style={styles.block}>
+            <View style={styles.section}>
               <View style={styles.hero}>
                 <T variant="display" style={styles.title}>
                   Trae tu billetera a este iPhone
@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
   hero: { gap: space.sm, paddingTop: space.sm },
   title: { fontSize: 30, lineHeight: 34 },
   block: { gap: layout.button },
+  section: { gap: layout.field },
   center: { alignItems: 'center', gap: space.md, paddingVertical: space.xxl },
   hint: { fontSize: 14, lineHeight: 20 },
   plain: { textTransform: 'none', letterSpacing: 0 },
