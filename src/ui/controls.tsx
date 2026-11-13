@@ -250,13 +250,16 @@ export function rowStyle(extra?: StyleProp<ViewStyle>) {
   return [styles.row, extra];
 }
 
+/** Texto de todos los botones de la app (también los de entrar con Apple, Google y correo). */
+export const buttonLabel = { fontSize: 17, textAlign: 'center' as const, fontFamily: font.bold, letterSpacing: 0 };
+
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   hit: { alignSelf: 'stretch' },
   stretch: { alignSelf: 'stretch' },
   full: { alignSelf: 'stretch' },
   rowCenter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm },
-  btnLabel: { fontSize: 17, textAlign: 'center', fontFamily: font.bold, letterSpacing: 0 },
+  btnLabel: buttonLabel,
   dim: { opacity: 0.5 },
   pending: { opacity: 0.85 },
   dots: { flexDirection: 'row', gap: space.xs, marginLeft: space.xxs },
