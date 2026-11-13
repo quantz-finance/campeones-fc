@@ -44,7 +44,7 @@ En esta rama interceptamos `identityFromAuthData` (`src/lib/cavos/install-native
 ## Qué hay que registrar cuando se active
 
 - En el panel de Cavos (Vitalik): callback `campeones-fc://cavos-auth`.
-- Associated Domains y AASA en `partido.campeonesfc.app` (el Team ID de Apple es [PENDIENTE], lo pone Rolando cuando tenga la membresía).
+- Associated Domains y AASA en `partido.campeonesfc.app` (Team ID `66MB4G5UG4`, bundle `app.campeonesfc`).
 - En la UI nativa: botones «Continuar con Apple» y «Continuar con Google» (la guía 4.8 de Apple exige Sign in with Apple si hay Google). Sin mencionar «billetera» de más, para bajar el riesgo de la 3.1.5 si la cuenta de desarrollador es de persona.
 - Development build: `eas build --profile development --platform ios` (solo con el OK de Rolando; hace falta la membresía de Apple). No corre en Expo Go.
 

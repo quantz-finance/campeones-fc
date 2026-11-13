@@ -18,9 +18,9 @@ Identidad de la app para TestFlight y App Store. No se ha hecho `eas build` ni `
 
 En `app.json` quedan `applinks` y `webcredentials` para `partido.campeonesfc.app`.
 
-El archivo `public/.well-known/apple-app-site-association` se sirve en esa ruta (el rewrite de Vercel no lo manda a `index.html`). El `TEAMID` es [PENDIENTE]: el Team ID de Apple aparece cuando Rolando tenga la membresía de Apple Developer. Hasta que no se reemplace, Apple no validará los dominios asociados ni las passkeys nativas.
+El archivo `public/.well-known/apple-app-site-association` se sirve en esa ruta (el rewrite de Vercel no lo manda a `index.html`). El `appID` es `66MB4G5UG4.app.campeonesfc` (Team ID `66MB4G5UG4`).
 
-Esos entitlements obligan a firmar incluso en el simulador. En el development build local van apagados (el plugin de Cavos recibe `enableAssociatedDomains: false`) para poder correr `npm run ios` sin certificados. Cuando la membresía esté activa y vayamos a TestFlight, hay que poner `CFC_IOS_ASSOCIATED_DOMAINS=1` (en EAS o en el entorno) y el Team ID en la AASA.
+Esos entitlements obligan a firmar incluso en el simulador. En el development build local van apagados (el plugin de Cavos recibe `enableAssociatedDomains: false`) para poder correr `npm run ios` sin certificados. Para TestFlight hay que poner `CFC_IOS_ASSOCIATED_DOMAINS=1` (en EAS o en el entorno).
 
 ## EAS
 

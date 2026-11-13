@@ -3,12 +3,12 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID.app.campeonesfc",
+        "appID": "66MB4G5UG4.app.campeonesfc",
         "paths": ["*"]
       }
     ]
   },
   "webcredentials": {
-    "apps": ["TEAMID.app.campeonesfc"]
+    "apps": ["66MB4G5UG4.app.campeonesfc"]
   }
 }
