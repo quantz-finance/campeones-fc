@@ -5,10 +5,9 @@ import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-s
 import { avatarByKey, branding } from '../../config/branding';
 import { CountRoll, CountUp, GrowX } from './motion';
 import { SportPress } from './press';
-import { colors, font, hex, layout, space } from './theme';
+import { colors, font, layout, space } from './theme';
 import { T } from './text';
 import { toroPaths, toroTransform, toroViewBox } from './toro-data';
-import { featureIcons, type FeatureIconName } from './feature-icons-data';
 import { useResolvedColor } from './theme-mode';
 import { Icon, type UiIconName } from './icon';
 import { Image } from 'expo-image';
@@ -99,22 +98,8 @@ export function BracketIcon({ size = 22, color = colors.text }: { size?: number;
   );
 }
 
-export type { FeatureIconName } from './feature-icons-data';
-
-/**
- * Íconos propios de Campeones (siluetas de la landing). `color` en hex: los fills de SVG
- * no leen variables CSS en todos los navegadores. Por defecto blancos, como en la landing.
- */
-export function FeatureIcon({ name, size = 24, color = '#FFFFFF' }: { name: FeatureIconName; size?: number; color?: string }) {
-  const icon = featureIcons[name];
-  const fill = useResolvedColor(color);
-  const paths = icon.paths.map((d, i) => <Path key={i} d={d} fill={fill} />);
-  return (
-    <Svg width={size} height={size} viewBox={icon.viewBox}>
-      {icon.transform ? <G transform={icon.transform}>{paths}</G> : paths}
-    </Svg>
-  );
-}
+/** Secciones de la landing web (tarjetas de funciones). */
+export type FeatureIconName = 'friends' | 'matches' | 'ranking' | 'tournaments' | 'trophies' | 'versus' | 'install';
 
 /** Secciones de la app → icono de interfaz (paquete de Stan). Sin «escudo»: no choca con Grupos (escudo con check). */
 const featureToUi: Record<FeatureIconName, UiIconName> = {
@@ -127,14 +112,14 @@ const featureToUi: Record<FeatureIconName, UiIconName> = {
   install: 'descargar',
 };
 
-/** Insignia morada con el ícono blanco: igual en modo claro y oscuro (como las tarjetas de la landing). */
-export function FeatureBadge({ name, size = 44, tone = 'purple' }: { name: FeatureIconName; size?: number; tone?: 'purple' | 'lilac' }) {
+/** Insignia morada con el ícono blanco de las tarjetas de la landing web (ya no va en los encabezados de la app). */
+export function FeatureBadge({ name, size = 44 }: { name: FeatureIconName; size?: number }) {
   return (
     <View
       style={[
         styles.badge,
-        { width: size, height: size, borderRadius: Math.round(size * 0.3), backgroundColor: tone === 'lilac' ? hex.blue : '#4A0A55' },
-        Platform.OS === 'web' ? ({ backgroundImage: tone === 'lilac' ? 'linear-gradient(150deg,#A855FF,#6A1FD0)' : 'linear-gradient(150deg,#5A1A6E,#37003C)' } as object) : null,
+        { width: size, height: size, borderRadius: Math.round(size * 0.3), backgroundColor: '#4A0A55' },
+        Platform.OS === 'web' ? ({ backgroundImage: 'linear-gradient(150deg,#5A1A6E,#37003C)' } as object) : null,
       ]}
     >
       <Icon name={featureToUi[name]} size={Math.round(size * 0.56)} color="#FFFFFF" />
