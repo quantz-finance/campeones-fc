@@ -39,6 +39,8 @@ export type TrophyDef = {
   description: string;
   section: TrophySectionId;
   rarity: TrophyRarity;
+  animal: string;
+  why: string;
 };
 
 export const trophyCatalog: TrophyDef[] = [
@@ -48,6 +50,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Jugar y confirmar (los dos jugadores) tu primer partido.',
     section: 'debut',
     rarity: 'comun',
+    animal: "potrillo",
+    why: "El primer paso: el potro recién parado que ya quiere correr.",
   },
   {
     code: 'primera-victoria',
@@ -55,6 +59,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Ganar tu primer partido confirmado.',
     section: 'debut',
     rarity: 'comun',
+    animal: "gallo",
+    why: "Canta al amanecer: anuncia tu primer triunfo.",
   },
   {
     code: 'debut-grupo',
@@ -62,6 +68,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Unirte a tu primer grupo (por invitación o creándolo).',
     section: 'debut',
     rarity: 'comun',
+    animal: "abeja",
+    why: "Nadie es colmena solo: unirte a un grupo es entrar a la colmena.",
   },
   {
     code: 'en-el-ranking',
@@ -69,6 +77,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Aparecer en el ranking de un grupo (mínimo 3 partidos confirmados).',
     section: 'debut',
     rarity: 'comun',
+    animal: "íbice",
+    why: "Trepa riscos: empezás a subir la tabla.",
   },
   {
     code: 'racha-3',
@@ -76,6 +86,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Ganar 3 partidos confirmados seguidos.',
     section: 'rachas',
     rarity: 'comun',
+    animal: "liebre",
+    why: "Arranque veloz: la primera racha.",
   },
   {
     code: 'racha-5',
@@ -83,6 +95,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Ganar 5 partidos confirmados seguidos.',
     section: 'rachas',
     rarity: 'rara',
+    animal: "galgo",
+    why: "Velocidad sostenida, más que la liebre.",
   },
   {
     code: 'racha-10',
@@ -90,6 +104,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Ganar 10 partidos confirmados seguidos.',
     section: 'rachas',
     rarity: 'epica',
+    animal: "guepardo",
+    why: "El animal más rápido: la racha máxima.",
   },
   {
     code: 'invicto',
@@ -97,6 +113,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Jugar 10 partidos confirmados seguidos sin perder (los empates cuentan).',
     section: 'rachas',
     rarity: 'rara',
+    animal: "rinoceronte",
+    why: "Coraza impenetrable: nadie te tumba.",
   },
   {
     code: 'remontada',
@@ -104,6 +122,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Ganar un partido justo después de perder 3 seguidos.',
     section: 'rachas',
     rarity: 'rara',
+    animal: "fénix",
+    why: "Renace de sus cenizas después de caer tres veces.",
   },
   {
     code: 'partidos-10',
@@ -111,6 +131,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Jugar 10 partidos confirmados.',
     section: 'constancia',
     rarity: 'comun',
+    animal: "hormiga",
+    why: "Trabajo diario, partido a partido.",
   },
   {
     code: 'partidos-50',
@@ -118,6 +140,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Jugar 50 partidos confirmados.',
     section: 'constancia',
     rarity: 'rara',
+    animal: "tortuga",
+    why: "Constancia y largo aliento.",
   },
   {
     code: 'partidos-100',
@@ -125,6 +149,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Jugar 100 partidos confirmados.',
     section: 'constancia',
     rarity: 'epica',
+    animal: "elefante",
+    why: "Memoria y peso: cien partidos se notan.",
   },
   {
     code: 'partidos-250',
@@ -132,6 +158,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Jugar 250 partidos confirmados.',
     section: 'constancia',
     rarity: 'legendaria',
+    animal: "mamut",
+    why: "Leyenda ancestral: muy pocos llegan a 250.",
   },
   {
     code: 'arco-en-cero',
@@ -139,6 +167,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Ganar un partido sin recibir goles (rival en 0).',
     section: 'goles',
     rarity: 'comun',
+    animal: "búho",
+    why: "El guardián que todo lo ve: no se le escapa nada.",
   },
   {
     code: 'goleada',
@@ -146,6 +176,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Ganar por 4 goles o más de diferencia.',
     section: 'goles',
     rarity: 'rara',
+    animal: "orca",
+    why: "Depredador del océano que caza sin piedad: ganar por 4 o más.",
   },
   {
     code: 'manita',
@@ -153,6 +185,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Ganar exactamente 5-0.',
     section: 'goles',
     rarity: 'epica',
+    animal: "gorila",
+    why: "La mano abierta de cinco dedos del espalda plateada: dominio total, 5-0.",
   },
   {
     code: 'finalista',
@@ -160,6 +194,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Llegar a la final de un torneo de llaves (4, 8 o 16).',
     section: 'torneos',
     rarity: 'rara',
+    animal: "puma",
+    why: "Llega a la cima de la montaña: la final.",
   },
   {
     code: 'campeon-torneo',
@@ -167,6 +203,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Ganar un torneo (llaves o liga).',
     section: 'torneos',
     rarity: 'legendaria',
+    animal: "toro",
+    why: "La marca de la casa para el logro más alto: campeón de un torneo.",
   },
   {
     code: 'lider-grupo',
@@ -174,6 +212,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Quedar #1 en el ranking de un grupo (con al menos 3 partidos).',
     section: 'torneos',
     rarity: 'epica',
+    animal: "león",
+    why: "El rey de la manada: #1 del ranking de tu grupo. Va sin corona y de busto 3/4, distinto del león rampante de los escudos.",
   },
   {
     code: 'elo-100',
@@ -181,6 +221,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Subir 100 puntos de Elo sobre el inicial (llegar a 1300).',
     section: 'torneos',
     rarity: 'rara',
+    animal: "cóndor",
+    why: "Vuela más alto que nadie: tu Elo sube 100.",
   },
   {
     code: 'anfitrion',
@@ -188,6 +230,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Un amigo se une a la app con tu enlace de invitación.',
     section: 'social',
     rarity: 'comun',
+    animal: "perro",
+    why: "El que recibe a todos en la puerta: un amigo entra con tu invitación.",
   },
   {
     code: 'capitan',
@@ -195,6 +239,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: '5 amigos se unen con tus invitaciones.',
     section: 'social',
     rarity: 'rara',
+    animal: "lobo",
+    why: "El lobo que aúlla y la manada responde: cinco amigos te siguen.",
   },
   {
     code: 'fundador',
@@ -202,6 +248,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Crear un grupo que llegue a 6 miembros.',
     section: 'social',
     rarity: 'rara',
+    animal: "castor",
+    why: "Constructor: levanta la represa donde vive toda la colonia.",
   },
   {
     code: 'clasico',
@@ -209,6 +257,8 @@ export const trophyCatalog: TrophyDef[] = [
     description: 'Jugar 10 partidos confirmados contra el mismo rival.',
     section: 'social',
     rarity: 'rara',
+    animal: "ciervo",
+    why: "El ciervo que choca astas temporada tras temporada con el mismo rival.",
   },
 ];
 
@@ -216,3 +266,20 @@ export const trophyByCode = Object.fromEntries(trophyCatalog.map((item) => [item
   AchievementCode,
   TrophyDef
 >;
+
+export const trophySeries: AchievementCode[][] = [
+  ['racha-3', 'racha-5', 'racha-10'],
+  ['arco-en-cero', 'goleada', 'manita'],
+  ['partidos-10', 'partidos-50', 'partidos-100', 'partidos-250'],
+];
+
+export function siblingsOf(code: AchievementCode): TrophyDef[] {
+  const series = trophySeries.find((row) => row.includes(code));
+  return series ? series.map((item) => trophyByCode[item]) : [];
+}
+
+const FEMININE_ANIMALS = new Set(['abeja', 'liebre', 'hormiga', 'tortuga', 'orca']);
+
+export function whyTitle(animal: string): string {
+  return FEMININE_ANIMALS.has(animal) ? `Por qué la ${animal}` : `Por qué el ${animal}`;
+}

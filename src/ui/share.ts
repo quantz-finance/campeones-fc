@@ -47,3 +47,17 @@ export function openWhatsApp(code: string) {
   const url = `https://wa.me/?text=${encodeURIComponent(inviteMessage(code))}`;
   void Linking.openURL(url);
 }
+
+/** Comparte un logro ganado con el mismo mecanismo nativo de la app. */
+export async function shareTrophy(title: string) {
+  const message = `Conseguí el logro «${title}» en ${branding.name}.`;
+  if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      await navigator.share({ title: branding.name, text: message });
+      return;
+    } catch {
+      return;
+    }
+  }
+  await Share.share({ message });
+}

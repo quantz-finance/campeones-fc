@@ -191,7 +191,7 @@ export function AchievementBadge({
   const art = logroArt(code, size, unlocked);
   const ratio = progress && progress.target > 0 ? Math.min(1, Math.max(0, progress.current / progress.target)) : 0;
   const ring = !unlocked && ratio > 0;
-  const lockSize = Math.max(14, Math.round(size * 0.3));
+  const lockSize = Math.max(14, Math.min(20, Math.round(size * 0.28)));
   return (
     <View style={[styles.wrap, { width: title || detail ? Math.max(size, 96) : size }]} accessibilityLabel={`${title ?? code}${unlocked ? '' : ' (bloqueado)'}`}>
       <View ref={ref} style={[styles.badge, { width: size, height: size }, unlocked ? styles.on : styles.off]}>

@@ -715,4 +715,11 @@ export const en: Record<string, string> = {
   "GANADO": "EARNED",
   "POR GANAR": "TO WIN",
   "Ganado": "Earned",
+  "SECCIÓN": "SECTION",
+  "TU VITRINA": "YOUR CASE",
+  "PROGRESO": "PROGRESS",
+  "RACHA ACTUAL": "CURRENT STREAK",
+  "MEJOR RACHA": "BEST STREAK",
+  "EN TU VITRINA": "IN YOUR CASE",
+  "Por ganar": "To win",
 };

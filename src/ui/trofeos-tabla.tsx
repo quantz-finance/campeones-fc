@@ -1,7 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { RARITY_LABEL, RARITY_TONE, trophySections, type TrophyRarity } from '../content/trophies';
-import type { AchievementCode } from '../domain/types';
 import type { TrophyView } from '../data/snapshots';
 import { AchievementBadge } from './achievement-badge';
 import { formatDay } from './format';
@@ -10,9 +9,6 @@ import { colors, space } from './theme';
 import { T } from './text';
 
 const RARITY_ORDER: TrophyRarity[] = ['comun', 'rara', 'epica', 'legendaria'];
-
-/** Gancho para el detalle de un logro. El modal todavía no está aprobado: no navega. */
-export function onTrophyPress(_code: AchievementCode) {}
 
 function Scoreboard({ trophies }: { trophies: TrophyView[] }) {
   const earned = trophies.filter((item) => item.earned).length;
@@ -75,14 +71,14 @@ function Stripe({ title, got, total, gradId }: { title: string; got: number; tot
   );
 }
 
-function Row({ trophy, last }: { trophy: TrophyView; last: boolean }) {
+function Row({ trophy, last, onOpen }: { trophy: TrophyView; last: boolean; onOpen: (trophy: TrophyView) => void }) {
   const tone = RARITY_TONE[trophy.rarity];
   const progress = trophy.progress;
   const showBar = !trophy.earned && progress != null;
   const ratio = showBar && progress.target > 0 ? Math.min(1, progress.current / progress.target) : 0;
   return (
     <SportPress
-      onPress={() => onTrophyPress(trophy.code)}
+      onPress={() => onOpen(trophy)}
       style={[styles.row, !last && styles.rowLine, trophy.earned && styles.rowEarned]}
       accessibilityRole="button"
       accessibilityLabel={`${trophy.title}${trophy.earned ? ', ganado' : ', bloqueado'}`}
@@ -129,7 +125,7 @@ function Row({ trophy, last }: { trophy: TrophyView; last: boolean }) {
 }
 
 /** Marcador de TV y tablas por sección (propuesta 5 de Stan, Tabla de transmisión). */
-export function TrofeosTabla({ trophies }: { trophies: TrophyView[] }) {
+export function TrofeosTabla({ trophies, onOpen }: { trophies: TrophyView[]; onOpen: (trophy: TrophyView) => void }) {
   return (
     <View style={styles.root}>
       <Scoreboard trophies={trophies} />
@@ -142,7 +138,7 @@ export function TrofeosTabla({ trophies }: { trophies: TrophyView[] }) {
             <Stripe title={section.title} got={got} total={rows.length} gradId={`cfcStripe-${section.id}`} />
             <View style={styles.body}>
               {rows.map((trophy, index) => (
-                <Row key={trophy.code} trophy={trophy} last={index === rows.length - 1} />
+                <Row key={trophy.code} trophy={trophy} last={index === rows.length - 1} onOpen={onOpen} />
               ))}
             </View>
           </View>

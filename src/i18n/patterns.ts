@@ -1,5 +1,8 @@
 // Frases con datos (nombres, números): patrón en español → plantilla en inglés.
 export const enPatterns: [RegExp, string][] = [
+  [/^Por qué el (.+)$/, 'Why the $1'],
+  [/^Por qué la (.+)$/, 'Why the $1'],
+  [/^Conseguí el logro «(.+)» en (.+)\.$/, 'I earned the “$1” achievement in $2.'],
   [/^No encontramos a «(.+)»\.$/, "We couldn't find “$1”."],
   [/^(\d+) elegidos$/, '$1 picked'],
   [/^Contra (.+)$/, 'Against $1'],
