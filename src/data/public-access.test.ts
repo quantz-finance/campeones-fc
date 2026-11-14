@@ -165,4 +165,20 @@ describe('acceso del torneo', () => {
     await repo.setTournamentAccess('a', cup.id, { visibility: 'public', joinPolicy: 'open', clearStarts: true });
     expect((await repo.tournamentSnapshot(cup.id, 'a')).tournament.startsAt).toBeNull();
   });
+
+  it('no repite Inscripciones abiertas como fase del mini-póster', async () => {
+    const { repo } = harness();
+    const cup = await repo.createRegistrationTournament({
+      me: 'a',
+      name: 'Copa de noviembre',
+      format: 'round_robin',
+      visibility: 'public',
+      joinPolicy: 'open',
+      maxPlayers: 8,
+    });
+    const mine = await repo.myTournaments('a');
+    const row = mine.find((item) => item.tournament.id === cup.id);
+    expect(row?.yourLabel).toBe('Inscrito');
+    expect(row?.phase).toBeNull();
+  });
 });

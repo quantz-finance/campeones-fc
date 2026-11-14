@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { Group } from '../data/types';
 import type { Sponsor } from '../data/types';
 import { Shield } from './broadcast';
-import { monogram } from './format';
+import { groupJoinLabel, monogram } from './format';
 import { colors, space } from './theme';
 import { T } from './text';
 
@@ -116,6 +116,7 @@ export function MiniCromo({
   memberCount,
   joinPolicy,
   requested,
+  member,
   busy,
   onOpen,
   onJoin,
@@ -124,12 +125,14 @@ export function MiniCromo({
   memberCount: number;
   joinPolicy: 'open' | 'invite';
   requested: boolean;
+  member?: boolean;
   busy?: boolean;
   onOpen: () => void;
   onJoin: () => void;
 }) {
   const open = joinPolicy === 'open';
-  const label = requested ? 'Pendiente' : open ? 'Unirme' : 'Pedir invitación';
+  const label = groupJoinLabel(Boolean(member), requested, open);
+  const locked = Boolean(member) || requested || busy;
   return (
     <View style={styles.miniWrap}>
       <FoilFrame tone="lilac" radius={14}>
@@ -146,12 +149,12 @@ export function MiniCromo({
           </T>
           <Pressable
             onPress={onJoin}
-            disabled={requested || busy}
+            disabled={locked}
             accessibilityRole="button"
             accessibilityLabel={label}
-            style={[styles.cta, requested || busy ? styles.ctaWait : open ? styles.ctaOpen : styles.ctaInvite]}
+            style={[styles.cta, locked ? styles.ctaWait : open ? styles.ctaOpen : styles.ctaInvite]}
           >
-            <T variant="label" color={requested || !open ? colors.text : colors.ink} style={styles.ctaText}>
+            <T variant="strong" color={locked || !open ? colors.text : colors.ink} style={styles.ctaText} numberOfLines={2}>
               {busy ? 'Un momento…' : label}
             </T>
           </Pressable>
@@ -200,12 +203,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   more: { marginLeft: 'auto' },
-  miniWrap: { flex: 1, minWidth: 0 },
-  mini: { padding: 11, alignItems: 'center', gap: 6, minHeight: 188 },
+  miniWrap: { width: '48.5%' },
+  mini: { padding: 11, alignItems: 'center', gap: 6, minHeight: 196 },
   miniName: { textAlign: 'center', fontSize: 15 },
   cta: {
     alignSelf: 'stretch',
-    height: 30,
+    minHeight: 36,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -214,5 +219,5 @@ const styles = StyleSheet.create({
   ctaOpen: { backgroundColor: colors.accent },
   ctaInvite: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.lineStrong },
   ctaWait: { backgroundColor: 'rgba(255,255,255,0.08)' },
-  ctaText: { fontSize: 12 },
+  ctaText: { fontSize: 12, lineHeight: 15, textAlign: 'center', textTransform: 'none', letterSpacing: 0 },
 });

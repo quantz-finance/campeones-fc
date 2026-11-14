@@ -106,6 +106,8 @@ export type TournamentSnapshot = {
   registrations: { userId: string; registeredAt: string; profile: Profile }[];
   joinRequests: { id: string; userId: string; createdAt: string; profile: Profile }[];
   isOrganizer: boolean;
+  /** El usuario actual tiene una solicitud pendiente. */
+  requested: boolean;
 };
 
 export type TrophyView = {

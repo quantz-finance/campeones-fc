@@ -9,7 +9,7 @@ import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { SectionHead, Toro } from '../../../ui/broadcast';
 import { Button, Chip, Gate } from '../../../ui/controls';
-import { firstName, scoreText, slotsLine, tournamentStatusLabel } from '../../../ui/format';
+import { firstName, scoreText, slotsLine, tournamentJoinLabel, tournamentStatusLabel } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
 import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
@@ -146,9 +146,9 @@ export default function TournamentScreen() {
                         />
                       ) : null}
                     </>
-                  ) : data.tournament.status === 'registration' && !data.registrations.some((row) => row.userId === userId) ? (
+                  ) : data.tournament.status === 'registration' && !data.registrations.some((row) => row.userId === userId) && !data.requested ? (
                     <Button
-                      label={joinPolicyOf(data.tournament) === 'open' ? 'Inscribirme' : 'Pedir invitación'}
+                      label={tournamentJoinLabel(false, false, joinPolicyOf(data.tournament) === 'open')}
                       onPress={() => {
                         const policy = joinPolicyOf(data.tournament);
                         const run = policy === 'open' ? repo.registerForTournament(userId!, data.tournament.id) : repo.requestTournamentJoin(userId!, data.tournament.id);
@@ -159,7 +159,11 @@ export default function TournamentScreen() {
                     />
                   ) : data.registrations.some((row) => row.userId === userId) ? (
                     <T variant="strong" color={colors.accentText}>
-                      Ya estás inscrito
+                      Inscrito ✓
+                    </T>
+                  ) : data.requested ? (
+                    <T variant="strong" color={colors.accentText}>
+                      Solicitud enviada
                     </T>
                   ) : null}
                 </View>

@@ -13,6 +13,7 @@ import { EventPoster, MiniPoster, PublicTournamentRow } from '../../../ui/event-
 import { matchesText } from '../../../domain/search';
 import { humanError } from '../../../ui/errors';
 import { joinPolicyOf } from '../../../data/types';
+import { tournamentJoinLabel } from '../../../ui/format';
 
 export default function TournamentsTab() {
   const { repo, userId, version, showFlash } = useApp();
@@ -53,8 +54,15 @@ export default function TournamentsTab() {
           const mine = data.mine.filter((item) => matchesText(search, item.tournament.name, item.groupName ?? ''));
           const pub = data.pub.filter((item) => matchesText(search, item.tournament.name, item.groupName ?? ''));
           const featuredId = data.sponsor?.tournamentId;
-          const featured = featuredId ? [...data.mine, ...data.pub.map((row) => ({ ...row, yourLabel: null, phase: null }))].find((row) => row.tournament.id === featuredId) : null;
+          const pubById = new Map(data.pub.map((row) => [row.tournament.id, row]));
+          const mineIds = new Set(data.mine.map((row) => row.tournament.id));
+          const featured = featuredId
+            ? (data.mine.find((row) => row.tournament.id === featuredId) ?? data.pub.find((row) => row.tournament.id === featuredId) ?? null)
+            : null;
           const heroSponsor = featured && data.sponsor?.tournamentId === featured.tournament.id ? data.sponsor : null;
+          const heroRegistered = featured ? mineIds.has(featured.tournament.id) || Boolean(pubById.get(featured.tournament.id)?.registered) : false;
+          const heroRequested = Boolean(featured && pubById.get(featured.tournament.id)?.requested);
+          const heroCanJoin = Boolean(featured && featured.tournament.status === 'registration' && !heroRegistered && !heroRequested);
           if (!data.mine.length && !data.pub.length && !search) {
             return (
               <Empty
@@ -74,20 +82,13 @@ export default function TournamentsTab() {
                   registeredCount={featured.registeredCount}
                   sponsor={heroSponsor}
                   onPress={() => open(featured.tournament.id)}
-                  onJoin={
-                    featured.tournament.status === 'registration' && !('registered' in featured && featured.registered)
-                      ? () => act(featured.tournament.id, joinPolicyOf(featured.tournament))
+                  onJoin={heroCanJoin ? () => act(featured.tournament.id, joinPolicyOf(featured.tournament)) : undefined}
+                  joinLabel={
+                    featured.tournament.status === 'registration'
+                      ? tournamentJoinLabel(heroRegistered, heroRequested, joinPolicyOf(featured.tournament) === 'open')
                       : undefined
                   }
-                  joinLabel={
-                    'registered' in featured && featured.registered
-                      ? 'Inscrito'
-                      : 'requested' in featured && featured.requested
-                        ? 'Pendiente'
-                        : joinPolicyOf(featured.tournament) === 'open'
-                          ? 'Inscribirme'
-                          : 'Pedir invitación'
-                  }
+                  joinDisabled={!heroCanJoin}
                 />
               ) : null}
               <SectionHead title="Mis torneos" action={mine.length ? `Ver los ${mine.length}` : undefined} />

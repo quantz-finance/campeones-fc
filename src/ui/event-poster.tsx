@@ -3,7 +3,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { Sponsor, Tournament } from '../data/types';
 import { Shield } from './broadcast';
-import { formatEventWhen, monogram, slotsLine, tournamentStatusLabel } from './format';
+import { formatEventWhen, monogram, slotsLine, tournamentJoinLabel, tournamentStatusLabel } from './format';
 import { colors, space } from './theme';
 import { T } from './text';
 
@@ -66,15 +66,15 @@ export function EventPoster({
           <T variant="tiny" color={colors.muted}>
             {slotsLine(registeredCount, tournament.maxPlayers)}
           </T>
-          {onJoin && joinLabel ? (
+          {joinLabel ? (
             <Pressable
               onPress={onJoin}
-              disabled={joinDisabled}
+              disabled={joinDisabled || !onJoin}
               accessibilityRole="button"
               accessibilityLabel={joinLabel}
-              style={[styles.join, joinDisabled ? styles.joinWait : styles.joinGo]}
+              style={[styles.join, joinDisabled || !onJoin ? styles.joinWait : styles.joinGo]}
             >
-              <T variant="label" color={joinDisabled ? colors.text : colors.ink}>
+              <T variant="label" color={joinDisabled || !onJoin ? colors.text : colors.ink}>
                 {joinLabel}
               </T>
             </Pressable>
@@ -113,7 +113,7 @@ export function MiniPoster({
       <T variant="tiny" color={status === 'completed' ? colors.up : status === 'registration' ? colors.violet : colors.accentText}>
         {tournamentStatusLabel(status)}
       </T>
-      {phase ? (
+      {phase && phase !== tournamentStatusLabel(status) ? (
         <T variant="tiny" color={colors.muted} numberOfLines={2}>
           {phase}
         </T>
@@ -147,8 +147,8 @@ export function PublicTournamentRow({
   onJoin: () => void;
 }) {
   const open = tournament.joinPolicy !== 'invite';
-  const canJoin = tournament.status === 'registration' && !registered;
-  const label = registered ? 'Inscrito' : requested ? 'Pendiente' : open ? 'Inscribirme' : 'Pedir invitación';
+  const canJoin = tournament.status === 'registration' && !registered && !requested;
+  const label = tournamentJoinLabel(registered, requested, open);
   return (
     <View style={styles.row}>
       <Pressable onPress={onOpen} style={styles.rowMain} accessibilityRole="button" accessibilityLabel={tournament.name}>
@@ -175,7 +175,7 @@ export function PublicTournamentRow({
           accessibilityLabel={label}
           style={[styles.join, !canJoin || requested || busy ? styles.joinWait : open ? styles.joinGo : styles.joinGhost]}
         >
-          <T variant="label" color={!canJoin || requested || !open ? colors.text : colors.ink} style={{ fontSize: 12 }}>
+          <T variant="strong" color={!canJoin || requested || !open ? colors.text : colors.ink} style={{ fontSize: 12, textTransform: 'none', letterSpacing: 0 }} numberOfLines={2}>
             {busy ? 'Un momento…' : label}
           </T>
         </Pressable>

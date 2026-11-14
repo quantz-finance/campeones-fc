@@ -532,7 +532,8 @@ export function createSupabaseRepository(): Repository {
       const rows = (data ?? []) as Row[];
       const world = await worldFor(me);
       const byId = new Map(world.groups.map((g) => [g.id, g]));
-      return rows.map((row) => {
+      const mine = new Set(world.groupMembers.filter((m) => m.userId === me).map((m) => m.groupId));
+      return rows.filter((row) => !mine.has(asString(row.id))).map((row) => {
         const id = asString(row.id);
         const joinPolicy = row.join_policy === 'open' ? 'open' as const : 'invite' as const;
         const group = byId.get(id) ?? {

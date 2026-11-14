@@ -379,8 +379,8 @@ export function tournamentYourLabel(db: World, cup: Tournament, me: string): str
 }
 
 export function tournamentPhase(db: World, cup: Tournament): string | null {
-  if (cup.status === 'registration') return 'Inscripciones abiertas';
-  if (cup.status === 'completed') return 'Finalizado';
+  // El estado ya se pinta en el mini-póster; acá solo va la fase (cuartos, liga, etc.).
+  if (cup.status === 'registration' || cup.status === 'completed') return null;
   const size = cup.size ?? cup.playerIds.length;
   const rounds = totalRounds(cup.format, size || 2);
   if (cup.format === 'round_robin') return 'Todos contra todos';

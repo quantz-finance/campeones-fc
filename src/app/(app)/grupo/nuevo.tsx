@@ -72,9 +72,6 @@ export default function NewGroup() {
       <Panel>
         <AccessFields visibility={visibility} joinPolicy={joinPolicy} onVisibility={setVisibility} onPolicy={setJoinPolicy} kind="group" />
       </Panel>
-      <Panel>
-        <LogoPicker kind="groups" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
-      </Panel>
       <Gate query={friends}>
         {(data) => {
           const ids = new Set(data.friends.map((f) => f.profile.id));
@@ -111,6 +108,9 @@ export default function NewGroup() {
           );
         }}
       </Gate>
+      <Panel>
+        <LogoPicker kind="groups" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
+      </Panel>
       {error ? <Banner tone="danger" title="No se creó" body={error} /> : null}
     </Screen>
   );

@@ -1,6 +1,10 @@
 import { plausibleIso } from '../domain/dates';
 import type { MatchStatus, Outcome } from '../domain/types';
 import type { SideRecord, Streak } from '../domain/stats';
+import { civilInZone } from './costa-rica-time';
+
+const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 export function pct(rate: number): string {
   if (!Number.isFinite(rate) || rate <= 0) return '0%';
@@ -69,20 +73,28 @@ export function formatDay(iso: string | null | undefined): string {
   return new Intl.DateTimeFormat('es-CR', { day: 'numeric', month: 'short' }).format(new Date(at));
 }
 
-/** Sáb 28 nov · 9:00. Vacío si la fecha no es creíble. */
+/** Vie 27 nov · 9:00 PM, en hora de Costa Rica. Vacío si la fecha no es creíble. */
 export function formatEventWhen(iso: string | null | undefined): string {
   const at = plausibleIso(iso);
   if (!at) return '';
-  const raw = new Intl.DateTimeFormat('es-CR', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(new Date(at));
-  const cleaned = raw.replace(',', '').replace(/\s+/g, ' ').trim();
-  const marked = cleaned.replace(/(\d{1,2}:\d{2})/, '· $1');
-  return marked ? marked[0].toUpperCase() + marked.slice(1) : '';
+  const civil = civilInZone(at);
+  const weekday = new Date(Date.UTC(civil.year, civil.month - 1, civil.day)).getUTCDay();
+  const hour12 = civil.hour % 12 === 0 ? 12 : civil.hour % 12;
+  const period = civil.hour < 12 ? 'AM' : 'PM';
+  const minute = String(civil.minute).padStart(2, '0');
+  return `${WEEKDAYS[weekday]} ${civil.day} ${MONTHS[civil.month - 1]} · ${hour12}:${minute} ${period}`;
+}
+
+export function tournamentJoinLabel(registered: boolean, requested: boolean, open: boolean): string {
+  if (registered) return 'Inscrito ✓';
+  if (requested) return 'Solicitud enviada';
+  return open ? 'Inscribirme' : 'Pedir invitación';
+}
+
+export function groupJoinLabel(member: boolean, requested: boolean, open: boolean): string {
+  if (member) return 'Miembro ✓';
+  if (requested) return 'Solicitud enviada';
+  return open ? 'Unirme' : 'Pedir invitación';
 }
 
 export function slotsLine(registered: number, max: number | null | undefined): string {

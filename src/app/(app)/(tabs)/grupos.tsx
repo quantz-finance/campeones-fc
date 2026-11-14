@@ -13,6 +13,7 @@ import { rememberPick, useRecentPicks } from '../../../ui/recent-picks';
 import { matchesText } from '../../../domain/search';
 import { ClubCromo, CrestRow, MiniCromo } from '../../../ui/club-cromo';
 import { humanError } from '../../../ui/errors';
+import { visibilityOf } from '../../../data/types';
 
 export default function Groups() {
   const { repo, userId, version, showFlash } = useApp();
@@ -57,7 +58,9 @@ export default function Groups() {
           const others = mine.filter((item) => item.group.id !== featuredId).map((item) => item.group);
           const shown = others.slice(0, 5);
           const extra = Math.max(0, others.length - shown.length);
-          const pub = data.pub.filter((item) => matchesText(search, item.group.name));
+          const mineIds = new Set(data.mine.map((item) => item.group.id));
+          const pub = data.pub.filter((item) => !mineIds.has(item.group.id) && matchesText(search, item.group.name));
+          const mineTitle = data.mine.some((item) => visibilityOf(item.group) === 'public') ? 'Mis grupos' : 'Mis grupos · privados';
           const cromoSponsor = data.sponsor?.groupId && featured?.group.id === data.sponsor.groupId ? data.sponsor : null;
           if (!mine.length && !data.pub.length && !search) {
             return (
@@ -73,7 +76,7 @@ export default function Groups() {
               {search && !mine.length && !pub.length ? <SearchEmpty query={search} hint="Revisa el nombre del grupo." /> : null}
               {featured ? (
                 <>
-                  <SectionHead title="Mis grupos · privados" action={String(data.mine.length)} />
+                  <SectionHead title={mineTitle} action={String(data.mine.length)} />
                   <ClubCromo
                     group={featured.group}
                     memberCount={featured.memberCount}
@@ -99,8 +102,9 @@ export default function Groups() {
                       memberCount={item.memberCount}
                       joinPolicy={item.joinPolicy}
                       requested={item.requested}
+                      member={mineIds.has(item.group.id)}
                       busy={busyId === item.group.id}
-                      onOpen={() => {}}
+                      onOpen={() => open(item.group.id)}
                       onJoin={() => act(item.group.id, item.joinPolicy)}
                     />
                   ))}
@@ -115,5 +119,5 @@ export default function Groups() {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: space.md },
 });

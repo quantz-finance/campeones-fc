@@ -340,6 +340,9 @@ export function projectTournament(db: World, tournamentId: string, userId: strin
     registrations,
     joinRequests,
     isOrganizer,
+    requested: (db.tournamentJoinRequests ?? []).some(
+      (item) => item.tournamentId === tournament.id && item.userId === userId && item.status === 'pending',
+    ),
   };
 }
 
