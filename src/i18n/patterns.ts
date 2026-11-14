@@ -4,6 +4,7 @@ export const enPatterns: [RegExp, string][] = [
   [/^(\d+) elegidos$/, '$1 picked'],
   [/^Contra (.+)$/, 'Against $1'],
   [/^Ranking #(\d+) de (\d+)$/, 'Rank #$1 of $2'],
+  [/^(\d+) de (\d+)$/, '$1 of $2'],
   [/^Ficha de (.+)$/, '$1 player card'],
   [/^Elige uno de los (\d+) escudos o sube tu foto\.$/, 'Pick one of the $1 crests or upload your photo.'],
   [/^Elige uno de los (\d+) trofeos o sube tu foto\.$/, 'Pick one of the $1 trophies or upload your photo.'],
