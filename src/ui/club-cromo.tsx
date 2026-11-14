@@ -136,7 +136,10 @@ export function MiniCromo({
   return (
     <View style={styles.miniWrap}>
       <FoilFrame tone="lilac" radius={14}>
-        <Pressable onPress={onOpen} accessibilityRole="button" accessibilityLabel={group.name} style={styles.mini}>
+        {/* El botón de unirse va al lado (no dentro) del que abre el grupo: un botón dentro de otro
+            queda invisible para VoiceOver. */}
+        <View style={styles.mini}>
+          <Pressable onPress={onOpen} accessibilityRole="button" accessibilityLabel={group.name} style={styles.miniOpen}>
           <Shield letters={monogram(group.name)} photoUrl={group.photoUrl} kind="groups" id={group.id} logo={group.logo} size={52} />
           <T variant="strong" style={styles.miniName} numberOfLines={2}>
             {group.name}
@@ -147,6 +150,7 @@ export function MiniCromo({
           <T variant="tiny" color={open ? colors.accentText : colors.violet}>
             {open ? 'Abierto' : 'Con invitación'}
           </T>
+          </Pressable>
           <Pressable
             onPress={onJoin}
             disabled={locked}
@@ -158,7 +162,7 @@ export function MiniCromo({
               {busy ? 'Un momento…' : label}
             </T>
           </Pressable>
-        </Pressable>
+        </View>
       </FoilFrame>
     </View>
   );
@@ -205,6 +209,7 @@ const styles = StyleSheet.create({
   more: { marginLeft: 'auto' },
   miniWrap: { width: '48.5%' },
   mini: { padding: 11, alignItems: 'center', gap: 6, minHeight: 196 },
+  miniOpen: { alignItems: 'center', gap: 6, alignSelf: 'stretch' },
   miniName: { textAlign: 'center', fontSize: 15 },
   cta: {
     alignSelf: 'stretch',

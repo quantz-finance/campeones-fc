@@ -29,8 +29,10 @@ export function EventPoster({
   joinDisabled?: boolean;
 }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={tournament.name}>
-      <View style={styles.hero}>
+    // Inscribirme va al lado (no dentro) del botón que abre el torneo: un botón dentro de otro
+    // queda invisible para VoiceOver.
+    <View style={styles.hero}>
+      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={tournament.name} style={styles.heroOpen}>
         <T variant="tiny" color={FOIL} style={styles.kicker}>
           {formatEventWhen(tournament.startsAt) || tournamentStatusLabel(tournament.status === 'registration' ? 'registration' : tournament.status)}
         </T>
@@ -62,6 +64,7 @@ export function EventPoster({
             </T>
           )}
         </View>
+      </Pressable>
         <View style={styles.heroFoot}>
           <T variant="tiny" color={colors.muted}>
             {slotsLine(registeredCount, tournament.maxPlayers)}
@@ -80,8 +83,7 @@ export function EventPoster({
             </Pressable>
           ) : null}
         </View>
-      </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -212,6 +214,7 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 8,
   },
+  heroOpen: { gap: 8 },
   kicker: { letterSpacing: 0.4, textTransform: 'uppercase' },
   heroName: { fontStyle: 'normal', fontSize: 28, lineHeight: 32 },
   heroMid: { flexDirection: 'row', gap: space.md, alignItems: 'center', marginTop: 4 },
