@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   cellNum: { fontSize: 17, lineHeight: 20, letterSpacing: -0.5, fontStyle: 'normal' },
   // 10 pt Outfit 700 (más legible que los 7.5 pt del mockup); 2 líneas si no cabe.
   cellLabel: { fontSize: 10, lineHeight: 12, letterSpacing: 0.2, textAlign: 'center', fontStyle: 'normal' },
-  foot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginTop: 12 },
+  foot: { gap: 8, marginTop: 12 },
   badges: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   achievements: { fontSize: 10, lineHeight: 13, letterSpacing: 1.3, fontStyle: 'normal' },
   more: { fontSize: 14, fontWeight: '800', letterSpacing: 0.2, color: '#F1D27A' },
