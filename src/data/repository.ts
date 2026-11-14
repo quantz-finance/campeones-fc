@@ -100,5 +100,10 @@ export type Repository = {
   markNoticesRead(me: string, ids?: string[]): Promise<void>;
   /** Descarta la caché y avisa a las pantallas (al volver a la app, o como respaldo de Realtime). */
   invalidate(): void;
+  /**
+   * Relee todo en segundo plano y avisa a las pantallas solo si algo cambió (respaldo de Realtime).
+   * Devuelve true si hubo cambios. Opcional: sin él se usa invalidate().
+   */
+  refresh?(userId: string): Promise<boolean>;
   subscribe(listener: () => void): () => void;
 };

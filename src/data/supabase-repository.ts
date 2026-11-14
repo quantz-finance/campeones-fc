@@ -9,6 +9,7 @@ import { DomainError, remoteError } from '../domain/errors';
 import type { Match, MatchReport, ReportDraft, Slot } from '../domain/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabase } from '../lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Notice } from './notices';
 import {
   projectFriends,
@@ -120,14 +121,65 @@ async function saveLogoSoft(kind: 'groups' | 'tournaments', id: string, logo: st
   if (error && !logoRpcMissing(error)) console.warn('[logo]', error.message);
 }
 
+/** ¿Dos lecturas del mundo traen exactamente lo mismo? Primero los tamaños (barato) y luego el contenido. */
+function sameWorld(a: World, b: World): boolean {
+  const keys = Object.keys(a) as (keyof World)[];
+  for (const key of keys) if (a[key].length !== b[key].length) return false;
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Columnas de partidos que usa la app. Sin `select('*')`: chain_payload, chain_hash y compañía
+ * eran ~60 % del peso del mundo (1,4 MB de 1,8 MB) y la app nunca los lee.
+ */
+const MATCH_COLUMNS =
+  'id,player_a_id,player_b_id,status,group_id,tournament_id,tournament_slot_id,winner_id,is_draw,goals_a,goals_b,created_at,expires_at,accepted_at,confirmed_at,rating_a_before,rating_b_before,rating_delta_a,rating_delta_b,chain_status,chain_tx,chain_network,is_demo';
+
+/** Estados de partido que todavía miran los reportes (en juego o en disputa). */
+const REPORT_STATUSES = new Set(['in_progress', 'disputed']);
+
+/**
+ * Reportes solo de partidos abiertos. Pedir los 1.600 reportes de una vez costaba ~2 s en el
+ * servidor (la regla de seguridad se evalúa fila por fila); los cerrados no se usan en las listas
+ * y el detalle de un partido pide los suyos aparte.
+ */
+async function pullOpenReports(matchRows: Row[]) {
+  const ids = matchRows.filter((row) => REPORT_STATUSES.has(asString(row.status))).map((row) => asString(row.id));
+  if (!ids.length) return { data: [] as Row[], error: null };
+  const supabase = getSupabase();
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += 80) chunks.push(ids.slice(i, i + 80));
+  const results = await Promise.all(chunks.map((chunk) => supabase.from('match_reports').select('*').in('match_id', chunk)));
+  const failed = results.find((result) => result.error);
+  if (failed) return { data: null, error: failed.error };
+  return { data: results.flatMap((result) => (result.data ?? []) as Row[]), error: null };
+}
+
+function mapReport(row: Row): MatchReport {
+  return {
+    matchId: asString(row.match_id),
+    reporterId: asString(row.reporter_id),
+    winnerId: asNullable(row.winner_id),
+    isDraw: asBool(row.is_draw),
+    goalsA: asNumber(row.goals_a),
+    goalsB: asNumber(row.goals_b),
+    updatedAt: asString(row.updated_at),
+  };
+}
+
 async function pullWorld(userId: string): Promise<World> {
   const supabase = getSupabase();
+  const matchesQuery = supabase.from('matches').select(MATCH_COLUMNS);
   const [profiles, friendships, matches, reports, groups, members, tournaments, slots, achievements, invites, groupReqs, cupRegs, cupReqs, sponsors] =
     await Promise.all([
       supabase.from('profiles').select('*'),
       supabase.from('friendships').select('*'),
-      supabase.from('matches').select('*'),
-      supabase.from('match_reports').select('*'),
+      matchesQuery,
+      matchesQuery.then((result) => (result.error ? { data: null, error: null } : pullOpenReports((result.data ?? []) as unknown as Row[]))),
       supabase.from('groups').select('*'),
       supabase.from('group_members').select('*'),
       supabase.from('tournaments').select('*'),
@@ -161,18 +213,8 @@ async function pullWorld(userId: string): Promise<World> {
       respondedAt: asNullable(row.responded_at),
     }),
   );
-  world.matches = ((matches.data ?? []) as Row[]).map(mapMatch);
-  world.reports = ((reports.data ?? []) as Row[]).map(
-    (row): MatchReport => ({
-      matchId: asString(row.match_id),
-      reporterId: asString(row.reporter_id),
-      winnerId: asNullable(row.winner_id),
-      isDraw: asBool(row.is_draw),
-      goalsA: asNumber(row.goals_a),
-      goalsB: asNumber(row.goals_b),
-      updatedAt: asString(row.updated_at),
-    }),
-  );
+  world.matches = ((matches.data ?? []) as unknown as Row[]).map(mapMatch);
+  world.reports = ((reports.data ?? []) as Row[]).map(mapReport);
   world.groups = ((groups.data ?? []) as Row[]).map(
     (row): Group => ({
       id: asString(row.id),
@@ -307,8 +349,18 @@ export function createSupabaseRepository(): Repository {
   const listeners = new Set<() => void>();
   let generation = 0;
   const notify = () => {
+    if (burst) {
+      clearTimeout(burst);
+      burst = null;
+    }
     generation += 1;
     for (const listener of listeners) listener();
+  };
+  // Los eventos de Realtime llegan en ráfaga (partido + 2 reportes + logros): uno solo relee todo.
+  let burst: ReturnType<typeof setTimeout> | null = null;
+  const notifySoon = () => {
+    if (burst) clearTimeout(burst);
+    burst = setTimeout(notify, 250);
   };
   // Realtime por usuario: se (re)conecta con la sesión ya puesta, y al reconectar se vuelve a leer todo
   // (los eventos que pasaron con la pestaña dormida o sin red no llegan solos).
@@ -324,14 +376,14 @@ export function createSupabaseRepository(): Repository {
       ({ event: '*', schema: 'public', table, ...(filter ? { filter } : {}) }) as const;
     const next = supabase
       .channel(`cfc-${userId}-${Date.now().toString(36)}`)
-      .on('postgres_changes', watch('matches'), notify)
-      .on('postgres_changes', watch('match_reports'), notify)
-      .on('postgres_changes', watch('friendships'), notify)
-      .on('postgres_changes', watch('tournaments'), notify)
-      .on('postgres_changes', watch('tournament_slots'), notify)
-      .on('postgres_changes', watch('achievements'), notify)
-      .on('postgres_changes', watch('match_stakes'), notify)
-      .on('postgres_changes', watch('notifications', `user_id=eq.${userId}`), notify);
+      .on('postgres_changes', watch('matches'), notifySoon)
+      .on('postgres_changes', watch('match_reports'), notifySoon)
+      .on('postgres_changes', watch('friendships'), notifySoon)
+      .on('postgres_changes', watch('tournaments'), notifySoon)
+      .on('postgres_changes', watch('tournament_slots'), notifySoon)
+      .on('postgres_changes', watch('achievements'), notifySoon)
+      .on('postgres_changes', watch('match_stakes'), notifySoon)
+      .on('postgres_changes', watch('notifications', `user_id=eq.${userId}`), notifySoon);
     channel = next;
     next.subscribe((status) => {
       if (channel !== next) return;
@@ -354,18 +406,38 @@ export function createSupabaseRepository(): Repository {
 
   // Un solo pull por cambio: inicio, grupos y perfil piden snapshots a la vez y comparten el mismo mundo.
   let cache: { userId: string; gen: number; world: Promise<World> } | null = null;
+  // Al abrir la app se pinta con el último mundo guardado en el teléfono y se relee detrás
+  // (stale-while-revalidate): ninguna pantalla espera la red para salir.
+  const restored = new Set<string>();
   async function worldFor(userId: string) {
     connect(userId);
     if (cache && cache.userId === userId && cache.gen === generation) return cache.world;
+    if (!restored.has(userId)) {
+      restored.add(userId);
+      const gen = generation;
+      const saved = await readSavedWorld(userId);
+      if (saved && generation === gen && !(cache && cache.userId === userId && cache.gen === generation)) {
+        cache = { userId, gen: generation, world: Promise.resolve(saved) };
+        setTimeout(() => {
+          void api.refresh!(userId).catch(() => undefined);
+        }, 0);
+        return cache.world;
+      }
+      if (cache && cache.userId === userId && cache.gen === generation) return cache.world;
+    }
     const entry = { userId, gen: generation, world: pullWorld(userId) };
     cache = entry;
-    entry.world.catch(() => {
-      if (cache === entry) cache = null;
-    });
+    entry.world.then(
+      (world) => saveWorldSoon(userId, world),
+      () => {
+        if (cache === entry) cache = null;
+      },
+    );
     return entry.world;
   }
 
-  return {
+
+  const api: Repository = {
     mode: 'supabase',
     async getProfile(userId) {
       const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
@@ -473,7 +545,16 @@ export function createSupabaseRepository(): Repository {
       return mapMatch(data as Row);
     },
     async matchSnapshot(matchId, me) {
-      return projectMatch(await worldFor(me), matchId, me);
+      const world = await worldFor(me);
+      const match = world.matches.find((item) => item.id === matchId);
+      // El mundo solo trae reportes de partidos abiertos: los de un partido cerrado se piden aquí.
+      if (match && !REPORT_STATUSES.has(match.status) && !world.reports.some((report) => report.matchId === matchId)) {
+        const { data, error } = await supabase.from('match_reports').select('*').eq('match_id', matchId);
+        fail(error);
+        const extra = ((data ?? []) as Row[]).map(mapReport);
+        return projectMatch({ ...world, reports: [...world.reports, ...extra] }, matchId, me);
+      }
+      return projectMatch(world, matchId, me);
     },
     async acceptMatch(matchId) {
       const { data, error } = await supabase.rpc('accept_match', { match_id: matchId });
@@ -781,6 +862,20 @@ export function createSupabaseRepository(): Repository {
     invalidate() {
       notify();
     },
+    async refresh(userId) {
+      connect(userId);
+      const startGen = generation;
+      const fresh = await pullWorld(userId);
+      // Mientras leíamos llegó otro cambio (Realtime o una acción): ese aviso ya pone todo al día.
+      if (generation !== startGen) return false;
+      const current = cache && cache.userId === userId ? await cache.world.catch(() => null) : null;
+      if (current && sameWorld(current, fresh)) return false;
+      generation += 1;
+      cache = { userId, gen: generation, world: Promise.resolve(fresh) };
+      saveWorldSoon(userId, fresh);
+      for (const listener of listeners) listener();
+      return true;
+    },
     subscribe(listener) {
       listeners.add(listener);
       return () => {
@@ -788,4 +883,55 @@ export function createSupabaseRepository(): Repository {
       };
     },
   };
+  return api;
+}
+
+// ── Mundo guardado en el teléfono ────────────────────────────────────────────────────────────
+// Solo datos que esta cuenta ya podía ver (lo mismo que trae la red), por usuario. Se guarda con el
+// hilo libre y sin bloquear; si algo falla, simplemente se lee de la red como antes.
+const WORLD_KEY = 'campeonesfc.world.v1:';
+const WORLD_SAVE_MS = 1500;
+const saveTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+async function readSavedWorld(userId: string): Promise<World | null> {
+  try {
+    const raw = await AsyncStorage.getItem(WORLD_KEY + userId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { v: number; world: World };
+    if (parsed?.v !== 1 || !parsed.world) return null;
+    const base = emptyWorld();
+    for (const key of Object.keys(base) as (keyof World)[]) {
+      if (!Array.isArray(parsed.world[key])) return null;
+    }
+    return { ...base, ...parsed.world };
+  } catch {
+    return null;
+  }
+}
+
+function saveWorldSoon(userId: string, world: World) {
+  const pending = saveTimers.get(userId);
+  if (pending) clearTimeout(pending);
+  saveTimers.set(
+    userId,
+    setTimeout(() => {
+      saveTimers.delete(userId);
+      try {
+        void AsyncStorage.setItem(WORLD_KEY + userId, JSON.stringify({ v: 1, world })).catch(() => undefined);
+      } catch {
+        // Sin espacio o sin almacenamiento: no pasa nada, la próxima vez se lee de la red.
+      }
+    }, WORLD_SAVE_MS),
+  );
+}
+
+/** Al cerrar sesión: borra los mundos guardados en este dispositivo. */
+export async function forgetSavedWorlds(): Promise<void> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const mine = keys.filter((key) => key.startsWith(WORLD_KEY));
+    if (mine.length) await AsyncStorage.multiRemove(mine);
+  } catch {
+    // nada
+  }
 }
