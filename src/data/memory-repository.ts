@@ -1,6 +1,6 @@
 import { projectPublicPlayer } from './public-player';
 import { branding } from '../../config/branding';
-import { trophyCatalog } from '../content/trophies';
+import { projectTrophies } from './project-trophies';
 import type { ReportDraft } from '../domain/types';
 import {
   mutateAccept,
@@ -187,11 +187,7 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
       return commit((world, at) => mutateReopen(world, slotId, me, at));
     },
     async trophies(me): Promise<TrophyView[]> {
-      const earned = view().achievements.filter((item) => item.userId === me);
-      return trophyCatalog.map((trophy) => {
-        const hit = earned.find((item) => item.code === trophy.code);
-        return { ...trophy, earned: Boolean(hit), earnedAt: hit?.earnedAt ?? null };
-      });
+      return projectTrophies(view(), me);
     },
     async expireStale() {
       const count = await commit((world, at) => mutateExpire(world, at), true);

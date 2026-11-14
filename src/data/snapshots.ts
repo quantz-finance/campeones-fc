@@ -108,8 +108,11 @@ export type TrophyView = {
   code: AchievementCode;
   title: string;
   description: string;
+  section: import('../content/trophies').TrophySectionId;
+  rarity: import('../content/trophies').TrophyRarity;
   earned: boolean;
   earnedAt: string | null;
+  progress: { current: number; target: number } | null;
 };
 
 /** Un jugador en la portada (inicio): solo datos que salen de partidos confirmados. */

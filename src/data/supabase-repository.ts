@@ -2,7 +2,8 @@ import { fetchPublicPlayer } from '../lib/api';
 import { projectPublicPlayer } from './public-player';
 import { cleanSocialLinks } from '../domain/social';
 import { hideDemo, joinDemo } from './demo-filter';
-import { trophyCatalog } from '../content/trophies';
+import { projectTrophies } from './project-trophies';
+import { normalizeAchievementCode } from '../domain/types';
 import { DomainError, remoteError } from '../domain/errors';
 import type { Match, MatchReport, ReportDraft, Slot } from '../domain/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -202,15 +203,19 @@ async function pullWorld(userId: string): Promise<World> {
       matchId: asNullable(row.match_id),
     }),
   );
-  world.achievements = ((achievements.data ?? []) as Row[]).map(
-    (row): Achievement => ({
-      id: asString(row.id),
-      userId: asString(row.user_id),
-      code: asString(row.code) as Achievement['code'],
-      earnedAt: asString(row.earned_at),
-      refId: asNullable(row.ref_id),
-    }),
-  );
+  world.achievements = ((achievements.data ?? []) as Row[]).flatMap((row): Achievement[] => {
+    const code = normalizeAchievementCode(asString(row.code));
+    if (!code) return [];
+    return [
+      {
+        id: asString(row.id),
+        userId: asString(row.user_id),
+        code,
+        earnedAt: asString(row.earned_at),
+        refId: asNullable(row.ref_id),
+      },
+    ];
+  });
   world.invites = ((invites.data ?? []) as Row[]).map(
     (row): Invite => ({
       code: asString(row.code),
@@ -480,12 +485,7 @@ export function createSupabaseRepository(): Repository {
       return mapMatch(data as Row);
     },
     async trophies(me): Promise<TrophyView[]> {
-      const world = await worldFor(me);
-      const earned = world.achievements.filter((item) => item.userId === me);
-      return trophyCatalog.map((trophy) => {
-        const hit = earned.find((item) => item.code === trophy.code);
-        return { ...trophy, earned: Boolean(hit), earnedAt: hit?.earnedAt ?? null };
-      });
+      return projectTrophies(await worldFor(me), me);
     },
     async expireStale() {
       const { data, error } = await supabase.rpc('expire_pending_matches');

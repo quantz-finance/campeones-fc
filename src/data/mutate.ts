@@ -86,7 +86,10 @@ export function syncAchievements(db: World, userId: string, now: Date) {
   const codes = earnedAchievementCodes({
     playerId: userId,
     matches: db.matches,
-    tournamentWins: db.tournaments.filter((tournament) => tournament.winnerId === userId).length,
+    groups: db.groups,
+    groupMembers: db.groupMembers,
+    tournaments: db.tournaments,
+    slots: db.slots,
   });
   for (const code of codes) {
     if (db.achievements.some((item) => item.userId === userId && item.code === code)) continue;
@@ -96,7 +99,7 @@ export function syncAchievements(db: World, userId: string, now: Date) {
       userId,
       code,
       earnedAt: now.toISOString(),
-      refId: code === 'tournament_champion' ? (tournament?.id ?? null) : null,
+      refId: code === 'campeon-torneo' ? (tournament?.id ?? null) : null,
     });
   }
 }

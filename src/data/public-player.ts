@@ -1,6 +1,6 @@
 // Ficha pública de un jugador (/jugador/[id]). La arma el cliente (con su mundo visible) o el servidor
 // (api/jugador, para quien no tiene cuenta). Solo datos de partidos confirmados y lo que el jugador escribió.
-import { trophyCatalog } from '../content/trophies';
+import { projectEarnedPublic } from './project-trophies';
 import { replayRatings } from '../domain/elo';
 import { DomainError } from '../domain/errors';
 import { rules } from '../domain/rules';
@@ -66,7 +66,6 @@ export function projectPublicPlayer(db: World, playerId: string, viewer: string 
   const { qualified } = rankPlayers(ids, confirmed);
   const index = qualified.findIndex((row) => row.playerId === playerId);
   const newest = mine.slice().reverse();
-  const catalog = new Map(trophyCatalog.map((trophy) => [trophy.code, trophy.title]));
   return {
     profile: {
       ...publicPerson(db, playerId)!,
@@ -86,12 +85,7 @@ export function projectPublicPlayer(db: World, playerId: string, viewer: string 
     bestWinStreak: record.bestWinStreak,
     streak: record.currentStreak,
     form: newest.slice(0, 5).map((match) => resultOf(match, playerId)),
-    achievements: db.achievements
-      .filter((item) => item.userId === playerId)
-      .slice()
-      .sort((a, b) => b.earnedAt.localeCompare(a.earnedAt))
-      .filter((item, i, all) => all.findIndex((other) => other.code === item.code) === i)
-      .map((item) => ({ code: item.code, title: catalog.get(item.code) ?? item.code, earnedAt: item.earnedAt })),
+    achievements: projectEarnedPublic(db, playerId),
     titles: db.tournaments
       .filter((cup) => cup.winnerId === playerId && cup.status === 'completed')
       .map((cup) => ({ id: cup.id, name: cup.name, photoUrl: cup.photoUrl ?? null, logo: cup.logo ?? null })),
