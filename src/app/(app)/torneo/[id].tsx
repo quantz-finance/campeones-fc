@@ -8,13 +8,14 @@ import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { SectionHead, Toro } from '../../../ui/broadcast';
-import { Button, Chip, Field, Gate } from '../../../ui/controls';
+import { Button, Chip, Gate } from '../../../ui/controls';
 import { firstName, scoreText, slotsLine, tournamentStatusLabel } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
 import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { LogoEditor } from '../../../ui/logo-picker';
 import { AccessFields } from '../../../ui/access-fields';
+import { DateTimePicker } from '../../../ui/datetime-picker';
 import { humanError } from '../../../ui/errors';
 import { joinPolicyOf, visibilityOf, type JoinPolicy, type Visibility } from '../../../data/types';
 import { Avatar } from '../../../ui/avatar';
@@ -27,7 +28,7 @@ export default function TournamentScreen() {
   const [visibility, setVisibility] = useState<Visibility | null>(null);
   const [joinPolicy, setJoinPolicy] = useState<JoinPolicy | null>(null);
   const [maxPlayers, setMaxPlayers] = useState<number | null>(null);
-  const [startsAt, setStartsAt] = useState('');
+  const [startsAt, setStartsAt] = useState<string | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
 
 
@@ -95,7 +96,7 @@ export default function TournamentScreen() {
                               <Chip key={n} label={String(n)} active={(maxPlayers ?? data.tournament.maxPlayers) === n} onPress={() => setMaxPlayers(n)} />
                             ))}
                           </View>
-                          <Field label="Inicio (opcional)" value={startsAt} onChangeText={setStartsAt} placeholder="2026-11-28 21:00" autoCapitalize="none" />
+                          <DateTimePicker value={startsAt === undefined ? data.tournament.startsAt ?? null : startsAt} onChange={setStartsAt} />
                         </>
                       ) : null}
                       <Button
@@ -103,22 +104,14 @@ export default function TournamentScreen() {
                         pending={busy}
                         onPress={() => {
                           setBusy(true);
-                          let starts: string | null | undefined;
-                          try {
-                            const raw = startsAt.trim();
-                            starts = raw ? new Date(raw.includes('T') ? raw : raw.replace(' ', 'T')).toISOString() : undefined;
-                            if (starts && Number.isNaN(Date.parse(starts))) throw new Error('bad');
-                          } catch {
-                            setBusy(false);
-                            showFlash({ id: `starts-${data.tournament.id}`, title: 'Revisa la fecha', body: 'Ponla como 2026-11-28 21:00.', tone: 'danger' });
-                            return;
-                          }
+                          const starts = startsAt === undefined ? data.tournament.startsAt ?? null : startsAt;
                           void repo
                             .setTournamentAccess(userId!, data.tournament.id, {
                               visibility: visibility ?? visibilityOf(data.tournament),
                               joinPolicy: joinPolicy ?? joinPolicyOf(data.tournament),
                               maxPlayers: maxPlayers ?? data.tournament.maxPlayers,
-                              startsAt: starts ?? null,
+                              startsAt: starts,
+                              clearStarts: starts == null,
                             })
                             .then(() => showFlash({ id: `t-access-${data.tournament.id}`, title: 'Acceso actualizado', tone: 'accent' }))
                             .catch((cause: unknown) => showFlash({ id: `t-access-error-${data.tournament.id}`, title: 'No se pudo guardar', body: humanError(cause), tone: 'danger' }))

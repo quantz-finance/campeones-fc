@@ -8,7 +8,7 @@ import { Screen, Top } from '../../../ui/screen';
 import { space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { push } from '../../../ui/nav';
-import { SearchEmpty, SearchField } from '../../../ui/search-field';
+import { SearchCreateRow, SearchEmpty } from '../../../ui/search-field';
 import { rememberPick, useRecentPicks } from '../../../ui/recent-picks';
 import { matchesText } from '../../../domain/search';
 import { ClubCromo, CrestRow, MiniCromo } from '../../../ui/club-cromo';
@@ -47,8 +47,8 @@ export default function Groups() {
 
   return (
     <Screen tab>
-      <Top title="Grupos" kicker="La junta" right={<Button label="+" onPress={() => push('/grupo/nuevo')} />} />
-      <SearchField value={search} onChange={setSearch} placeholder="Busca un grupo" />
+      <Top title="Grupos" kicker="La junta" />
+      <SearchCreateRow value={search} onChange={setSearch} placeholder="Busca un grupo" onCreate={() => push('/grupo/nuevo')} createLabel="Crear grupo" />
       <Gate query={query}>
         {(data) => {
           const mine = data.mine.filter((item) => matchesText(search, item.group.name));

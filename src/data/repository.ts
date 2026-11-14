@@ -67,7 +67,7 @@ export type Repository = {
   setTournamentAccess(
     me: string,
     tournamentId: string,
-    patch: { visibility: Visibility; joinPolicy: JoinPolicy; maxPlayers?: number | null; startsAt?: string | null },
+    patch: { visibility: Visibility; joinPolicy: JoinPolicy; maxPlayers?: number | null; startsAt?: string | null; clearStarts?: boolean },
   ): Promise<void>;
   createRegistrationTournament(input: RegistrationTournamentInput): Promise<{ id: string }>;
   startTournament(me: string, tournamentId: string): Promise<void>;

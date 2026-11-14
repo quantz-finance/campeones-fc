@@ -631,7 +631,8 @@ export function createSupabaseRepository(): Repository {
         new_visibility: patch.visibility,
         new_join_policy: patch.joinPolicy,
         new_max_players: patch.maxPlayers ?? null,
-        new_starts_at: patch.startsAt ?? null,
+        new_starts_at: patch.clearStarts ? null : patch.startsAt ?? null,
+        clear_starts: Boolean(patch.clearStarts),
       });
       fail(error);
       notify();

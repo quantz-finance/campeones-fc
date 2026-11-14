@@ -472,7 +472,6 @@ export function mutateCreateGroup(db: World, me: string, name: string, memberIds
     throw new DomainError('bad_name', 'El grupo necesita un nombre de 3 a 32 caracteres.');
   }
   const unique = [...new Set(memberIds.filter((id) => id !== me))];
-  if (unique.length < 1) throw new DomainError('bad_size', 'Invita al menos a un amigo al grupo.');
   for (const id of unique) {
     if (!areFriends(db, me, id)) throw new DomainError('not_friend', 'Solo puedes sumar a tus amigos.');
   }

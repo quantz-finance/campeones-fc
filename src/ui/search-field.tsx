@@ -72,6 +72,35 @@ export function ListLabel({ children }: { children: string }) {
   );
 }
 
+
+/** Buscador con el botón de crear al lado (fuera del engranaje de Expo). */
+export function SearchCreateRow({
+  value,
+  onChange,
+  placeholder,
+  onCreate,
+  createLabel,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  onCreate: () => void;
+  createLabel: string;
+}) {
+  return (
+    <View style={styles.row}>
+      <View style={styles.flex}>
+        <SearchField value={value} onChange={onChange} placeholder={placeholder} />
+      </View>
+      <Pressable onPress={onCreate} accessibilityRole="button" accessibilityLabel={createLabel} style={styles.plus} hitSlop={4}>
+        <T variant="title" color={colors.ink} style={styles.plusMark}>
+          +
+        </T>
+      </Pressable>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   box: {
     flexDirection: 'row',
@@ -91,4 +120,15 @@ const styles = StyleSheet.create({
   clear: { minWidth: 32, minHeight: 32, alignItems: 'center', justifyContent: 'center' },
   empty: { gap: 6, paddingVertical: 10 },
   label: { marginTop: layout.inline },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  flex: { flex: 1, minWidth: 0 },
+  plus: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  plusMark: { fontStyle: 'normal', fontSize: 28, lineHeight: 32, marginTop: -2 },
 });

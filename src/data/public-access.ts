@@ -206,7 +206,7 @@ export function setTournamentAccess(
   db: World,
   me: string,
   tournamentId: string,
-  patch: { visibility: Visibility; joinPolicy: JoinPolicy; maxPlayers?: number | null; startsAt?: string | null },
+  patch: { visibility: Visibility; joinPolicy: JoinPolicy; maxPlayers?: number | null; startsAt?: string | null; clearStarts?: boolean },
 ): void {
   const cup = db.tournaments.find((item) => item.id === tournamentId);
   if (!cup) throw new DomainError('not_found', 'No encontramos ese torneo.');
@@ -220,7 +220,8 @@ export function setTournamentAccess(
     if (cup.status !== 'registration') throw new DomainError('conflict', 'Los cupos solo se cambian mientras hay inscripciones abiertas.');
     cup.maxPlayers = patch.maxPlayers;
   }
-  if (patch.startsAt !== undefined) cup.startsAt = patch.startsAt;
+  if (patch.clearStarts) cup.startsAt = null;
+  else if (patch.startsAt !== undefined) cup.startsAt = patch.startsAt;
 }
 
 export function visibleSponsors(db: World, placement: Sponsor['placement'], id?: string | null): Sponsor[] {

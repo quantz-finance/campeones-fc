@@ -8,7 +8,7 @@ import { Screen, Top } from '../../../ui/screen';
 import { colors } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { push } from '../../../ui/nav';
-import { SearchEmpty, SearchField } from '../../../ui/search-field';
+import { SearchCreateRow, SearchEmpty } from '../../../ui/search-field';
 import { EventPoster, MiniPoster, PublicTournamentRow } from '../../../ui/event-poster';
 import { matchesText } from '../../../domain/search';
 import { humanError } from '../../../ui/errors';
@@ -46,8 +46,8 @@ export default function TournamentsTab() {
 
   return (
     <Screen tab>
-      <Top title="Torneos" kicker="Cuadros y copas" right={<Button label="+" onPress={() => push('/torneo/nuevo')} />} />
-      <SearchField value={search} onChange={setSearch} placeholder="Busca un torneo" />
+      <Top title="Torneos" kicker="Cuadros y copas" />
+      <SearchCreateRow value={search} onChange={setSearch} placeholder="Busca un torneo" onCreate={() => push('/torneo/nuevo')} createLabel="Crear torneo" />
       <Gate query={query}>
         {(data) => {
           const mine = data.mine.filter((item) => matchesText(search, item.tournament.name, item.groupName ?? ''));

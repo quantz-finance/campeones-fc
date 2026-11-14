@@ -114,7 +114,7 @@ export function MiniPoster({
         {tournamentStatusLabel(status)}
       </T>
       {phase ? (
-        <T variant="tiny" color={colors.muted} numberOfLines={1}>
+        <T variant="tiny" color={colors.muted} numberOfLines={2}>
           {phase}
         </T>
       ) : null}
@@ -220,8 +220,8 @@ const styles = StyleSheet.create({
   joinGhost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.lineStrong },
   joinWait: { backgroundColor: 'rgba(255,255,255,0.08)' },
   mini: {
-    width: 150,
-    height: 150,
+    width: 164,
+    minHeight: 168,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(241,210,122,0.3)',
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     padding: 10,
     gap: 4,
   },
-  miniName: { fontSize: 14 },
+  miniName: { fontSize: 15, lineHeight: 19 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -777,4 +777,8 @@ export const en: Record<string, string> = {
   "Ponla como 2026-11-28 21:00.": "Use the format 2026-11-28 21:00.",
   "No se pudo decidir": "Couldn't decide",
   "Creando…": "Creating…",
+  '¿Quién entra? (opcional)': 'Who joins? (optional)',
+  'Puedes crear el grupo solo y sumar amigos después.': 'You can create the group on your own and add friends later.',
+  'Sin fecha': 'No date',
+  'Hora': 'Time',
 };

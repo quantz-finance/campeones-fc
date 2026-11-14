@@ -16,15 +16,8 @@ import { profileItem } from '../../../ui/pick-items';
 import { defaultLogo } from '../../../content/crests';
 import { LogoPicker } from '../../../ui/logo-picker';
 import { AccessFields } from '../../../ui/access-fields';
+import { DateTimePicker } from '../../../ui/datetime-picker';
 import type { JoinPolicy, Visibility } from '../../../data/types';
-
-function parseStarts(raw: string): string | null {
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-  const iso = Date.parse(trimmed.includes('T') ? trimmed : trimmed.replace(' ', 'T'));
-  if (Number.isNaN(iso)) throw new Error('Pon la fecha como 2026-11-28 21:00.');
-  return new Date(iso).toISOString();
-}
 
 export default function NewTournament() {
   const { grupo } = useLocalSearchParams<{ grupo?: string }>();
@@ -79,7 +72,7 @@ export default function NewTournament() {
         visibility: groupId ? visibility : 'public',
         joinPolicy,
         maxPlayers,
-        startsAt: parseStarts(startsAt),
+        startsAt: startsAt || null,
         logo,
       });
     };
@@ -150,7 +143,7 @@ export default function NewTournament() {
               <Chip key={n} label={String(n)} active={maxPlayers === n} onPress={() => setMaxPlayers(n)} />
             ))}
           </View>
-          <Field label="Inicio (opcional)" value={startsAt} onChangeText={setStartsAt} placeholder="2026-11-28 21:00" autoCapitalize="none" />
+          <DateTimePicker value={startsAt || null} onChange={(iso: string | null) => setStartsAt(iso ?? '')} />
         </Panel>
       ) : null}
       <Panel>

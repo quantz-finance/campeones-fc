@@ -38,6 +38,17 @@ function harness() {
 }
 
 describe('grupos públicos', () => {
+  it('crea un grupo sin amigos y deja al creador como dueño', async () => {
+    const { repo } = harness();
+    const solo = await repo.createGroup('e', 'Solo mío', []);
+    const snap = await repo.groupSnapshot(solo.id, 'e');
+    expect(snap.yourRole).toBe('owner');
+    expect(snap.members).toHaveLength(1);
+    expect(snap.members[0].id).toBe('e');
+    const pub = await repo.createGroup('e', 'Solo público', [], null, { visibility: 'public', joinPolicy: 'open' });
+    expect((await repo.searchPublicGroups('a', 'público'))[0].group.id).toBe(pub.id);
+  });
+
   it('no lista un grupo privado y sí uno público si no eres miembro', async () => {
     const { repo } = harness();
     const closed = await repo.createGroup('a', 'Cancha privada', ['b']);
@@ -135,5 +146,23 @@ describe('torneos públicos', () => {
     const { repo } = harness();
     expect(await repo.visibleSponsor('a', 'tournaments-list')).toBeNull();
     expect(await repo.visibleSponsor('a', 'groups-list')).toBeNull();
+  });
+});
+
+describe('acceso del torneo', () => {
+  it('puede borrar la fecha de inicio', async () => {
+    const { repo } = harness();
+    const cup = await repo.createRegistrationTournament({
+      me: 'a',
+      name: 'Copa con fecha',
+      format: 'round_robin',
+      visibility: 'public',
+      joinPolicy: 'open',
+      maxPlayers: 8,
+      startsAt: '2026-11-29T03:00:00.000Z',
+    });
+    expect((await repo.tournamentSnapshot(cup.id, 'a')).tournament.startsAt).toBe('2026-11-29T03:00:00.000Z');
+    await repo.setTournamentAccess('a', cup.id, { visibility: 'public', joinPolicy: 'open', clearStarts: true });
+    expect((await repo.tournamentSnapshot(cup.id, 'a')).tournament.startsAt).toBeNull();
   });
 });

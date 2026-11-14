@@ -32,12 +32,7 @@ export default function NewGroup() {
   const [joinPolicy, setJoinPolicy] = useState<JoinPolicy>('invite');
 
   const recentRivals = useRecentPicks('rivals');
-  const missing =
-    name.trim().length < 3
-      ? 'Ponle un nombre de al menos 3 letras.'
-      : selected.length < 1
-        ? 'Elige al menos un amigo para el grupo.'
-        : null;
+  const missing = name.trim().length < 3 ? 'Ponle un nombre de al menos 3 letras.' : null;
 
   const createButton = (
     <Button
@@ -88,7 +83,7 @@ export default function NewGroup() {
             <Panel>
               <View style={styles.head}>
                 <T variant="strong" style={styles.flex}>
-                  ¿Quién entra?
+                  ¿Quién entra? (opcional)
                 </T>
                 {selected.length ? (
                   <T variant="tiny" color={colors.accentText}>
@@ -98,7 +93,7 @@ export default function NewGroup() {
               </View>
               {data.friends.length === 0 ? (
                 <>
-                  <T color={colors.muted}>Invita amigos antes de armar el grupo.</T>
+                  <T color={colors.muted}>Puedes crear el grupo solo y sumar amigos después.</T>
                   <Button label="Ir a amigos" tone="ghost" onPress={() => push('/amigos')} />
                 </>
               ) : (
