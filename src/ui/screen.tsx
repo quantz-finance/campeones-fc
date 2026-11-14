@@ -103,37 +103,40 @@ export function Top({
   back = false,
   right,
 }: {
-  title: string;
+  title?: string;
   kicker?: string;
   back?: boolean;
   right?: ReactNode;
 }) {
+  const heading = Boolean(title || kicker || right);
   return (
     <View style={styles.top}>
       {back ? (
         <View style={styles.topLead}>
-          {back ? (
-            <SportPress onPress={() => goBack()} hitSlop={8} style={styles.back} accessibilityLabel="Volver" accessibilityRole="button">
-              <View style={styles.unskew}>
-                <Icon name="atras" size={22} color={colors.text} />
-              </View>
-            </SportPress>
-          ) : null}
+          <SportPress onPress={() => goBack()} hitSlop={8} style={styles.back} accessibilityLabel="Volver" accessibilityRole="button">
+            <View style={styles.unskew}>
+              <Icon name="atras" size={22} color={colors.text} />
+            </View>
+          </SportPress>
         </View>
       ) : null}
-      <View style={styles.topText}>
-        <View style={styles.titleCol}>
-          {kicker ? (
-            <T variant="label" color={colors.accentText} style={styles.kicker} numberOfLines={2}>
-              {kicker}
-            </T>
-          ) : null}
-          <T variant="display" style={styles.title} numberOfLines={2}>
-            {title}
-          </T>
+      {heading ? (
+        <View style={styles.topText}>
+          <View style={styles.titleCol}>
+            {kicker ? (
+              <T variant="label" color={colors.accentText} style={styles.kicker} numberOfLines={2}>
+                {kicker}
+              </T>
+            ) : null}
+            {title ? (
+              <T variant="display" style={styles.title} numberOfLines={2}>
+                {title}
+              </T>
+            ) : null}
+          </View>
+          {right ? <View style={styles.topRight}>{right}</View> : null}
         </View>
-        {right ? <View style={styles.topRight}>{right}</View> : null}
-      </View>
+      ) : null}
     </View>
   );
 }

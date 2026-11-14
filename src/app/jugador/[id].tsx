@@ -68,7 +68,7 @@ export default function PlayerPage() {
           const mine = data.profile.id === userId;
           return (
             <>
-              <Top title="Ficha del jugador" kicker={branding.name} back />
+              <Top back />
               <Rise index={0}>
                 <PlayerCard data={cardFromPublic(data)} kicker={data.place === 1 ? 'Número 1 del ranking' : 'Jugador'} />
               </Rise>
