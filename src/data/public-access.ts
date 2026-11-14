@@ -79,6 +79,7 @@ export function requestGroupJoin(db: World, me: string, groupId: string, now: Da
   if (!group || visibilityOf(group) !== 'public') {
     throw new DomainError('forbidden', 'Este grupo no acepta solicitudes públicas.');
   }
+  if (joinPolicyOf(group) === 'open') throw new DomainError('conflict', 'Este grupo es de entrada libre: únete directo.');
   if (isMember(db, groupId, me)) throw new DomainError('conflict', 'Ya estás en este grupo.');
   const requests = db.groupJoinRequests ?? (db.groupJoinRequests = []);
   const existing = requests.find((r) => r.groupId === groupId && r.userId === me);
@@ -165,6 +166,9 @@ export function requestTournamentJoin(db: World, me: string, tournamentId: strin
   if (regs.some((r) => r.tournamentId === tournamentId && r.userId === me)) {
     throw new DomainError('conflict', 'Ya estás inscrito.');
   }
+  if (joinPolicyOf(cup) === 'open') throw new DomainError('conflict', 'Este torneo es de inscripción libre: inscríbete directo.');
+  const taken = regs.filter((r) => r.tournamentId === tournamentId).length;
+  if (cup.maxPlayers != null && taken >= cup.maxPlayers) throw new DomainError('conflict', 'Este torneo ya no tiene cupos.');
   const requests = db.tournamentJoinRequests ?? (db.tournamentJoinRequests = []);
   const existing = requests.find((r) => r.tournamentId === tournamentId && r.userId === me);
   if (existing?.status === 'pending') throw new DomainError('conflict', 'Ya pediste inscribirte en este torneo.');
@@ -216,9 +220,21 @@ export function setTournamentAccess(
   }
   cup.visibility = patch.visibility;
   cup.joinPolicy = patch.joinPolicy;
-  if (patch.maxPlayers !== undefined) {
+  if (patch.maxPlayers !== undefined && patch.maxPlayers !== cup.maxPlayers) {
     if (cup.status !== 'registration') throw new DomainError('conflict', 'Los cupos solo se cambian mientras hay inscripciones abiertas.');
-    cup.maxPlayers = patch.maxPlayers;
+    const max = patch.maxPlayers;
+    if (max != null) {
+      if (cup.format === 'single_elim' && ![4, 8, 16].includes(max)) {
+        throw new DomainError('conflict', 'La eliminación directa es de 4, 8 o 16 jugadores.');
+      }
+      if (cup.format === 'round_robin' && (max < 3 || max > 16)) {
+        throw new DomainError('conflict', 'La liga necesita entre 3 y 16 jugadores.');
+      }
+      const taken = (db.tournamentRegistrations ?? []).filter((r) => r.tournamentId === tournamentId).length;
+      if (max < taken) throw new DomainError('conflict', `Ya hay ${taken} inscritos: los cupos no pueden ser menos.`);
+      if (cup.format === 'single_elim') cup.size = max;
+    }
+    cup.maxPlayers = max;
   }
   if (patch.clearStarts) cup.startsAt = null;
   else if (patch.startsAt !== undefined) cup.startsAt = patch.startsAt;

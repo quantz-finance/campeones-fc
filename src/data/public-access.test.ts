@@ -181,4 +181,36 @@ describe('acceso del torneo', () => {
     expect(row?.yourLabel).toBe('Inscrito');
     expect(row?.phase).toBeNull();
   });
+
+  it('no deja bajar los cupos por debajo de los inscritos ni pedir invitación en uno abierto o lleno', async () => {
+    const { repo } = harness();
+    const cup = await repo.createRegistrationTournament({
+      me: 'a',
+      name: 'Copa de cupos',
+      format: 'single_elim',
+      visibility: 'public',
+      joinPolicy: 'open',
+      maxPlayers: 8,
+    });
+    for (const id of ['b', 'c', 'd', 'e']) await repo.registerForTournament(id, cup.id);
+    await expect(repo.requestTournamentJoin('f', cup.id)).rejects.toThrow(/inscripción libre/);
+    await expect(
+      repo.setTournamentAccess('a', cup.id, { visibility: 'public', joinPolicy: 'open', maxPlayers: 5 }),
+    ).rejects.toThrow(/4, 8 o 16/);
+    await repo.setTournamentAccess('a', cup.id, { visibility: 'public', joinPolicy: 'invite', maxPlayers: 8 });
+    await expect(
+      repo.setTournamentAccess('a', cup.id, { visibility: 'public', joinPolicy: 'invite', maxPlayers: 4 }),
+    ).rejects.toThrow(/no pueden ser menos/);
+    for (const id of ['f', 'g', 'h']) {
+      await repo.requestTournamentJoin(id, cup.id);
+    }
+    const snap = await repo.tournamentSnapshot(cup.id, 'a');
+    expect(snap.joinRequests).toHaveLength(3);
+  });
+
+  it('no deja pedir invitación en un grupo abierto', async () => {
+    const { repo } = harness();
+    const open = await repo.createGroup('a', 'Grupo libre', ['b'], null, { visibility: 'public', joinPolicy: 'open' });
+    await expect(repo.requestGroupJoin('e', open.id)).rejects.toThrow(/entrada libre/);
+  });
 });

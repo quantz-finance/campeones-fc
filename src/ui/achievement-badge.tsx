@@ -194,7 +194,18 @@ export function AchievementBadge({
   const lockSize = Math.max(14, Math.min(20, Math.round(size * 0.28)));
   return (
     <View style={[styles.wrap, { width: title || detail ? Math.max(size, 96) : size }]} accessibilityLabel={`${title ?? code}${unlocked ? '' : ' (bloqueado)'}`}>
-      <View ref={ref} style={[styles.badge, { width: size, height: size }, unlocked ? styles.on : styles.off]}>
+      <View ref={ref} style={[styles.badge, { width: size, height: size }]}>
+        {unlocked ? (
+          // El brillo dorado sale de un disco con fondo detrás de la medalla: iOS calcula la sombra
+          // con la forma del disco y no con el alfa de la imagen (que es lento y llenaba el log de avisos).
+          <View
+            pointerEvents="none"
+            style={[
+              styles.glow,
+              { width: size * 0.78, height: size * 0.78, borderRadius: size * 0.39, left: size * 0.11, top: size * 0.11 },
+            ]}
+          />
+        ) : null}
         <Image source={art} style={{ width: size, height: size }} resizeMode="contain" />
         {unlocked ? (
           <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.clip, { borderRadius: size / 2 }]}>
@@ -231,8 +242,14 @@ export function AchievementBadge({
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: space.xs },
   badge: { alignItems: 'center', justifyContent: 'center' },
-  on: { shadowColor: '#D4AF37', shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
-  off: {},
+  glow: {
+    position: 'absolute',
+    backgroundColor: '#37003C',
+    shadowColor: '#D4AF37',
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
+  },
   clip: { overflow: 'hidden' },
   rot: { position: 'absolute' },
   title: { fontSize: 13, textAlign: 'center' },
