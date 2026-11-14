@@ -3,22 +3,22 @@
 // barra de la serie, 4 duelos, últimos 5 (con «Historial ›») y la curva del Elo en la serie.
 // Tú en verde, el rival en oro, empates en lila. Solo Animated de React Native (transform/opacity).
 import { useLocalSearchParams, type Href } from 'expo-router';
-import { Image } from 'expo-image';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Defs, Line, LinearGradient, Polygon, Polyline, Rect, Stop, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Defs, Line, LinearGradient, Polygon, Polyline, Stop, Text as SvgText } from 'react-native-svg';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { Backdrop } from '../../../ui/broadcast';
 import { Gate } from '../../../ui/controls';
-import { elo, firstName, formatDay, goalsPerMatch, monogram, signed } from '../../../ui/format';
+import { elo, firstName, formatDay, goalsPerMatch, signed } from '../../../ui/format';
 import { Icon } from '../../../ui/icon';
 import { Rise, useReducedMotion } from '../../../ui/motion';
-import { back, push } from '../../../ui/nav';
+import { push } from '../../../ui/nav';
 import { SportPress } from '../../../ui/press';
 import { Scene } from '../../../ui/scene';
 import { shareChallenge } from '../../../ui/share';
+import { RetratoHeader, RetratoHeaderButton, SplitPortraits } from '../../../ui/retrato';
 import { DetailSkeleton } from '../../../ui/skeleton';
 import { T } from '../../../ui/text';
 import { font } from '../../../ui/theme';
@@ -28,7 +28,6 @@ import { VERSUS, challengeMessage, registerHref, resultView, seriesParts, type R
 const C = VERSUS;
 /** Medidas del mockup (390 pt de ancho, barra de estado de 47 pt). */
 const HERO = 372;
-const PHOTO = 300;
 
 export default function Versus() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -67,7 +66,7 @@ function Retrato({ data, me, rivalId }: { data: H2HSnapshot; me: string; rivalId
       <ScrollView contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) + 24 }} showsVerticalScrollIndicator={false}>
         <Scene>
           <View style={{ width: W, height: heroH, alignSelf: 'center' }}>
-            <SplitPortraits data={data} W={W} k={k} heroH={heroH} extra={extra} dim={empty} />
+            <SplitPortraits you={data.you} them={data.opponent} W={W} k={k} heroH={heroH} extra={extra} dim={empty} id="cac" />
             <View style={[styles.name, { top: 196 + extra, left: 20 }]}>
               <T variant="display" style={styles.nameText} numberOfLines={1}>
                 {youName}
@@ -95,117 +94,7 @@ function Retrato({ data, me, rivalId }: { data: H2HSnapshot; me: string; rivalId
           </View>
         </Scene>
       </ScrollView>
-      <Header top={insets.top} onShare={challenge} themName={themName} />
-    </View>
-  );
-}
-
-/** Título sobre una banda oscura que se funde: se lee encima de las caras. */
-function Header({ top, onShare, themName }: { top: number; onShare: () => void; themName: string }) {
-  const band = top + 92;
-  return (
-    <View style={[styles.header, { height: band }]} pointerEvents="box-none">
-      <Svg style={StyleSheet.absoluteFill} width="100%" height={band} pointerEvents="none">
-        <Defs>
-          <LinearGradient id="cacBand" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#1A001F" stopOpacity={0.88} />
-            <Stop offset="0.62" stopColor="#1A001F" stopOpacity={0.62} />
-            <Stop offset="1" stopColor="#1A001F" stopOpacity={0} />
-          </LinearGradient>
-        </Defs>
-        <Rect x="0" y="0" width="100%" height={band} fill="url(#cacBand)" />
-      </Svg>
-      <View style={[styles.headerRow, { marginTop: top + 25 }]}>
-        <SportPress onPress={() => back()} style={styles.round} accessibilityRole="button" accessibilityLabel="Volver" hitSlop={8}>
-          <Icon name="atras" size={18} color="#FFFFFF" />
-        </SportPress>
-        <View style={styles.headerText}>
-          <T variant="label" color={C.you} style={styles.kicker} numberOfLines={1}>
-            Historial completo · 1 vs 1
-          </T>
-          <T variant="display" style={styles.title} numberOfLines={1}>
-            Cara a cara
-          </T>
-        </View>
-        <SportPress onPress={onShare} style={[styles.round, styles.square]} accessibilityRole="button" accessibilityLabel={`Retar a ${themName}`} hitSlop={8}>
-          <Icon name="compartir" size={18} color="#FFFFFF" />
-        </SportPress>
-      </View>
-    </View>
-  );
-}
-
-/**
- * Las dos fotos cuadradas a sangre, partidas por una diagonal dorada (58 % arriba → 42 % abajo).
- * La del rival va en un panel inclinado (skewX) con la foto contra-inclinada: se ve recta y el borde
- * del panel hace la diagonal. Sin foto: iniciales grandes sobre el degradado de su lado.
- */
-function SplitPortraits({ data, W, k, heroH, extra, dim }: { data: H2HSnapshot; W: number; k: number; heroH: number; extra: number; dim: boolean }) {
-  const mid = W / 2;
-  const topX = W * 0.58;
-  const bottomX = W * 0.42;
-  const skew = (Math.atan((topX - bottomX) / heroH) * 180) / Math.PI;
-  const size = PHOTO * k;
-  const panelW = W - mid + 120;
-  const youLeft = mid - 243 * k;
-  const themLeft = mid - 57 * k;
-  return (
-    <View style={[StyleSheet.absoluteFill, { overflow: 'hidden', backgroundColor: C.plate }]}>
-      <Portrait side="you" profile={data.you} left={youLeft} top={6 + extra} size={size} />
-      <View style={{ position: 'absolute', top: 0, left: mid, width: panelW, height: heroH, overflow: 'hidden', transform: [{ skewX: `-${skew}deg` }] }}>
-        <View style={{ position: 'absolute', top: 0, left: 0, width: panelW, height: heroH, backgroundColor: C.plate, transform: [{ skewX: `${skew}deg` }] }}>
-          <Portrait side="them" profile={data.opponent} left={themLeft - mid} top={10 + extra} size={size} />
-        </View>
-      </View>
-      <Svg style={StyleSheet.absoluteFill} width={W} height={heroH} pointerEvents="none">
-        <Defs>
-          <LinearGradient id="cacFade" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#24002A" stopOpacity={0.6} />
-            <Stop offset="0.26" stopColor="#37003C" stopOpacity={0} />
-            <Stop offset="0.55" stopColor="#37003C" stopOpacity={0.15} />
-            <Stop offset="0.97" stopColor={C.plate} stopOpacity={1} />
-            <Stop offset="1" stopColor={C.plate} stopOpacity={1} />
-          </LinearGradient>
-        </Defs>
-        <Line x1={topX} y1={0} x2={bottomX} y2={heroH} stroke={C.them} strokeWidth={3} />
-        <Rect x={0} y={0} width={W} height={heroH} fill="url(#cacFade)" />
-        {dim ? <Rect x={0} y={0} width={W} height={heroH} fill="#2A0030" opacity={0.35} /> : null}
-      </Svg>
-    </View>
-  );
-}
-
-function Portrait({ side, profile, left, top, size }: { side: 'you' | 'them'; profile: H2HSnapshot['you']; left: number; top: number; size: number }) {
-  const color = side === 'you' ? C.you : C.them;
-  const box = { position: 'absolute' as const, left, top, width: size, height: size };
-  if (profile.photoUrl) {
-    return (
-      <Image
-        source={{ uri: profile.photoUrl }}
-        recyclingKey={profile.photoUrl}
-        style={box}
-        contentFit="cover"
-        cachePolicy="memory-disk"
-        transition={0}
-        accessibilityLabel={profile.displayName}
-      />
-    );
-  }
-  return (
-    <View style={[box, styles.initialsBox]} accessibilityRole="image" accessibilityLabel={profile.displayName}>
-      <Svg style={StyleSheet.absoluteFill} width={size} height={size} pointerEvents="none">
-        <Defs>
-          <LinearGradient id={`cacI${side}`} x1={side === 'you' ? '0' : '1'} y1="0" x2={side === 'you' ? '1' : '0'} y2="1">
-            <Stop offset="0" stopColor={color} stopOpacity={0.2} />
-            <Stop offset="0.7" stopColor={color} stopOpacity={0.06} />
-            <Stop offset="1" stopColor={color} stopOpacity={0} />
-          </LinearGradient>
-        </Defs>
-        <Rect x={0} y={0} width={size} height={size} fill={`url(#cacI${side})`} />
-      </Svg>
-      <T variant="display" style={[styles.initials, { color, fontSize: size * 0.3, lineHeight: size * 0.36 }]} numberOfLines={1}>
-        {monogram(profile.displayName)}
-      </T>
+      <RetratoHeader top={insets.top} kicker="Historial completo · 1 vs 1" title="Cara a cara" id="cac" right={<RetratoHeaderButton icon="compartir" label={`Retar a ${themName}`} onPress={challenge} />} />
     </View>
   );
 }
@@ -483,15 +372,6 @@ const plain = { textTransform: 'none' as const, fontStyle: 'normal' as const };
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.plate },
   flex: { flex: 1 },
-  header: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16 },
-  headerText: { flex: 1, minWidth: 0 },
-  kicker: { fontSize: 11, lineHeight: 14, letterSpacing: 1.4 },
-  title: { ...plain, fontSize: 28, lineHeight: 30, letterSpacing: -0.5, color: '#FFFFFF' },
-  round: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(201,162,255,0.3)', backgroundColor: 'rgba(36,0,42,0.5)', alignItems: 'center', justifyContent: 'center' },
-  square: { borderRadius: 12 },
-  initialsBox: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  initials: { ...plain, letterSpacing: -2, opacity: 0.6, marginTop: 24 },
   name: { position: 'absolute', zIndex: 5, maxWidth: '46%' },
   nameText: { ...plain, fontSize: 17, lineHeight: 21, color: '#FFFFFF' },
   eloSerie: { fontSize: 9, lineHeight: 12, letterSpacing: 1.3 },

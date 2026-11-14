@@ -1,5 +1,15 @@
 // Frases con datos (nombres, números): patrón en español → plantilla en inglés.
 export const enPatterns: [RegExp, string][] = [
+  [/^(.+) quiere jugar$/, '$1 wants to play'],
+  [/^falta que (.+) confirme$/, 'waiting for $1 to confirm'],
+  [/^falta que (.+) acepte$/, 'waiting for $1 to accept'],
+  [/^(.+) registró$/, '$1 logged it'],
+  [/^Votaste (.+)$/, 'You voted $1'],
+  [/^Votó (.+)$/, 'Voted $1'],
+  [/^Quedarme con lo de (.+)$/, 'Go with what $1 said'],
+  [/^(.+) lo confirma\. Si coinciden, el marcador se cierra y el Elo se mueve\.$/, '$1 confirms it. If you agree, the score locks and Elo moves.'],
+  [/^No cuenta hasta que (.+) diga lo mismo\. Si coincide, el marcador se cierra y el Elo se mueve\. Si no, queda en disputa hasta que uno corrija\.$/, "It doesn't count until $1 says the same. If it matches, the score locks and Elo moves. If not, it stays disputed until someone corrects."],
+  [/^Tú dijiste (.+) y (.+) dice (.+)\. Corrige tu voto o quédate con lo que dijo; cuando coincidan, el partido se cierra\.$/, 'You said $1 and $2 says $3. Correct your vote or go with theirs; once you agree, the match closes.'],
   [/^Elo en la serie (.+)$/, 'Series Elo $1'],
   [/^Retar a (.+)$/, 'Challenge $1'],
   [/^Registrar partido contra (.+)$/, 'Log a match against $1'],
