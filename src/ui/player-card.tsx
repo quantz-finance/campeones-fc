@@ -53,16 +53,19 @@ function Cell({
 }) {
   return (
     <View style={[styles.cell, first && styles.cellFirst]}>
-      <T
-        variant="display"
-        color={accent ? GOLD : INK.text}
-        style={styles.cellNum}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
-      >
-        {value}
-      </T>
+      {/* Número en una franja de alto fijo: todos quedan en la misma línea aunque una etiqueta use 2. */}
+      <View style={styles.cellNumRow}>
+        <T
+          variant="display"
+          color={accent ? GOLD : INK.text}
+          style={styles.cellNum}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+        >
+          {value}
+        </T>
+      </View>
       <T
         variant="label"
         color={GOLD}
@@ -305,7 +308,7 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     paddingVertical: 9,
     paddingHorizontal: 2,
     borderLeftWidth: 1,
@@ -314,9 +317,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   cellFirst: { borderLeftWidth: 0 },
+  cellNumRow: { height: 20, justifyContent: 'flex-end', alignSelf: 'stretch', alignItems: 'center' },
   cellNum: { fontSize: 15.5, lineHeight: 18.5, letterSpacing: -0.5, fontStyle: 'normal' },
   // 9.5 pt Outfit 700 (Rolando: letras un poco más chicas, sin volver a los 7.5 pt del mockup); 2 líneas si no cabe.
-  cellLabel: { fontSize: 9.5, lineHeight: 11.5, letterSpacing: 0.2, textAlign: 'center', fontStyle: 'normal' },
+  cellLabel: { fontSize: 9.5, lineHeight: 11.5, letterSpacing: -0.1, textAlign: 'center', fontStyle: 'normal' },
   foot: { gap: 8, marginTop: 12 },
   badges: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   achievements: { fontSize: 9.5, lineHeight: 12.5, letterSpacing: 1.3, fontStyle: 'normal' },
