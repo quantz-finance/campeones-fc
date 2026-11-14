@@ -91,7 +91,7 @@ function useCardWidth() {
 // foto a la derecha fundida con el morado (cover centrado: una foto cuadrada se ve bien), número de serie = ranking,
 // grilla Elo · victorias · V-E-D y el ranking en dorado. Solo datos reales. Sin foto: iniciales en el mismo lugar.
 const GOLD = { hi: '#F1D27A', mid: '#D4AF37', lo: '#8A6A16' } as const;
-const CROMO = { h: 272, frame: 6, radius: 20, innerRadius: 15, photoW: 188 } as const;
+const CROMO = { h: 248, frame: 6, radius: 20, innerRadius: 15, photoW: 188 } as const;
 const cromoForm = { win: '#00FF87', draw: '#B99BC6', loss: '#FF4D8D' } as const;
 
 /** Estrella rellena de la maqueta (el ícono «estrella» del paquete es de trazo). */
