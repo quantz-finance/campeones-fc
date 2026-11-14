@@ -89,22 +89,22 @@ export default function Profile() {
           onPress={() => push('/estadisticas')}
         />
       </Rise>
+      <View style={styles.idRow}>
+        <View style={styles.flex}>
+          {/* Nombre y @usuario ya van en la carta; aquí solo el país y el botón de foto. */}
+          <T variant="tiny" color={colors.muted} style={styles.plain}>
+            {branding.country}
+          </T>
+        </View>
+        <PhotoButton kind="users" targetId={profile.id} label={profile.photoUrl ? 'Cambiar foto' : 'Subir foto'} />
+      </View>
+      <SocialEditor profile={profile} repo={app.repo} startOpen={startSocial} />
+      <SectionHead title="Estadísticas" action="Todas" onAction={() => push('/estadisticas')} />
       <Gate query={personal}>
         {(data) => {
           const maxElo = data.evolution.reduce((max, point) => Math.max(max, point.rating), data.rating);
           return (
             <>
-              <View style={styles.idRow}>
-                <View style={styles.flex}>
-                  {/* Nombre y @usuario ya van en la carta; aquí solo el país y el botón de foto. */}
-                  <T variant="tiny" color={colors.muted} style={styles.plain}>
-                    {branding.country}
-                  </T>
-                </View>
-                <PhotoButton kind="users" targetId={profile.id} label={profile.photoUrl ? 'Cambiar foto' : 'Subir foto'} />
-              </View>
-              <SocialEditor profile={profile} repo={app.repo} startOpen={startSocial} />
-              <SectionHead title="Estadísticas" action="Todas" onAction={() => push('/estadisticas')} />
               <View style={styles.grid}>
                 <StatCell value={String(data.record.played)} label="Partidos" />
                 <StatCell value={pct(data.record.winRate)} label="Victorias" accent />
@@ -113,8 +113,6 @@ export default function Profile() {
                 <StatCell value={String(data.record.bestWinStreak)} label="Mejor racha" />
                 <StatCell value={elo(maxElo)} label="Elo máximo" />
               </View>
-              <SectionHead title="Álbum de logros" action={`${earned} / 24`} />
-              <AchievementsBoard items={trophies.data ?? []} size={72} />
               <View style={styles.rivals}>
                 {data.bestRival ? (
                   <Pressable style={[styles.rival, { borderLeftColor: colors.blue }]} onPress={() => push(`/versus/${data.bestRival!.profile.id}`)}>
@@ -149,6 +147,8 @@ export default function Profile() {
           );
         }}
       </Gate>
+      <SectionHead title="Álbum de logros" action={`${earned} / 24`} />
+      <AchievementsBoard items={trophies.data ?? []} size={72} />
       {editing ? (
         <View style={styles.edit}>
           <SectionHead title="Editar ficha" />
