@@ -92,9 +92,9 @@ function Holo({ size, phase, moving }: { size: number; phase: number; moving: bo
             <LinearGradient id="cfcHolo" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor="#00FF87" stopOpacity="0" />
               <Stop offset="0.18" stopColor="#00FF87" stopOpacity="0.9" />
-              <Stop offset="0.36" stopColor="#05F0FF" stopOpacity="0.9" />
+              <Stop offset="0.36" stopColor="#FFFFFF" stopOpacity="0.9" />
               <Stop offset="0.54" stopColor="#C9A2FF" stopOpacity="0.9" />
-              <Stop offset="0.72" stopColor="#EBFF00" stopOpacity="0.85" />
+              <Stop offset="0.72" stopColor="#F1D27A" stopOpacity="0.85" />
               <Stop offset="0.9" stopColor="#00FF87" stopOpacity="0.6" />
               <Stop offset="1" stopColor="#00FF87" stopOpacity="0" />
             </LinearGradient>

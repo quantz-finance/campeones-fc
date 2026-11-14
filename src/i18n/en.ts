@@ -857,4 +857,5 @@ export const en: Record<string, string> = {
   "Nadie lo aceptó o lo cerró a tiempo. Propónganlo de nuevo cuando jueguen.": "No one accepted or closed it in time. Propose it again when you play.",
   "Se rechazó o se canceló antes de jugarse.": "It was declined or cancelled before being played.",
   "Solo los dos jugadores registran el resultado; cuando coincidan, aparece aquí.": "Only the two players log the result; once they agree, it shows here.",
+  "fijo en este partido": "fixed for this match",
 };

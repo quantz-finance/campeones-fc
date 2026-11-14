@@ -12,8 +12,8 @@ import { T } from '../../../ui/text';
 import { colors, font, hex, space } from '../../../ui/theme';
 
 const STAGE = 230;
-// Dorado suave de la maqueta (no el amarillo de marca).
-const GOLD = '#D9B45A';
+// Antes dorado; el oro queda solo para logros, trofeos y los mejores jugadores. Verde de marca.
+const GOLD = '#00FF87';
 const DOTS = 28;
 
 export default function AdRequestSent() {
@@ -38,7 +38,7 @@ export default function AdRequestSent() {
             </LinearGradient>
             <RadialGradient id="floor" cx="50%" cy="50%" rx="50%" ry="50%">
               <Stop offset="0" stopColor={GOLD} stopOpacity="0.35" />
-              <Stop offset="1" stopColor={hex.gold} stopOpacity="0" />
+              <Stop offset="1" stopColor={GOLD} stopOpacity="0" />
             </RadialGradient>
           </Defs>
           <Path d={`M0 0 L70 0 L190 ${STAGE + 20} L60 ${STAGE + 20} Z`} fill="url(#beamL)" />

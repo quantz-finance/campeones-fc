@@ -1,5 +1,5 @@
 // Piezas compartidas del estilo «Retrato a sangre» (propuesta 2 de Stan): Cara a cara y Marcador.
-// Dos fotos cuadradas a sangre partidas por una diagonal dorada y el título sobre una banda oscura.
+// Dos fotos cuadradas a sangre partidas por una diagonal (verde → blanco) y el título sobre una banda oscura.
 import { Image } from 'expo-image';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -60,7 +60,8 @@ export function RetratoHeaderButton({ icon, label, onPress }: { icon: 'compartir
 }
 
 /**
- * Las dos fotos cuadradas a sangre, partidas por una diagonal dorada (58 % arriba → 42 % abajo).
+ * Las dos fotos cuadradas a sangre, partidas por una diagonal verde → blanco (58 % arriba → 42 % abajo).
+ * Sin dorado: el oro queda para logros, trofeos y los mejores jugadores.
  * La del rival va en un panel inclinado (skewX) con la foto contra-inclinada: se ve recta y el borde
  * del panel hace la diagonal. Sin foto: iniciales grandes sobre el degradado de su lado.
  */
@@ -84,6 +85,10 @@ export function SplitPortraits({ you, them, W, k, heroH, extra, dim = false, id 
       </View>
       <Svg style={StyleSheet.absoluteFill} width={W} height={heroH} pointerEvents="none">
         <Defs>
+          <LinearGradient id={`${id}Cut`} x1={topX} y1={0} x2={bottomX} y2={heroH} gradientUnits="userSpaceOnUse">
+            <Stop offset="0" stopColor={C.you} stopOpacity={0.95} />
+            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0.9} />
+          </LinearGradient>
           <LinearGradient id={`${id}Fade`} x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor="#24002A" stopOpacity={0.6} />
             <Stop offset={0.26 * fadeTo} stopColor="#37003C" stopOpacity={0} />
@@ -92,7 +97,7 @@ export function SplitPortraits({ you, them, W, k, heroH, extra, dim = false, id 
             <Stop offset="1" stopColor={C.plate} stopOpacity={1} />
           </LinearGradient>
         </Defs>
-        <Line x1={topX} y1={0} x2={bottomX} y2={heroH} stroke={C.them} strokeWidth={3} />
+        <Line x1={topX} y1={0} x2={bottomX} y2={heroH} stroke={`url(#${id}Cut)`} strokeWidth={3} />
         <Rect x={0} y={0} width={W} height={heroH} fill={`url(#${id}Fade)`} />
         {dim ? <Rect x={0} y={0} width={W} height={heroH} fill="#2A0030" opacity={0.35} /> : null}
       </Svg>
@@ -165,6 +170,7 @@ const styles = StyleSheet.create({
   round: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(201,162,255,0.3)', backgroundColor: 'rgba(36,0,42,0.5)', alignItems: 'center', justifyContent: 'center' },
   square: { borderRadius: 12 },
   initialsBox: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  initials: { ...plain, letterSpacing: -2, opacity: 0.6, marginTop: 24 },
+  // Arriba del centro de la foto: el nombre (a 190 pt) queda limpio debajo.
+  initials: { ...plain, letterSpacing: -2, opacity: 0.7, marginTop: -56 },
   initialsSmall: { ...plain, letterSpacing: -0.5 },
 });

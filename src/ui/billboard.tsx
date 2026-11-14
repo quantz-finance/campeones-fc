@@ -330,7 +330,7 @@ export function HotCups({ items, ads = true }: { items: BillboardTournament[]; a
             >
               <View style={styles.cupTop}>
                 <Shield letters={monogram(item.tournament.name)} photoUrl={item.tournament.photoUrl} kind="tournaments" id={item.tournament.id} logo={item.tournament.logo} size={40} />
-                <View style={[styles.status, { backgroundColor: live ? colors.yellow : colors.gold }]}>
+                <View style={[styles.status, { backgroundColor: live ? colors.yellow : colors.paper }]}>
                   {live ? <View style={styles.liveDot} /> : <Icon name="trofeo" size={9} color={colors.ink} />}
                   <T variant="tiny" color={colors.ink} style={{ fontSize: 9 }}>
                     {live ? 'En juego' : 'Finalizado'}

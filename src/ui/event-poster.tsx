@@ -7,7 +7,8 @@ import { formatEventWhen, monogram, slotsLine, tournamentJoinLabel, tournamentSt
 import { colors, space } from './theme';
 import { T } from './text';
 
-const FOIL = '#D4AF37';
+// Verde de marca (el oro queda para logros, trofeos y los mejores jugadores).
+const FOIL = '#00FF87';
 
 export function EventPoster({
   tournament,
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
   hero: {
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(241,210,122,0.4)',
+    borderColor: 'rgba(0,255,135,0.4)',
     backgroundColor: '#2A0030',
     padding: 14,
     gap: 8,
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     minHeight: 168,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(241,210,122,0.3)',
+    borderColor: 'rgba(0,255,135,0.3)',
     backgroundColor: '#2A0030',
     padding: 10,
     gap: 4,

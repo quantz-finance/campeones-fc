@@ -7,12 +7,12 @@ import { tagOf } from './format';
 
 export const VERSUS = {
   you: '#00FF87',
-  them: '#F1D27A',
-  draw: '#8E7AA3',
+  them: '#FFFFFF',
+  draw: '#C9A2FF',
   muted: '#B99BC6',
   plate: '#2A0030',
   youInk: '#37003C',
-  themInk: '#2A1800',
+  themInk: '#37003C',
 } as const;
 
 /** Partidos por página en «Historial». */

@@ -1,9 +1,9 @@
 // Marcador del partido · «Retrato a sangre» (propuesta 2 de Stan, elegida por Rolando), alcance (a).
-// Rediseño de /partido/:id: las dos fotos a sangre con la diagonal dorada, los goles gigantes sobre cada
+// Rediseño de /partido/:id: las dos fotos a sangre con la diagonal verde → blanco, los goles gigantes sobre cada
 // foto y los − / + grandes debajo. El rival y el contexto llegan fijados (se eligieron al proponer o en
 // el cuadro del torneo); el flujo de dos pasos sigue igual: proponer → aceptar → registrar → confirmar.
 // Estados: propuesta, esperando, registrar (con o sin marcador, empate o eliminación), enviado,
-// «Te toca confirmar», disputa, cerrado, expirado/cancelado. Tú en verde, el rival en oro.
+// «Te toca confirmar», disputa, cerrado, expirado/cancelado. Tú en verde, el rival en blanco.
 // Solo Animated de React Native (transform/opacity).
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -26,7 +26,7 @@ import { RetratoHeader, SplitPortraits, Thumb } from '../../../ui/retrato';
 import { Scene } from '../../../ui/scene';
 import { DetailSkeleton } from '../../../ui/skeleton';
 import { T } from '../../../ui/text';
-import { font } from '../../../ui/theme';
+import { font, hex } from '../../../ui/theme';
 import { VERSUS } from '../../../ui/versus-data';
 import {
   clampGoals,
@@ -41,7 +41,7 @@ import {
   type Pick3,
 } from '../../../ui/marcador-data';
 
-const C = { ...VERSUS, alert: '#FF8FB1', soft: '#E4D4EE' };
+const C = { ...VERSUS, alert: hex.danger, soft: '#E4D4EE' };
 /** Medidas del mockup (390 pt de ancho, barra de estado de 47 pt). */
 const HERO = 410;
 const native = Platform.OS !== 'web';
@@ -218,8 +218,8 @@ function Marcador({ snap }: { snap: MatchSnapshot }) {
             snap.allowDraw ? (
               <Pressable onPress={() => pickWinner('draw')} accessibilityRole="button" accessibilityState={{ selected: shown === 'draw' }}>
                 <View style={[styles.drawPick, shown === 'draw' && styles.drawPickOn]}>
-                  <Icon name="empate" size={16} color={shown === 'draw' ? '#FFFFFF' : C.muted} />
-                  <T variant="strong" style={[styles.drawText, shown === 'draw' && { color: '#FFFFFF' }]}>
+                  <Icon name="empate" size={16} color={shown === 'draw' ? C.youInk : C.muted} />
+                  <T variant="strong" style={[styles.drawText, shown === 'draw' && { color: C.youInk }]}>
                     Fue empate
                   </T>
                 </View>
@@ -228,23 +228,7 @@ function Marcador({ snap }: { snap: MatchSnapshot }) {
               <T style={styles.hint}>Eliminación directa: no hay empate, elige quién ganó. Los goles son opcionales.</T>
             )
           ) : null}
-          <Section label="Contra quién" right="Fijo en este partido" />
-          <View style={styles.rivalRow}>
-            <View style={styles.rivalChip}>
-              <View>
-                <Thumb side="them" profile={them} size={46} id="marRival" />
-                <View style={styles.rivalCheck}>
-                  <Icon name="check" size={12} color={C.themInk} />
-                </View>
-              </View>
-              <T variant="strong" style={styles.rivalName} numberOfLines={1}>
-                {themName}
-              </T>
-            </View>
-            <T style={styles.rivalNote}>El rival y para qué cuenta se fijaron al proponer el partido.</T>
-          </View>
-          <Section label="Cuenta para" />
-          <ContextCards kind={ctx.kind} groupName={snap.groupName} />
+          <FixedSummary them={them} themName={themName} kind={ctx.kind} name={ctx.kind === 'torneo' ? ctx.name : snap.groupName} />
           {errorView}
           <Cta
             label={busy ? 'Enviando…' : cta}
@@ -323,7 +307,7 @@ function Marcador({ snap }: { snap: MatchSnapshot }) {
         primary = { label: busy ? 'Confirmando…' : 'Confirmar resultado', onPress: () => theirDraft && submit(theirDraft) };
         break;
       case 'disputa':
-        header = { kicker: 'No coinciden', title: 'En disputa', kickerColor: C.alert, pill: { text: `Voto ${votes}/2`, bg: C.draw, ink: '#FFFFFF' } };
+        header = { kicker: 'No coinciden', title: 'En disputa', kickerColor: C.alert, pill: { text: `Voto ${votes}/2`, bg: C.draw, ink: C.youInk } };
         badge = { text: 'En disputa', bg: C.alert, ink: C.youInk };
         score = { goals: null, text: '≠', color: C.alert };
         status = { text: 'Nadie suma hasta que uno corrija', color: C.alert };
@@ -347,7 +331,7 @@ function Marcador({ snap }: { snap: MatchSnapshot }) {
       case 'expirado':
       case 'cancelado':
         header = { kicker: ctx.kicker, title: state === 'expirado' ? 'Partido vencido' : 'Partido cancelado', kickerColor: C.muted };
-        badge = { text: state === 'expirado' ? 'Expiró' : 'Cancelado', bg: C.draw, ink: '#FFFFFF' };
+        badge = { text: state === 'expirado' ? 'Expiró' : 'Cancelado', bg: C.draw, ink: C.youInk };
         score = { goals: null, text: 'VS', color: C.muted };
         status = { text: 'No suma para nadie', color: C.muted };
         info = state === 'expirado' ? 'Nadie lo aceptó o lo cerró a tiempo. Propónganlo de nuevo cuando jueguen.' : 'Se rechazó o se canceló antes de jugarse.';
@@ -356,7 +340,7 @@ function Marcador({ snap }: { snap: MatchSnapshot }) {
         break;
       default:
         header = { kicker: ctx.kicker, title: 'Partido en juego' };
-        badge = { text: 'En juego', bg: C.draw, ink: '#FFFFFF' };
+        badge = { text: 'En juego', bg: C.draw, ink: C.youInk };
         score = { goals: null, text: 'VS', color: C.muted };
         info = 'Solo los dos jugadores registran el resultado; cuando coincidan, aparece aquí.';
         showVotes = false;
@@ -594,7 +578,7 @@ function ResultLine({ text, draw, blocked }: { text: string; draw: boolean; bloc
   return (
     <Animated.View style={[styles.resultLeft, { opacity: v }]}>
       <View style={[styles.resultTag, { backgroundColor: bg }]}>
-        <T variant="label" style={[styles.resultTagText, { color: draw && !blocked ? '#FFFFFF' : C.youInk }]}>
+        <T variant="label" style={[styles.resultTagText, { color: C.youInk }]}>
           {blocked ? 'Empate' : 'Resultado'}
         </T>
       </View>
@@ -605,43 +589,34 @@ function ResultLine({ text, draw, blocked }: { text: string; draw: boolean; bloc
   );
 }
 
-function Section({ label, right }: { label: string; right?: string }) {
+/**
+ * Rival y contexto en una sola fila (vienen fijados al proponer el partido o desde el cuadro del torneo):
+ * así «Registrar resultado» queda al alcance del pulgar. Torneo dice «Desde su llave».
+ */
+function FixedSummary({ them, themName, kind, name }: { them: { displayName: string; photoUrl?: string | null }; themName: string; kind: ContextKind; name: string | null }) {
+  const chip = kind === 'torneo' ? `Torneo · ${name ?? 'Desde su llave'}` : kind === 'grupo' ? `Grupo · ${name ?? 'Uno de tus grupos'}` : 'Amistoso · Solo entre ustedes dos';
+  const note = kind === 'torneo' ? 'Desde su llave · fijo en este partido' : 'Fijo en este partido';
   return (
-    <View style={styles.section}>
-      <T variant="label" style={styles.sectionText}>
-        {label}
-      </T>
-      {right ? (
-        <T variant="label" style={[styles.sectionText, { color: C.muted, letterSpacing: 0.6 }]}>
-          {right}
+    <View style={styles.summary} accessible accessibilityLabel={`Contra ${themName}. ${chip}. ${note}`}>
+      <View>
+        <Thumb side="them" profile={them} size={46} id="marRival" />
+        <View style={styles.rivalCheck}>
+          <Icon name="check" size={12} color={C.themInk} />
+        </View>
+      </View>
+      <View style={styles.summaryText}>
+        <T variant="display" style={styles.summaryName} numberOfLines={1}>
+          {`Contra ${themName}`}
         </T>
-      ) : null}
-    </View>
-  );
-}
-
-/** «Cuenta para»: fijo. La opción vigente en verde; las otras apagadas. Torneo siempre «Desde su llave». */
-function ContextCards({ kind, groupName }: { kind: ContextKind; groupName: string | null }) {
-  const cards: { kind: ContextKind; label: string; body: string }[] = [
-    { kind: 'amistoso', label: 'Amistoso', body: 'Solo entre ustedes dos' },
-    { kind: 'grupo', label: 'Grupo', body: kind === 'grupo' && groupName ? groupName : 'Uno de tus grupos' },
-    { kind: 'torneo', label: 'Torneo', body: 'Desde su llave' },
-  ];
-  return (
-    <View style={styles.ctxRow} accessible accessibilityLabel={`Cuenta para: ${cards.find((c) => c.kind === kind)?.body ?? ''}`}>
-      {cards.map((card) => {
-        const on = card.kind === kind;
-        return (
-          <View key={card.kind} style={[styles.ctx, on ? styles.ctxOn : styles.ctxOff]}>
-            <T variant="label" style={[styles.ctxLabel, { color: on ? C.youInk : C.draw }]} numberOfLines={1}>
-              {card.label}
-            </T>
-            <T variant="strong" style={[styles.ctxBody, { color: on ? C.youInk : C.draw }]} numberOfLines={2}>
-              {card.body}
-            </T>
-          </View>
-        );
-      })}
+        <View style={styles.summaryChip}>
+          <T variant="strong" style={styles.summaryChipText} numberOfLines={1}>
+            {chip}
+          </T>
+        </View>
+        <T variant="label" style={styles.summaryNote} numberOfLines={1}>
+          {note}
+        </T>
+      </View>
     </View>
   );
 }
@@ -789,17 +764,13 @@ const styles = StyleSheet.create({
   drawText: { ...plain, fontSize: 14, lineHeight: 18, color: C.muted },
   section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 2 },
   sectionText: { fontSize: 11, lineHeight: 14, letterSpacing: 1.4, color: C.muted },
-  rivalRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  rivalChip: { alignItems: 'center', gap: 5, width: 58 },
+  summary: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(255,255,255,0.045)', borderWidth: 1, borderColor: 'rgba(201,162,255,0.2)', borderRadius: 16, paddingVertical: 10, paddingHorizontal: 12, marginTop: 2 },
+  summaryText: { flex: 1, minWidth: 0, gap: 4, alignItems: 'flex-start' },
+  summaryName: { ...plain, fontSize: 14, lineHeight: 18, color: C.them },
+  summaryChip: { backgroundColor: C.you, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, maxWidth: '100%' },
+  summaryChipText: { ...plain, fontFamily: font.bold, fontSize: 12, lineHeight: 15, color: C.youInk },
+  summaryNote: { fontSize: 9, lineHeight: 12, letterSpacing: 1.2, color: C.muted },
   rivalCheck: { position: 'absolute', right: -5, top: -5, width: 20, height: 20, borderRadius: 6, backgroundColor: C.them, alignItems: 'center', justifyContent: 'center' },
-  rivalName: { ...plain, fontSize: 11.5, lineHeight: 14, color: C.them, fontFamily: font.display },
-  rivalNote: { ...plain, flex: 1, fontSize: 12, lineHeight: 16, color: C.muted },
-  ctxRow: { flexDirection: 'row', gap: 6 },
-  ctx: { flex: 1, minWidth: 0, borderRadius: 11, paddingVertical: 7, paddingHorizontal: 9 },
-  ctxOn: { backgroundColor: C.you },
-  ctxOff: { backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(201,162,255,0.28)' },
-  ctxLabel: { fontSize: 9, lineHeight: 12, letterSpacing: 1.2 },
-  ctxBody: { ...plain, fontFamily: font.bold, fontSize: 11.5, lineHeight: 13.5, marginTop: 2 },
   cta: { height: 48, borderRadius: 13, backgroundColor: C.you, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 12 },
   ctaText: { ...plain, fontSize: 15.5, lineHeight: 19, color: C.youInk, flexShrink: 1 },
   cta2: { height: 48, borderRadius: 13, borderWidth: 1, borderColor: 'rgba(201,162,255,0.4)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },

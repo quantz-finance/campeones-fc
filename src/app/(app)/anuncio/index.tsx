@@ -237,8 +237,8 @@ function SmallAction({ label, onPress }: { label: string; onPress: () => void })
   );
 }
 
-// Dorado suave de la maqueta (no el amarillo de marca).
-const GOLD = '#D9B45A';
+// Antes dorado; el oro queda solo para logros, trofeos y los mejores jugadores. Verde de marca.
+const GOLD = '#00FF87';
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },

@@ -1,7 +1,7 @@
 // Cara a cara 1 vs 1 · «Retrato a sangre» (propuesta 2 de Stan, elegida por Rolando).
-// Las dos fotos a sangre partidas por una diagonal dorada y el marcador de victorias gigante; abajo la
+// Las dos fotos a sangre partidas por una diagonal verde → blanco y el marcador de victorias gigante; abajo la
 // barra de la serie, 4 duelos, últimos 5 (con «Historial ›») y la curva del Elo en la serie.
-// Tú en verde, el rival en oro, empates en lila. Solo Animated de React Native (transform/opacity).
+// Tú en verde, el rival en blanco, empates en lila claro (paleta: morado, verde y blanco). Solo Animated de React Native (transform/opacity).
 import { useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
@@ -66,7 +66,7 @@ function Retrato({ data, me, rivalId }: { data: H2HSnapshot; me: string; rivalId
       <ScrollView contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) + 24 }} showsVerticalScrollIndicator={false}>
         <Scene>
           <View style={{ width: W, height: heroH, alignSelf: 'center' }}>
-            <SplitPortraits you={data.you} them={data.opponent} W={W} k={k} heroH={heroH} extra={extra} dim={empty} id="cac" />
+            <SplitPortraits you={data.you} them={data.opponent} W={W} k={k} heroH={heroH} extra={extra} dim={empty} id="cac" fadeTo={Math.min(1, (6 + extra + 300 * k + 8) / heroH / 0.97)} />
             <View style={[styles.name, { top: 196 + extra, left: 20 }]}>
               <T variant="display" style={styles.nameText} numberOfLines={1}>
                 {youName}
@@ -225,7 +225,7 @@ function Duel({ label, you, them }: { label: string; you: string; them: string }
 
 function ResultChip({ r, onPress }: { r: ResultView; onPress?: () => void }) {
   const bg = r.outcome === 'you' ? C.you : r.outcome === 'them' ? C.them : C.draw;
-  const ink = r.outcome === 'you' ? C.youInk : r.outcome === 'them' ? C.themInk : '#FFFFFF';
+  const ink = r.outcome === 'you' ? C.youInk : r.outcome === 'them' ? C.themInk : C.youInk;
   const meta = [r.at ? formatDay(r.at) : '', r.delta != null ? signed(r.delta) : ''].filter(Boolean).join(' · ');
   return (
     <SportPress onPress={onPress} style={[styles.chip, { backgroundColor: bg }]} accessibilityRole="button" accessibilityLabel={`${r.score}, ${r.label}${meta ? `, ${meta}` : ''}`}>
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   steps: { backgroundColor: 'rgba(255,255,255,0.045)', borderWidth: 1, borderColor: 'rgba(201,162,255,0.2)', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
   step: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 50, paddingVertical: 4 },
   stepLine: { borderBottomWidth: 1, borderBottomColor: 'rgba(201,162,255,0.12)' },
-  stepNum: { width: 28, height: 28, borderRadius: 7, backgroundColor: 'rgba(212,175,55,0.15)', alignItems: 'center', justifyContent: 'center' },
+  stepNum: { width: 28, height: 28, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
   stepNumOn: { backgroundColor: C.them },
   stepNumText: { ...plain, fontSize: 15 },
   stepTitle: { ...plain, fontFamily: font.bold, fontSize: 14, lineHeight: 18, color: '#FFFFFF' },

@@ -40,7 +40,7 @@ export default function Historial() {
                 <View style={styles.list}>
                   {shown.map((r, i) => {
                     const bg = r.outcome === 'you' ? C.you : r.outcome === 'them' ? C.them : C.draw;
-                    const ink = r.outcome === 'you' ? C.youInk : r.outcome === 'them' ? C.themInk : '#FFFFFF';
+                    const ink = r.outcome === 'you' ? C.youInk : r.outcome === 'them' ? C.themInk : C.youInk;
                     return (
                       <SportPress
                         key={r.id}
