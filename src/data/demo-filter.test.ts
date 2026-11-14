@@ -47,4 +47,22 @@ describe('joinDemo', () => {
     expect(w.friendships).toHaveLength(0);
     expect(projectHome(out, 'new').recent.length).toBeGreaterThanOrEqual(before.recent.length);
   });
+
+  it('does not auto-join public demo groups', () => {
+    const w: World = {
+      ...emptyWorld(),
+      users: [user('new'), user('b1')],
+      groups: [
+        { id: 'priv', name: 'Privado', createdBy: 'b1', createdAt: '2026-10-01T00:00:00.000Z', visibility: 'private' },
+        { id: 'pub', name: 'Público', createdBy: 'b1', createdAt: '2026-10-01T00:00:00.000Z', visibility: 'public', joinPolicy: 'open' },
+      ],
+      groupMembers: [
+        { groupId: 'priv', userId: 'b1', role: 'owner', joinedAt: '2026-10-01T00:00:00.000Z' },
+        { groupId: 'pub', userId: 'b1', role: 'owner', joinedAt: '2026-10-01T00:00:00.000Z' },
+      ],
+    };
+    const out = joinDemo(w, 'new', { users: new Set(['b1']), groups: new Set(['priv', 'pub']) });
+    expect(out.groupMembers.some((m) => m.groupId === 'priv' && m.userId === 'new')).toBe(true);
+    expect(out.groupMembers.some((m) => m.groupId === 'pub' && m.userId === 'new')).toBe(false);
+  });
 });

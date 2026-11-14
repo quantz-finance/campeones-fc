@@ -47,7 +47,11 @@ export function joinDemo(world: World, me: string, ids: Pick<DemoIds, 'users' | 
     }
   }
   const groupMembers = [...world.groupMembers];
-  for (const groupId of ids.groups) {
+  // A los grupos públicos se entra de verdad (Unirme / Pedir invitación), no en memoria.
+  const privateDemo = new Set(
+    world.groups.filter((group) => ids.groups.has(group.id) && group.visibility !== 'public').map((group) => group.id),
+  );
+  for (const groupId of privateDemo) {
     if (!groupMembers.some((m) => m.groupId === groupId && m.userId === me)) groupMembers.push({ groupId, userId: me, role: 'member', joinedAt: at });
   }
   return { ...world, friendships, groupMembers };

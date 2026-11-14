@@ -160,9 +160,8 @@ begin
     insert into public.public_feature_seed (kind, id) values ('request', rid) on conflict do nothing;
   end loop;
 
-  starts := date_trunc('day', timezone('America/Costa_Rica', now()))::timestamp
-            + interval '14 days' + interval '21 hours';
-  starts := starts at time zone 'America/Costa_Rica';
+  starts := (date_trunc('day', timezone('America/Costa_Rica', now()))
+            + interval '14 days' + interval '21 hours') at time zone 'America/Costa_Rica';
 
   -- Torneo abierto (12/16, fecha futura). Lo organiza un jugador demo; el de prueba está inscrito.
   insert into public.tournaments (
