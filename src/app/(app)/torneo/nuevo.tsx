@@ -34,7 +34,7 @@ export default function NewTournament() {
   const [busy, setBusy] = useState(false);
   const [logo, setLogo] = useState(() => defaultLogo('tournaments', String(Math.random())));
   const [mode, setMode] = useState<'now' | 'registration'>(groupId ? 'now' : 'registration');
-  const [visibility, setVisibility] = useState<Visibility>(groupId ? 'private' : 'public');
+  const [, setVisibility] = useState<Visibility>(groupId ? 'private' : 'public');
   const [joinPolicy, setJoinPolicy] = useState<JoinPolicy>(groupId ? 'invite' : 'open');
   const [maxPlayers, setMaxPlayers] = useState(8);
   const [startsAt, setStartsAt] = useState('');
@@ -69,7 +69,8 @@ export default function NewTournament() {
         name,
         format,
         groupId: groupId || null,
-        visibility: groupId ? visibility : 'public',
+        // Los torneos públicos no pertenecen a ningún grupo: dentro de un grupo, siempre privado.
+        visibility: groupId ? 'private' : 'public',
         joinPolicy,
         maxPlayers,
         startsAt: startsAt || null,
@@ -127,7 +128,7 @@ export default function NewTournament() {
       {mode === 'registration' ? (
         <Panel>
           {groupId ? (
-            <AccessFields visibility={visibility} joinPolicy={joinPolicy} onVisibility={setVisibility} onPolicy={setJoinPolicy} kind="tournament" />
+            <AccessFields visibility="private" joinPolicy={joinPolicy} onVisibility={setVisibility} onPolicy={setJoinPolicy} kind="tournament" groupOnly />
           ) : (
             <>
               <T variant="tiny">Cómo se inscriben</T>

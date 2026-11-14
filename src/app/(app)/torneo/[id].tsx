@@ -101,6 +101,7 @@ export default function TournamentScreen() {
                         onVisibility={setVisibility}
                         onPolicy={setJoinPolicy}
                         kind="tournament"
+                        groupOnly={Boolean(data.tournament.groupId)}
                       />
                       {data.tournament.status === 'registration' ? (
                         <>
@@ -121,7 +122,7 @@ export default function TournamentScreen() {
                           const starts = startsAt === undefined ? data.tournament.startsAt ?? null : startsAt;
                           void repo
                             .setTournamentAccess(userId!, data.tournament.id, {
-                              visibility: visibility ?? visibilityOf(data.tournament),
+                              visibility: data.tournament.groupId ? 'private' : visibility ?? visibilityOf(data.tournament),
                               joinPolicy: joinPolicy ?? joinPolicyOf(data.tournament),
                               maxPlayers: maxPlayers ?? data.tournament.maxPlayers,
                               startsAt: starts,

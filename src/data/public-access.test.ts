@@ -213,4 +213,26 @@ describe('acceso del torneo', () => {
     const open = await repo.createGroup('a', 'Grupo libre', ['b'], null, { visibility: 'public', joinPolicy: 'open' });
     await expect(repo.requestGroupJoin('e', open.id)).rejects.toThrow(/entrada libre/);
   });
+
+  it('un torneo de grupo es privado y solo se inscriben sus miembros', async () => {
+    const { repo } = harness();
+    const group = await repo.createGroup('a', 'Grupo con copa', ['b', 'c']);
+    await expect(
+      repo.createRegistrationTournament({ me: 'a', name: 'Copa pública del grupo', format: 'round_robin', visibility: 'public', joinPolicy: 'open', maxPlayers: 8, groupId: group.id }),
+    ).rejects.toThrow(/torneo de grupo es privado/);
+    const cup = await repo.createRegistrationTournament({
+      me: 'a', name: 'Copa del grupo', format: 'round_robin', visibility: 'private', joinPolicy: 'open', maxPlayers: 8, groupId: group.id,
+    });
+    await repo.registerForTournament('b', cup.id);
+    await expect(repo.registerForTournament('e', cup.id)).rejects.toThrow(/no estás dentro/);
+    await expect(
+      repo.setTournamentAccess('a', cup.id, { visibility: 'public', joinPolicy: 'open' }),
+    ).rejects.toThrow(/torneo de grupo es privado/);
+    const invite = await repo.createRegistrationTournament({
+      me: 'a', name: 'Copa del grupo con invitación', format: 'round_robin', visibility: 'private', joinPolicy: 'invite', maxPlayers: 8, groupId: group.id,
+    });
+    await repo.requestTournamentJoin('c', invite.id);
+    await expect(repo.requestTournamentJoin('e', invite.id)).rejects.toThrow(/no estás dentro/);
+    expect((await repo.searchPublicTournaments('e', 'Copa del grupo')).length).toBe(0);
+  });
 });

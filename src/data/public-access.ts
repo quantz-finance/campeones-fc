@@ -143,7 +143,13 @@ export function searchPublicTournaments(db: World, me: string, q = ''): PublicTo
 
 export function registerForTournament(db: World, me: string, tournamentId: string, now: Date): void {
   const cup = db.tournaments.find((item) => item.id === tournamentId);
-  if (!cup || cup.status !== 'registration' || visibilityOf(cup) !== 'public' || joinPolicyOf(cup) !== 'open') {
+  if (!cup || cup.status !== 'registration' || joinPolicyOf(cup) !== 'open') {
+    throw new DomainError('forbidden', 'Este torneo no es de inscripción libre.');
+  }
+  // Público y abierto: cualquiera. De grupo (siempre privado) y abierto: solo los miembros.
+  if (cup.groupId) {
+    if (!isMember(db, cup.groupId, me)) throw new DomainError('forbidden', 'Este torneo es del grupo y no estás dentro.');
+  } else if (visibilityOf(cup) !== 'public') {
     throw new DomainError('forbidden', 'Este torneo no es de inscripción libre.');
   }
   const regs = db.tournamentRegistrations ?? (db.tournamentRegistrations = []);
@@ -159,7 +165,12 @@ export function registerForTournament(db: World, me: string, tournamentId: strin
 
 export function requestTournamentJoin(db: World, me: string, tournamentId: string, now: Date): TournamentJoinRequest {
   const cup = db.tournaments.find((item) => item.id === tournamentId);
-  if (!cup || visibilityOf(cup) !== 'public' || cup.status !== 'registration') {
+  if (!cup || cup.status !== 'registration') {
+    throw new DomainError('forbidden', 'Este torneo no acepta solicitudes públicas.');
+  }
+  if (cup.groupId) {
+    if (!isMember(db, cup.groupId, me)) throw new DomainError('forbidden', 'Este torneo es del grupo y no estás dentro.');
+  } else if (visibilityOf(cup) !== 'public') {
     throw new DomainError('forbidden', 'Este torneo no acepta solicitudes públicas.');
   }
   const regs = db.tournamentRegistrations ?? [];
@@ -215,6 +226,9 @@ export function setTournamentAccess(
   const cup = db.tournaments.find((item) => item.id === tournamentId);
   if (!cup) throw new DomainError('not_found', 'No encontramos ese torneo.');
   if (cup.createdBy !== me) throw new DomainError('forbidden', 'Solo el organizador puede cambiar el acceso.');
+  if (cup.groupId && patch.visibility === 'public') {
+    throw new DomainError('forbidden', 'Un torneo de grupo es privado: para uno público, créalo desde Torneos, fuera del grupo.');
+  }
   if (!cup.groupId && patch.visibility !== 'public') {
     throw new DomainError('bad_name', 'Un torneo sin grupo tiene que ser público.');
   }
@@ -292,6 +306,7 @@ export function createRegistrationTournament(db: World, input: RegistrationTourn
   }
   const groupId = input.groupId || null;
   if (groupId) {
+    if (input.visibility === 'public') throw new DomainError('forbidden', 'Un torneo de grupo es privado: para uno público, créalo desde Torneos, fuera del grupo.');
     if (!isMember(db, groupId, input.me)) throw new DomainError('forbidden', 'No estás en ese grupo.');
   } else if (input.visibility !== 'public') {
     throw new DomainError('bad_name', 'Un torneo sin grupo tiene que ser público.');
