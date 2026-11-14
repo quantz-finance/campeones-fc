@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Modal, PanResponder, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Defs, Ellipse, LinearGradient, Path, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 import { RARITY_LABEL, siblingsOf, trophyByCode, whyTitle } from '../content/trophies';
@@ -17,6 +17,8 @@ import { shareTrophy } from './share';
 import { T } from './text';
 
 const MEDAL = 200;
+const HALO = 320;
+const SPOT_W = 420;
 const CLOSE_DY = 120;
 const CLOSE_VY = 0.8;
 
@@ -65,7 +67,9 @@ export function LogroEscenario({
   const stats = stageStats(trophy, { earnedCount, total: 24, ...streaks });
   const siblings = siblingsOf(trophy.code);
   const legendary = trophy.rarity === 'legendaria';
-  const spot = trophy.earned ? (legendary ? 0.09 : 0.12) : 0.08;
+  // Luz de estudio tenue: haces finos que caen SOBRE la medalla, no un lavado de media pantalla.
+  const spot = trophy.earned ? (legendary ? 0.1 : 0.085) : 0.05;
+  const tint = trophy.earned ? (legendary ? '#FFD86B' : '#F1D27A') : '#C9A2FF';
 
   const overlay = useRef(new Animated.Value(0)).current;
   const sheet = useRef(new Animated.Value(1)).current; // 0 visible, 1 offscreen; we set and spring to 0
@@ -203,23 +207,23 @@ export function LogroEscenario({
           </View>
 
           <View style={styles.lights}>
-            <Animated.View style={[styles.spotWrap, styles.spotLeft, { opacity: breathe }]}>
-              <Spotlight warm={trophy.earned} strength={spot} flip={false} />
+            <Animated.View pointerEvents="none" style={[styles.spotWrap, { opacity: breathe }]}>
+              <Spotlights warm={trophy.earned} strength={spot} />
             </Animated.View>
-            <Animated.View style={[styles.spotWrap, styles.spotRight, { opacity: breathe }]}>
-              <Spotlight warm={trophy.earned} strength={spot} flip />
+            {/* Resplandor radial con el color de la medalla (antes un círculo plano). */}
+            <Animated.View pointerEvents="none" style={[styles.halo, { opacity: trophy.earned ? 1 : 0.7, transform: [{ scale: halo }] }]}>
+              <Svg width={HALO} height={HALO}>
+                <Defs>
+                  <RadialGradient id="cfcHalo" cx="50%" cy="50%" r="50%">
+                    <Stop offset="0" stopColor={tint} stopOpacity={trophy.earned ? 0.34 : 0.16} />
+                    <Stop offset="0.38" stopColor={tint} stopOpacity={trophy.earned ? 0.16 : 0.08} />
+                    <Stop offset="0.7" stopColor={tint} stopOpacity={0.03} />
+                    <Stop offset="1" stopColor={tint} stopOpacity={0} />
+                  </RadialGradient>
+                </Defs>
+                <Rect x={0} y={0} width={HALO} height={HALO} fill="url(#cfcHalo)" />
+              </Svg>
             </Animated.View>
-            <Animated.View
-              pointerEvents="none"
-              style={[
-                styles.halo,
-                {
-                  opacity: trophy.earned ? 0.9 : 0.35,
-                  transform: [{ scale: halo }],
-                  backgroundColor: trophy.earned ? 'rgba(241,210,122,0.28)' : 'rgba(201,162,255,0.18)',
-                },
-              ]}
-            />
             <Animated.View
               style={{
                 opacity: medal,
@@ -249,30 +253,51 @@ export function LogroEscenario({
             </Animated.View>
 
             <View style={styles.turntable} pointerEvents="none">
+              {/* Podio premium: cara superior oscura, canto con profundidad, filo fino que brilla,
+                  la luz del foco cayendo en el centro y la sombra suave de la medalla. */}
               <Svg width={PLATE_W} height={PLATE_H + 10} style={styles.plateSvg}>
                 <Defs>
-                  <LinearGradient id="cfcPlateRim" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor={trophy.earned ? '#F1D27A' : '#E0C8F5'} />
-                    <Stop offset="0.45" stopColor={trophy.earned ? '#D4AF37' : '#8D6AA8'} />
-                    <Stop offset="1" stopColor={trophy.earned ? '#8A6A16' : '#4A3358'} />
+                  <RadialGradient id="cfcPlateTop" cx="50%" cy="45%" rx="50%" ry="50%">
+                    <Stop offset="0" stopColor={trophy.earned ? '#4E1A5A' : '#3A1846'} />
+                    <Stop offset="0.65" stopColor="#24002B" />
+                    <Stop offset="1" stopColor="#16001B" />
+                  </RadialGradient>
+                  <LinearGradient id="cfcPlateSide" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor="#2A0632" />
+                    <Stop offset="1" stopColor="#0E0012" />
                   </LinearGradient>
-                  <LinearGradient id="cfcPlateFloor" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor={trophy.earned ? 'rgba(241,210,122,0.35)' : 'rgba(201,162,255,0.2)'} />
-                    <Stop offset="0.5" stopColor="#2A0030" />
-                    <Stop offset="1" stopColor="#14001A" />
+                  <RadialGradient id="cfcPlatePool" cx="50%" cy="50%" rx="50%" ry="50%">
+                    <Stop offset="0" stopColor={tint} stopOpacity={trophy.earned ? 0.22 : 0.1} />
+                    <Stop offset="1" stopColor={tint} stopOpacity={0} />
+                  </RadialGradient>
+                  <RadialGradient id="cfcPlateShadow" cx="50%" cy="50%" rx="50%" ry="50%">
+                    <Stop offset="0" stopColor="#000000" stopOpacity={0.55} />
+                    <Stop offset="1" stopColor="#000000" stopOpacity={0} />
+                  </RadialGradient>
+                  <LinearGradient id="cfcPlateRim" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor={tint} stopOpacity={0.35} />
+                    <Stop offset="0.55" stopColor={tint} stopOpacity={0.9} />
+                    <Stop offset="1" stopColor={tint} stopOpacity={0.55} />
                   </LinearGradient>
                 </Defs>
-                <Ellipse cx={PLATE_CX} cy={PLATE_CY + 7} rx={PLATE_RX + 4} ry={PLATE_RY + 3} fill="#000000" opacity={0.45} />
-                <Ellipse cx={PLATE_CX} cy={PLATE_CY} rx={PLATE_RX} ry={PLATE_RY} fill="url(#cfcPlateFloor)" />
-                <Ellipse
-                  cx={PLATE_CX}
-                  cy={PLATE_CY}
-                  rx={PLATE_RX}
-                  ry={PLATE_RY}
+                <Ellipse cx={PLATE_CX} cy={PLATE_CY + 14} rx={PLATE_RX + 8} ry={PLATE_RY + 4} fill="url(#cfcPlateShadow)" />
+                {/* Canto: elipse inferior + franja, más oscuro hacia abajo. */}
+                <Ellipse cx={PLATE_CX} cy={PLATE_CY + 8} rx={PLATE_RX} ry={PLATE_RY} fill="url(#cfcPlateSide)" />
+                <Rect x={PLATE_CX - PLATE_RX} y={PLATE_CY} width={PLATE_RX * 2} height={8} fill="url(#cfcPlateSide)" />
+                {/* Borde inferior del canto apenas iluminado: da el grosor del podio. */}
+                <Path
+                  d={`M${PLATE_CX - PLATE_RX} ${PLATE_CY + 8} A${PLATE_RX} ${PLATE_RY} 0 0 0 ${PLATE_CX + PLATE_RX} ${PLATE_CY + 8}`}
                   fill="none"
-                  stroke="url(#cfcPlateRim)"
-                  strokeWidth={3.5}
+                  stroke={tint}
+                  strokeOpacity={0.2}
+                  strokeWidth={1}
                 />
+                <Ellipse cx={PLATE_CX} cy={PLATE_CY} rx={PLATE_RX} ry={PLATE_RY} fill="url(#cfcPlateTop)" />
+                <Ellipse cx={PLATE_CX} cy={PLATE_CY} rx={PLATE_RX * 0.62} ry={PLATE_RY * 0.7} fill="url(#cfcPlatePool)" />
+                <Ellipse cx={PLATE_CX} cy={PLATE_CY - 1} rx={58} ry={5} fill="url(#cfcPlateShadow)" opacity={0.8} />
+                {/* Filo: un halo ancho y tenue + la línea fina. */}
+                <Ellipse cx={PLATE_CX} cy={PLATE_CY} rx={PLATE_RX} ry={PLATE_RY} fill="none" stroke={tint} strokeOpacity={0.16} strokeWidth={4} />
+                <Ellipse cx={PLATE_CX} cy={PLATE_CY} rx={PLATE_RX} ry={PLATE_RY} fill="none" stroke="url(#cfcPlateRim)" strokeWidth={1.2} />
               </Svg>
               <View style={styles.ledRing}>
                 {LEDS.map((led, i) => (
@@ -422,17 +447,33 @@ function DrawRing({ size, progress }: { size: number; progress: Animated.Value }
   );
 }
 
-function Spotlight({ warm, strength, flip }: { warm: boolean; strength: number; flip: boolean }) {
-  const color = warm ? `rgba(255,236,190,${strength})` : `rgba(201,162,255,${strength})`;
-  return (
-    <Svg width={260} height={520} viewBox="0 0 260 520" style={{ transform: [{ scaleX: flip ? -1 : 1 }] }}>
+/**
+ * Dos haces de estudio que nacen arriba a los lados y CONVERGEN en la medalla: cálidos y casi
+ * transparentes en el origen, se apagan antes de tocar el piso. Un solo SVG, sin animar props
+ * (la respiración es la opacidad del contenedor, con el driver nativo).
+ */
+function Spotlights({ warm, strength }: { warm: boolean; strength: number }) {
+  const color = warm ? '#FFE2A8' : '#C9A2FF';
+  const W = SPOT_W;
+  const cx = W / 2;
+  // Foco en el centro de la medalla (la zona de luces arranca 8 pt arriba de ella).
+  const fy = 8 + MEDAL / 2;
+  const beam = (sx: number, id: string) => (
+    <>
       <Defs>
-        <LinearGradient id={flip ? 'cfcSpotR' : 'cfcSpotL'} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={color} />
-          <Stop offset="0.8" stopColor="rgba(0,0,0,0)" />
+        <LinearGradient id={id} gradientUnits="userSpaceOnUse" x1={sx} y1={-20} x2={cx} y2={fy + 70}>
+          <Stop offset="0" stopColor={color} stopOpacity={strength * 1.4} />
+          <Stop offset="0.55" stopColor={color} stopOpacity={strength * 0.7} />
+          <Stop offset="1" stopColor={color} stopOpacity={0} />
         </LinearGradient>
       </Defs>
-      <Path d="M117 0 H143 L260 520 H0 Z" fill={`url(#${flip ? 'cfcSpotR' : 'cfcSpotL'})`} />
+      <Path d={`M${sx - 7} -20 L${sx + 7} -20 L${cx + 78} ${fy + 70} L${cx - 78} ${fy + 70} Z`} fill={`url(#${id})`} />
+    </>
+  );
+  return (
+    <Svg width={W} height={fy + 80}>
+      {beam(cx - 170, 'cfcSpotL')}
+      {beam(cx + 170, 'cfcSpotR')}
     </Svg>
   );
 }
@@ -449,10 +490,8 @@ const styles = StyleSheet.create({
   handleWrap: { alignItems: 'center', marginTop: 6, zIndex: 5 },
   handle: { width: 42, height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.35)' },
   lights: { height: 328, alignItems: 'center', justifyContent: 'flex-start', marginTop: 4, overflow: 'hidden' },
-  spotWrap: { position: 'absolute', top: -50, width: 260, height: 520 },
-  spotLeft: { left: -70, transform: [{ rotate: '-24deg' }] },
-  spotRight: { right: -70, transform: [{ rotate: '24deg' }] },
-  halo: { position: 'absolute', top: 20, width: 260, height: 260, borderRadius: 130 },
+  spotWrap: { position: 'absolute', top: 0, width: SPOT_W, alignSelf: 'center' },
+  halo: { position: 'absolute', top: 8 + MEDAL / 2 - HALO / 2, width: HALO, height: HALO },
   medal: { width: MEDAL, height: MEDAL, marginTop: 8, zIndex: 2 },
   clipMedal: { overflow: 'hidden', borderRadius: MEDAL / 2 },
   shine: { position: 'absolute', width: 48, height: MEDAL * 2, left: MEDAL / 2 - 24, top: -MEDAL / 2 },

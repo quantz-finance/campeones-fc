@@ -365,7 +365,7 @@ export function HotCups({ items, ads = true }: { items: BillboardTournament[]; a
           );
         })}
         {/* Dentro de este carrusel horizontal, el de anuncios no se desliza: rota fundiéndose. */}
-        {ads ? <AdCarousel section="inicio-copas" swipeable={false} style={styles.cupAd} /> : null}
+        {ads ? <AdCarousel section="inicio-copas" swipeable={false} fill style={styles.cupAd} /> : null}
       </ScrollView>
     </View>
   );

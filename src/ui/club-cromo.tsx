@@ -1,6 +1,6 @@
 // Cromo de club (opción 4): el grupo principal en oro, los demás en cresta, los públicos en mini-cromo.
 // Un patrocinio solo se pinta si hay un registro real. Nunca un monograma inventado.
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { Group } from '../data/types';
 import type { Sponsor } from '../data/types';
@@ -85,29 +85,80 @@ export function ClubCromo({
   );
 }
 
+/**
+ * Fila de crestas de tus otros grupos. Muestra las primeras `limit`; «+N más» (o tocar el espacio libre
+ * de la fila) la abre aquí mismo con TODOS tus grupos (cresta + nombre), y «Ver menos» la cierra.
+ * Cada cresta o renglón abre su grupo.
+ */
 export function CrestRow({
   groups,
-  extra,
+  lead,
+  limit = 5,
   onOpen,
 }: {
   groups: Group[];
-  extra: number;
+  /** El grupo del cromo grande: al abrir la lista va primero, para ver TODOS tus grupos juntos. */
+  lead?: Group | null;
+  limit?: number;
   onOpen: (id: string) => void;
 }) {
-  if (!groups.length && extra <= 0) return null;
+  const [expanded, setExpanded] = useState(false);
+  if (!groups.length) return null;
+  const extra = Math.max(0, groups.length - limit);
+  const toggle = () => setExpanded((v) => !v);
+  if (expanded && extra > 0) {
+    return (
+      <View style={[styles.crestRow, styles.crestOpen]}>
+        <View style={styles.crestList}>
+          {(lead ? [lead, ...groups] : groups).map((group) => (
+            <Pressable
+              key={group.id}
+              onPress={() => onOpen(group.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Abrir ${group.name}`}
+              style={({ pressed }) => [styles.crestItem, pressed ? styles.pressed : null]}
+            >
+              <View style={styles.crestSmall}>
+                <Shield letters={monogram(group.name)} photoUrl={group.photoUrl} kind="groups" id={group.id} logo={group.logo} size={32} />
+              </View>
+              <T variant="strong" numberOfLines={2} style={styles.crestName}>
+                {group.name}
+              </T>
+            </Pressable>
+          ))}
+        </View>
+        <Pressable onPress={toggle} accessibilityRole="button" accessibilityLabel="Ver menos grupos" hitSlop={8} style={styles.lessBtn}>
+          <T variant="strong" color={colors.accentText}>
+            Ver menos
+          </T>
+        </Pressable>
+      </View>
+    );
+  }
   return (
-    <View style={styles.crestRow}>
-      {groups.map((group) => (
-        <Pressable key={group.id} onPress={() => onOpen(group.id)} accessibilityRole="button" accessibilityLabel={group.name} style={styles.crest}>
+    // El espacio libre de la fila también abre la lista; para VoiceOver el botón es «+N más».
+    <Pressable onPress={extra > 0 ? toggle : undefined} disabled={extra <= 0} accessible={false} style={styles.crestRow}>
+      {groups.slice(0, limit).map((group) => (
+        <Pressable key={group.id} onPress={() => onOpen(group.id)} accessibilityRole="button" accessibilityLabel={`Abrir ${group.name}`} style={styles.crest}>
           <Shield letters={monogram(group.name)} photoUrl={group.photoUrl} kind="groups" id={group.id} logo={group.logo} size={40} />
         </Pressable>
       ))}
       {extra > 0 ? (
-        <T variant="strong" color={colors.accentText} style={styles.more}>
-          +{extra} más
-        </T>
+        <Pressable
+          onPress={toggle}
+          accessibilityRole="button"
+          accessibilityLabel={`Ver ${extra === 1 ? 'el otro grupo' : `los otros ${extra} grupos`}`}
+          accessibilityHint="Muestra todos tus grupos aquí mismo."
+          accessibilityState={{ expanded: false }}
+          hitSlop={8}
+          style={styles.more}
+        >
+          <T variant="strong" color={colors.accentText}>
+            +{extra} más
+          </T>
+        </Pressable>
       ) : null}
-    </View>
+    </Pressable>
   );
 }
 
@@ -206,7 +257,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  more: { marginLeft: 'auto' },
+  more: { marginLeft: 'auto', paddingVertical: 8, paddingLeft: 6 },
+  crestOpen: { flexDirection: 'column', alignItems: 'stretch', gap: 8 },
+  crestList: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 8, columnGap: 8 },
+  crestItem: { width: '48%', flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingVertical: 2 },
+  crestSmall: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(241,210,122,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  crestName: { flex: 1, fontSize: 13, lineHeight: 16 },
+  lessBtn: { alignSelf: 'flex-end', paddingVertical: 4 },
+  pressed: { opacity: 0.6 },
   miniWrap: { width: '48.5%' },
   mini: { padding: 11, alignItems: 'center', gap: 6, minHeight: 196 },
   miniOpen: { alignItems: 'center', gap: 6, alignSelf: 'stretch' },

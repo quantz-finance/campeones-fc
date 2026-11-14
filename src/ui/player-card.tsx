@@ -23,6 +23,8 @@ const INK = {
   muted: '#E4D4EE',
   faint: '#B99BC6',
   lilac: '#C9A2FF',
+  // Posición · @usuario: un poco más claro que el lila para que se lea a 12 pt sobre la foto.
+  lilacBright: '#DCC2FF',
   plate: '#2A0030',
   plateHi: '#45094F',
   fade: '#3F0848',
@@ -196,7 +198,7 @@ export function PlayerCard({ data, kicker, onPress }: { data: PlayerCardData; ki
             >
               {firstName(data.profile.displayName)}
             </T>
-            <T variant="strong" color={INK.lilac} style={styles.sub} numberOfLines={1}>
+            <T variant="strong" color={INK.lilacBright} style={styles.sub} numberOfLines={1}>
               {subtitle}
             </T>
             <View style={styles.elo}>
@@ -257,8 +259,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 26,
     top: 48,
-    fontSize: 60,
-    lineHeight: 64,
+    fontSize: 54,
+    lineHeight: 58,
     letterSpacing: -1.5,
     fontStyle: 'normal',
   },
@@ -284,14 +286,14 @@ const styles = StyleSheet.create({
     maxWidth: '48%',
     flexShrink: 1,
   },
-  chipText: { fontSize: 10, lineHeight: 13, letterSpacing: 1.3, fontStyle: 'normal' },
+  chipText: { fontSize: 9.5, lineHeight: 12.5, letterSpacing: 1.3, fontStyle: 'normal' },
   identity: { position: 'absolute', left: 16, bottom: 14, right: 96, zIndex: 2 },
-  first: { fontSize: 46, lineHeight: 50, letterSpacing: -1.6, textTransform: 'uppercase', fontStyle: 'normal' },
-  sub: { fontSize: 14, lineHeight: 18, marginTop: 5, textTransform: 'none', letterSpacing: 0 },
+  first: { fontSize: 40, lineHeight: 44, letterSpacing: -1.6, textTransform: 'uppercase', fontStyle: 'normal' },
+  sub: { fontSize: 12, lineHeight: 16, marginTop: 4, textTransform: 'none', letterSpacing: 0 },
   elo: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 10 },
-  eloNum: { fontSize: 30, lineHeight: 32, letterSpacing: -0.5, fontStyle: 'normal' },
-  eloLbl: { fontSize: 10, lineHeight: 13, letterSpacing: 1.3 },
-  record: { fontSize: 12.5, lineHeight: 16, marginLeft: 4, textTransform: 'none', letterSpacing: 0 },
+  eloNum: { fontSize: 27, lineHeight: 29, letterSpacing: -0.5, fontStyle: 'normal' },
+  eloLbl: { fontSize: 9.5, lineHeight: 12.5, letterSpacing: 1.3 },
+  record: { fontSize: 11.5, lineHeight: 15, marginLeft: 4, textTransform: 'none', letterSpacing: 0 },
   body: { paddingTop: 12, paddingHorizontal: 14, paddingBottom: 14 },
   strip: {
     flexDirection: 'row',
@@ -312,13 +314,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   cellFirst: { borderLeftWidth: 0 },
-  cellNum: { fontSize: 17, lineHeight: 20, letterSpacing: -0.5, fontStyle: 'normal' },
-  // 10 pt Outfit 700 (más legible que los 7.5 pt del mockup); 2 líneas si no cabe.
-  cellLabel: { fontSize: 10, lineHeight: 12, letterSpacing: 0.2, textAlign: 'center', fontStyle: 'normal' },
+  cellNum: { fontSize: 15.5, lineHeight: 18.5, letterSpacing: -0.5, fontStyle: 'normal' },
+  // 9.5 pt Outfit 700 (Rolando: letras un poco más chicas, sin volver a los 7.5 pt del mockup); 2 líneas si no cabe.
+  cellLabel: { fontSize: 9.5, lineHeight: 11.5, letterSpacing: 0.2, textAlign: 'center', fontStyle: 'normal' },
   foot: { gap: 8, marginTop: 12 },
   badges: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  achievements: { fontSize: 10, lineHeight: 13, letterSpacing: 1.3, fontStyle: 'normal' },
-  more: { fontSize: 14, fontWeight: '800', letterSpacing: 0.2, color: '#F1D27A' },
+  achievements: { fontSize: 9.5, lineHeight: 12.5, letterSpacing: 1.3, fontStyle: 'normal' },
+  more: { fontSize: 13, fontWeight: '800', letterSpacing: 0.2, color: '#F1D27A' },
 });
 
 export { cardFromFicha, cardFromPublic, type PlayerCardData } from './player-card-data';

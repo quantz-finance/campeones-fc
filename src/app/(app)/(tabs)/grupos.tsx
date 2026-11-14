@@ -52,8 +52,6 @@ export default function Groups() {
           const featuredId = mine.find((item) => recent.includes(item.group.id))?.group.id ?? mine[0]?.group.id;
           const featured = mine.find((item) => item.group.id === featuredId) ?? null;
           const others = mine.filter((item) => item.group.id !== featuredId).map((item) => item.group);
-          const shown = others.slice(0, 5);
-          const extra = Math.max(0, others.length - shown.length);
           const mineIds = new Set(data.mine.map((item) => item.group.id));
           const pub = data.pub.filter((item) => !mineIds.has(item.group.id) && matchesText(search, item.group.name));
           const mineTitle = data.mine.some((item) => visibilityOf(item.group) === 'public') ? 'Mis grupos' : 'Mis grupos · privados';
@@ -81,7 +79,7 @@ export default function Groups() {
                     sponsor={cromoSponsor}
                     onPress={() => open(featured.group.id)}
                   />
-                  <CrestRow groups={shown} extra={extra} onOpen={open} />
+                  <CrestRow groups={others} lead={featured.group} onOpen={open} />
                 </>
               ) : data.mine.length && search ? (
                 <T variant="tiny">Ninguno de tus grupos coincide.</T>
@@ -106,9 +104,9 @@ export default function Groups() {
                     />
                   );
                   // El anuncio ocupa una celda de la cuadrícula: la tercera (o la última si hay menos).
-                  return index === Math.min(2, pub.length) - 1 ? [cell, <AdCarousel key="anuncio" section="grupos-publicos" style={styles.adCell} />] : [cell];
+                  return index === Math.min(2, pub.length) - 1 ? [cell, <AdCarousel key="anuncio" section="grupos-publicos" fill style={styles.adCell} />] : [cell];
                 })}
-                {pub.length === 0 ? <AdCarousel section="grupos-publicos" style={styles.adCell} /> : null}
+                {pub.length === 0 ? <AdCarousel section="grupos-publicos" fill style={styles.adCell} /> : null}
               </View>
             </>
           );

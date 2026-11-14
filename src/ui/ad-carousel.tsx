@@ -68,6 +68,7 @@ export function AdCarousel({
   section,
   swipeable = true,
   startAt = 0,
+  fill = false,
   style,
 }: {
   section: AdSection;
@@ -75,12 +76,18 @@ export function AdCarousel({
   swipeable?: boolean;
   /** Página inicial (para que dos carruseles iguales en la misma pantalla no muestren lo mismo). */
   startAt?: number;
+  /**
+   * true = en el mosaico, junto a otra caja: toma TODO el alto de la fila (nunca menos que el de su arte),
+   * la imagen lo cubre centrada sin deformarse y los puntos van encima, sin sumar alto.
+   */
+  fill?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   const cards = useMemo(() => adCards(section), [section]);
   const { aspect } = adSpace(section);
   const count = cards.length;
   const [width, setWidth] = useState(0);
+  const [boxHeight, setBoxHeight] = useState(0);
   const [page, setPage] = useState(() => startAt % count);
   const [touching, setTouching] = useState(false);
   const focused = useIsFocused();
@@ -90,7 +97,8 @@ export function AdCarousel({
   const x = useRef(new Animated.Value(0)).current;
   const fade = useRef(new Animated.Value(1)).current;
   const paused = touching || !focused || reader || count <= 1 || !width;
-  const height = width ? Math.round((width / aspect) * 100) / 100 : 0;
+  const natural = width ? Math.round((width / aspect) * 100) / 100 : 0;
+  const height = fill && boxHeight ? Math.max(boxHeight, natural) : natural;
 
   const goTo = useCallback(
     (target: number, animated = true) => {
@@ -123,6 +131,8 @@ export function AdCarousel({
   const onLayout = (e: LayoutChangeEvent) => {
     const w = Math.round(e.nativeEvent.layout.width);
     if (w && w !== width) setWidth(w);
+    const h = Math.round(e.nativeEvent.layout.height);
+    if (fill && h && h !== boxHeight) setBoxHeight(h);
   };
   const onMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (!width) return;
@@ -131,18 +141,22 @@ export function AdCarousel({
   };
 
   const render = (card: Card, index: number) => (
-    <Slide key={card.piece.id} card={card} section={section} index={index} count={count} width={width} height={height} />
+    <Slide key={card.piece.id} card={card} section={section} index={index} count={count} width={width} height={height} aspect={aspect} />
   );
 
+  const dots =
+    count > 1 ? <Dots count={count} page={page} x={swipeable && width ? x : null} width={width} onPick={(p) => goTo(p)} overlay={fill} /> : null;
   return (
-    <View style={style}>
+    <View style={[fill ? styles.fillOuter : null, style]}>
       <View
-        style={[styles.frame, { aspectRatio: aspect }]}
+        style={[styles.frame, fill ? [styles.fillFrame, { minHeight: natural || undefined }] : { aspectRatio: aspect }]}
         onLayout={onLayout}
         onTouchStart={() => setTouching(true)}
         onTouchEnd={() => setTouching(false)}
         onTouchCancel={() => setTouching(false)}
       >
+        {/* En modo fill las láminas van en capa absoluta: así no empujan el alto de la fila (solo lo siguen). */}
+        <View style={fill ? StyleSheet.absoluteFill : null}>
         {!width ? null : swipeable ? (
           <Animated.ScrollView
             ref={scroll}
@@ -160,13 +174,40 @@ export function AdCarousel({
         ) : (
           <Animated.View style={{ opacity: fade }}>{render(cards[page], page)}</Animated.View>
         )}
+        </View>
+        {fill ? dots : null}
       </View>
-      {count > 1 ? <Dots count={count} page={page} x={swipeable && width ? x : null} width={width} onPick={(p) => goTo(p)} /> : null}
+      {fill ? null : dots}
     </View>
   );
 }
 
-function Slide({ card, section, index, count, width, height }: { card: Card; section: AdSection; index: number; count: number; width: number; height: number }) {
+/** Por debajo de esta fracción visible del ancho, «cover» cortaría el titular: se usa fondo difuminado + arte entero. */
+export const MIN_VISIBLE_WIDTH = 0.85;
+
+/** Qué fracción del ancho del arte se ve si se cubre una caja de width x height. */
+export function visibleWidth(width: number, height: number, aspect: number): number {
+  if (!width || !height) return 1;
+  return Math.min(1, width / height / aspect);
+}
+
+function Slide({
+  card,
+  section,
+  index,
+  count,
+  width,
+  height,
+  aspect,
+}: {
+  card: Card;
+  section: AdSection;
+  index: number;
+  count: number;
+  width: number;
+  height: number;
+  aspect: number;
+}) {
   const { piece } = card;
   const cta = card.type === 'cta';
   const onPress = cta ? () => openAdRequest(section) : piece.href ? () => openAd(piece.href!) : undefined;
@@ -178,14 +219,38 @@ function Slide({ card, section, index, count, width, height }: { card: Card; sec
       accessibilityLabel={`${piece.alt} (${index + 1} de ${count})`}
       accessibilityHint={cta ? 'Abre el formulario para pedir tu espacio.' : undefined}
     >
-      <Image source={piece.image} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} transition={0} />
+      {visibleWidth(width, height, aspect) >= MIN_VISIBLE_WIDTH ? (
+        <Image source={piece.image} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} transition={0} />
+      ) : (
+        // Ficha mucho más alta que el arte: el mismo arte, cubriendo y difuminado, llena el alto sin
+        // deformar, y encima va entero y centrado (sin cortar el texto ni la etiqueta «Anuncio»).
+        <>
+          <Image source={piece.image} style={StyleSheet.absoluteFill} contentFit="cover" blurRadius={22} accessible={false} transition={0} />
+          <View style={styles.backdropDim} />
+          <Image source={piece.image} style={StyleSheet.absoluteFill} contentFit="contain" accessible={false} transition={0} />
+        </>
+      )}
     </SportPress>
   );
 }
 
-function Dots({ count, page, x, width, onPick }: { count: number; page: number; x: Animated.Value | null; width: number; onPick: (p: number) => void }) {
+function Dots({
+  count,
+  page,
+  x,
+  width,
+  onPick,
+  overlay = false,
+}: {
+  count: number;
+  page: number;
+  x: Animated.Value | null;
+  width: number;
+  onPick: (p: number) => void;
+  overlay?: boolean;
+}) {
   return (
-    <View style={styles.dots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View style={overlay ? styles.dotsOverlay : styles.dots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {Array.from({ length: count }, (_, i) => {
         const range = [(i - 1) * width, i * width, (i + 1) * width];
         // Con deslizamiento, el punto crece siguiendo el dedo; si no, salta al cambiar de página.
@@ -202,9 +267,24 @@ function Dots({ count, page, x, width, onPick }: { count: number; page: number; 
 }
 
 const styles = StyleSheet.create({
-  // Las piezas traen esquinas redondeadas de 16 pt sobre blanco: se recorta a 17 para no ver ese borde.
-  frame: { width: '100%', borderRadius: 17, overflow: 'hidden', backgroundColor: colors.bgDeep },
-  slide: { overflow: 'hidden' },
+  // Las piezas ya traen sus esquinas de 16 pt transparentes; el recorte de 17 las redondea también
+  // cuando la imagen se agranda para cubrir una ficha más alta. Fondo transparente: entre lámina y
+  // lámina (al deslizar o al fundirse) se ve el morado de la pantalla, nunca blanco.
+  frame: { width: '100%', borderRadius: 17, overflow: 'hidden', backgroundColor: 'transparent' },
+  fillOuter: { alignSelf: 'stretch' },
+  fillFrame: { flex: 1 },
+  slide: { overflow: 'hidden', backgroundColor: 'transparent' },
+  backdropDim: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(20, 4, 28, 0.35)' },
+  dotsOverlay: {
+    position: 'absolute',
+    bottom: 6,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: 'rgba(20, 4, 28, 0.55)',
+  },
   dots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 6 },
   dotHit: { paddingHorizontal: 2, paddingVertical: 3 },
   dot: { height: 5, borderRadius: 3, backgroundColor: colors.text },

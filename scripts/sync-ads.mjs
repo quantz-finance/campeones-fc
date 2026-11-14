@@ -6,7 +6,8 @@
 // Lee <carpeta>/anuncios.json: una lista con { espacio, tipo: 'anuncio' | 'cta', archivo, titular,
 // texto_alterno, ancho_px, alto_px, ... }. Cada espacio necesita al menos un anuncio y exactamente una CTA.
 // Los anuncios «de la casa» llevan a una pantalla de la app (HOUSE_LINKS).
-// Cada PNG se guarda como WebP SIN pérdida (mismos píxeles, ~36 % menos peso): usa python3 + Pillow.
+// Cada PNG se guarda como WebP SIN pérdida: mismos píxeles por dentro y las esquinas redondeadas (16 pt)
+// transparentes en vez de blancas, para que nunca se vea blanco entre lámina y lámina. Usa python3 + Pillow + numpy.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -29,20 +30,12 @@ function pngSize(file) {
   return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
 }
 
-/** PNG -> WebP sin pérdida, píxel por píxel igual (se verifica al terminar). */
+/** PNG -> WebP sin pérdida con las esquinas redondeadas transparentes (scripts/ad-corners.py). */
 function toWebp(from, to) {
-  const py = [
-    'import sys',
-    'from PIL import Image, ImageChops',
-    'a = Image.open(sys.argv[1]).convert("RGB")',
-    'a.save(sys.argv[2], "WEBP", lossless=True, quality=100, method=6)',
-    'b = Image.open(sys.argv[2]).convert("RGB")',
-    'assert ImageChops.difference(a, b).getbbox() is None, "el WebP no quedó idéntico"',
-  ].join('\n');
   try {
-    execFileSync('python3', ['-c', py, from, to], { stdio: ['ignore', 'ignore', 'pipe'] });
+    execFileSync('python3', [join(root, 'scripts', 'ad-corners.py'), from, to], { stdio: ['ignore', 'ignore', 'pipe'] });
   } catch (err) {
-    throw new Error(`No se pudo convertir ${from} a WebP (¿python3 con Pillow?): ${err.stderr ?? err.message}`);
+    throw new Error(`No se pudo convertir ${from} a WebP (¿python3 con Pillow y numpy?): ${err.stderr ?? err.message}`);
   }
 }
 

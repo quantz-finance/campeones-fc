@@ -158,8 +158,26 @@ export default function Profile() {
           );
         }}
       </Gate>
-      <SectionHead title="Álbum de logros" action={`${earned} / 24`} />
-      <AchievementsBoard items={trophies.data ?? []} size={72} />
+      <SectionHead title="Álbum de logros" action={`${earned} / 24`} onAction={() => push('/trofeos')} />
+      {/* Aquí solo los ganados; el álbum completo (con los bloqueados en gris) vive en Trofeos. */}
+      {earned ? (
+        <AchievementsBoard items={(trophies.data ?? []).filter((trophy) => trophy.earned)} size={72} />
+      ) : trophies.data ? (
+        <T variant="tiny" color={colors.muted} style={styles.plain}>
+          Todavía no tienes logros. Juega y registra tus partidos para ganar el primero.
+        </T>
+      ) : null}
+      <Pressable
+        onPress={() => push('/trofeos')}
+        accessibilityRole="link"
+        accessibilityLabel="Ver los 24 logros en Trofeos"
+        hitSlop={8}
+        style={styles.albumLink}
+      >
+        <T variant="strong" color={colors.accentText}>
+          Ver los 24 ›
+        </T>
+      </Pressable>
       {editing ? (
         <View style={styles.edit}>
           <SectionHead title="Editar ficha" />
@@ -211,6 +229,7 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
+  albumLink: { alignSelf: 'center', paddingVertical: space.sm, paddingHorizontal: space.md },
   top: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   flex: { flex: 1 },
   topLabel: { flex: 1, minWidth: 0 },

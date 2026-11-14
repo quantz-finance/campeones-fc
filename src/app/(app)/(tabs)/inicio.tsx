@@ -153,7 +153,7 @@ export default function Home() {
 
 
 const styles = StyleSheet.create({
-  adTile: { flex: 1, alignSelf: 'flex-start' },
+  adTile: { flex: 1 },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bell: {
     width: 42,
@@ -202,7 +202,7 @@ function Mosaic({ board, me, first }: { board: BillboardSnapshot; me: string; fi
                 {board.streaks.length ? <StreaksTile board={board} me={me} /> : null}
               </View>
             ) : (
-              <AdCarousel section="inicio-ficha" style={styles.adTile} />
+              <AdCarousel section="inicio-ficha" fill style={styles.adTile} />
             )}
           </BentoRow>
         </Rise>
@@ -220,8 +220,8 @@ function Mosaic({ board, me, first }: { board: BillboardSnapshot; me: string; fi
         <BentoRow>
           {board.rivalries.length ? <RivalryTile items={board.rivalries} me={me} /> : null}
           {/* Fichas de anuncio: junto a la rivalidad, o dos (desfasadas) si no hay rivalidad. */}
-          <AdCarousel section="inicio-ficha" startAt={side ? 0 : 1} style={styles.adTile} />
-          {board.rivalries.length ? null : <AdCarousel section="inicio-ficha" startAt={side ? 2 : 3} style={styles.adTile} />}
+          <AdCarousel section="inicio-ficha" fill startAt={side ? 0 : 1} style={styles.adTile} />
+          {board.rivalries.length ? null : <AdCarousel section="inicio-ficha" fill startAt={side ? 2 : 3} style={styles.adTile} />}
         </BentoRow>
       </Rise>
     </View>
