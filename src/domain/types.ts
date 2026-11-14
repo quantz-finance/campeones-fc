@@ -65,7 +65,46 @@ export type Slot = {
   matchId: string | null;
 };
 
-export type AchievementCode = 'first_win' | 'streak_5' | 'tournament_champion';
+export const ACHIEVEMENT_CODES = [
+  'primer-partido',
+  'primera-victoria',
+  'debut-grupo',
+  'en-el-ranking',
+  'racha-3',
+  'racha-5',
+  'racha-10',
+  'invicto',
+  'remontada',
+  'partidos-10',
+  'partidos-50',
+  'partidos-100',
+  'partidos-250',
+  'arco-en-cero',
+  'goleada',
+  'manita',
+  'finalista',
+  'campeon-torneo',
+  'lider-grupo',
+  'elo-100',
+  'anfitrion',
+  'capitan',
+  'fundador',
+  'clasico',
+] as const;
+
+export type AchievementCode = (typeof ACHIEVEMENT_CODES)[number];
+
+/** Códigos que se guardaron en la tabla de logros antes del set de 24. */
+export const LEGACY_ACHIEVEMENT_CODES: Record<string, AchievementCode> = {
+  first_win: 'primera-victoria',
+  streak_5: 'racha-5',
+  tournament_champion: 'campeon-torneo',
+};
+
+export function normalizeAchievementCode(code: string): AchievementCode | null {
+  if ((ACHIEVEMENT_CODES as readonly string[]).includes(code)) return code as AchievementCode;
+  return LEGACY_ACHIEVEMENT_CODES[code] ?? null;
+}
 
 export function isOpenStatus(status: MatchStatus): boolean {
   return status === 'pending_accept' || status === 'in_progress' || status === 'disputed';
