@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { useApp } from '../../state/app-provider';
 import { useQuery } from '../../state/use-query';
 import type { TrophyView } from '../../data/snapshots';
@@ -12,7 +13,14 @@ export default function Trophies() {
   const { repo, userId, version } = useApp();
   const query = useQuery(() => repo.trophies(userId!), [repo, userId, version]);
   const personal = useQuery(() => repo.personalSnapshot(userId!), [repo, userId, version]);
+  const { logro } = useLocalSearchParams<{ logro?: string | string[] }>();
+  const wanted = Array.isArray(logro) ? logro[0] : logro;
   const [open, setOpen] = useState<TrophyView | null>(null);
+  useEffect(() => {
+    if (!query.data || !wanted) return;
+    const hit = query.data.find((item) => item.code === wanted);
+    if (hit) setOpen(hit);
+  }, [query.data, wanted]);
   const record = personal.data?.record;
   const currentWinStreak = record?.currentStreak.type === 'win' ? record.currentStreak.count : 0;
   const currentUnbeaten = record && record.currentStreak.type !== 'loss' && record.currentStreak.type !== 'none' ? record.currentStreak.count : 0;
