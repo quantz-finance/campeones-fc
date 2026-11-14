@@ -36,7 +36,19 @@ const INK = {
 /** Alto del retrato a sangre y lado del cuadrado de la foto (pt del mockup). */
 const HERO = 212;
 
-function Cell({ value, label, accent, first }: { value: string; label: string; accent?: boolean; first?: boolean }) {
+function Cell({
+  value,
+  label,
+  accent,
+  first,
+  lines = 1,
+}: {
+  value: string;
+  label: string;
+  accent?: boolean;
+  first?: boolean;
+  lines?: 1 | 2;
+}) {
   return (
     <View style={[styles.cell, first && styles.cellFirst]}>
       <T
@@ -49,7 +61,14 @@ function Cell({ value, label, accent, first }: { value: string; label: string; a
       >
         {value}
       </T>
-      <T variant="label" color={GOLD} style={styles.cellLabel} numberOfLines={2}>
+      <T
+        variant="label"
+        color={GOLD}
+        style={styles.cellLabel}
+        numberOfLines={lines}
+        adjustsFontSizeToFit={lines === 1}
+        minimumFontScale={0.8}
+      >
         {label}
       </T>
     </View>
@@ -201,9 +220,9 @@ export function PlayerCard({ data, kicker, onPress }: { data: PlayerCardData; ki
           <View style={styles.strip}>
             <Cell value={String(data.played)} label="Partidos" first />
             <Cell value={String(data.goalsFor)} label="Goles" />
-            <Cell value={String(data.bestWinStreak)} label="Mejor racha" />
+            <Cell value={String(data.bestWinStreak)} label="Mejor racha" lines={2} />
             <Cell value={streakText(data.streak)} label="Racha" accent={data.streak.type === 'win' && data.streak.count > 0} />
-            <Cell value={elo(data.peak)} label="Elo máx." accent />
+            <Cell value={elo(data.peak)} label="Elo máx." accent lines={2} />
             <Cell value={String(data.titles)} label="Títulos" accent={data.titles > 0} />
           </View>
           <View style={styles.foot}>
@@ -289,7 +308,7 @@ const styles = StyleSheet.create({
   cellFirst: { borderLeftWidth: 0 },
   cellNum: { fontSize: 17, lineHeight: 20, letterSpacing: -0.5, fontStyle: 'normal' },
   // 10 pt Outfit 700 (más legible que los 7.5 pt del mockup); 2 líneas si no cabe.
-  cellLabel: { fontSize: 10, lineHeight: 12, letterSpacing: 0.4, textAlign: 'center', fontStyle: 'normal' },
+  cellLabel: { fontSize: 10, lineHeight: 12, letterSpacing: 0.2, textAlign: 'center', fontStyle: 'normal' },
   foot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginTop: 12 },
   badges: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   achievements: { fontSize: 10, lineHeight: 13, letterSpacing: 1.3, fontStyle: 'normal' },
