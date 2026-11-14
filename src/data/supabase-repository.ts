@@ -409,6 +409,7 @@ export function createSupabaseRepository(): Repository {
   // Al abrir la app se pinta con el último mundo guardado en el teléfono y se relee detrás
   // (stale-while-revalidate): ninguna pantalla espera la red para salir.
   const restored = new Set<string>();
+  let lastPrint: { userId: string; print: string } | null = null;
   async function worldFor(userId: string) {
     connect(userId);
     if (cache && cache.userId === userId && cache.gen === generation) return cache.world;
@@ -427,6 +428,8 @@ export function createSupabaseRepository(): Repository {
     }
     const entry = { userId, gen: generation, world: pullWorld(userId) };
     cache = entry;
+    // Mundo leído fuera de refresh(): la próxima relectura de respaldo lo baja completo una vez y anota su huella.
+    lastPrint = null;
     entry.world.then(
       (world) => saveWorldSoon(userId, world),
       () => {
@@ -865,9 +868,15 @@ export function createSupabaseRepository(): Repository {
     async refresh(userId) {
       connect(userId);
       const startGen = generation;
+      // Primero la huella (~100 bytes): si es la misma de la última relectura, no se baja nada más.
+      // Se pide ANTES del mundo, así un cambio a mitad de camino nunca queda tapado por la huella.
+      const print = await dataFingerprint();
+      if (generation !== startGen) return false;
+      if (print && lastPrint && lastPrint.userId === userId && lastPrint.print === print && cache && cache.userId === userId) return false;
       const fresh = await pullWorld(userId);
       // Mientras leíamos llegó otro cambio (Realtime o una acción): ese aviso ya pone todo al día.
       if (generation !== startGen) return false;
+      lastPrint = print ? { userId, print } : null;
       const current = cache && cache.userId === userId ? await cache.world.catch(() => null) : null;
       if (current && sameWorld(current, fresh)) return false;
       generation += 1;
@@ -884,6 +893,17 @@ export function createSupabaseRepository(): Repository {
     },
   };
   return api;
+}
+
+/** Huella de lo que ve el usuario (RPC data_fingerprint). null si la base todavía no la tiene o falla. */
+async function dataFingerprint(): Promise<string | null> {
+  try {
+    const { data, error } = await getSupabase().rpc('data_fingerprint');
+    if (error) return null;
+    return typeof data === 'string' && data ? data : null;
+  } catch {
+    return null;
+  }
 }
 
 // ── Mundo guardado en el teléfono ────────────────────────────────────────────────────────────
