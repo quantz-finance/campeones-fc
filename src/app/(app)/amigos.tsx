@@ -20,7 +20,7 @@ import type { Profile } from '../../data/types';
 
 export default function Friends() {
   const { repo, userId, version } = useApp();
-  const query = useQuery(() => repo.friendsSnapshot(userId!), [repo, userId, version]);
+  const query = useQuery(() => repo.friendsSnapshot(userId!), [repo, userId, version], `friends:${userId}`);
   const [search, setSearch] = useState('');
   const [hits, setHits] = useState<Profile[]>([]);
   const [searching, setSearching] = useState(false);

@@ -17,7 +17,7 @@ import { Avatar } from '../../../ui/avatar';
 export default function Versus() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { repo, userId, version } = useApp();
-  const query = useQuery(() => repo.h2hSnapshot(userId!, String(id)), [repo, userId, version, id]);
+  const query = useQuery(() => repo.h2hSnapshot(userId!, String(id)), [repo, userId, version, id], `h2h:${userId}:${id}`);
 
   return (
     <Screen>

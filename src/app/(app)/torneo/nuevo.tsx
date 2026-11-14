@@ -26,6 +26,7 @@ export default function NewTournament() {
   const query = useQuery(
     () => (groupId ? repo.groupSnapshot(groupId, userId!) : Promise.resolve(null)),
     [repo, userId, version, groupId],
+    `group:${userId}:${groupId ?? ''}`,
   );
   const [name, setName] = useState('');
   const [format, setFormat] = useState<'single_elim' | 'round_robin'>('single_elim');

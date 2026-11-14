@@ -17,8 +17,8 @@ import { firstName } from '../../../ui/format';
 
 export default function Play() {
   const { repo, userId, version } = useApp();
-  const friends = useQuery(() => repo.friendsSnapshot(userId!), [repo, userId, version]);
-  const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
+  const friends = useQuery(() => repo.friendsSnapshot(userId!), [repo, userId, version], `friends:${userId}`);
+  const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version], `groups:${userId}`);
   const recentRivals = useRecentPicks('rivals');
   const recentGroups = useRecentPicks('groups');
   const [opponentId, setOpponentId] = useState<string | null>(null);

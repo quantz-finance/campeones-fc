@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
+import { tabQueries } from '../../../state/queries';
 import { SectionHead } from '../../../ui/broadcast';
 import { Button, Empty, Gate } from '../../../ui/controls';
 import { Screen, Top } from '../../../ui/screen';
@@ -18,14 +19,8 @@ import { visibilityOf } from '../../../data/types';
 
 export default function Groups() {
   const { repo, userId, version, showFlash } = useApp();
-  const query = useQuery(async () => {
-    const [mine, pub, sponsor] = await Promise.all([
-      repo.groupsSnapshot(userId!),
-      repo.searchPublicGroups(userId!, ''),
-      repo.visibleSponsor(userId!, 'groups-list'),
-    ]);
-    return { mine, pub, sponsor };
-  }, [repo, userId, version]);
+  const tab = tabQueries(repo, userId!).groupsTab;
+  const query = useQuery(tab.load, [repo, userId, version], tab.key);
   const [search, setSearch] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
   const recent = useRecentPicks('groups');

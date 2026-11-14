@@ -16,7 +16,7 @@ import { push } from '../../ui/nav';
 
 export default function Notices() {
   const { repo, userId, version, notices, markNoticesRead } = useApp();
-  const home = useQuery(() => repo.homeSnapshot(userId!), [repo, userId, version]);
+  const home = useQuery(() => repo.homeSnapshot(userId!), [repo, userId, version], `home:${userId}`);
   // Lo que estaba sin leer al abrir sigue marcado en esta visita; en la base queda leído.
   const unreadAtOpen = useRef<Set<string> | null>(null);
   if (!unreadAtOpen.current && notices.length) unreadAtOpen.current = new Set(notices.filter((n) => !n.readAt).map((n) => n.id));

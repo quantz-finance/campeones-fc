@@ -37,6 +37,7 @@ export default function PlayerPage() {
   const query = useQuery(
     () => (ready ? repo.publicPlayer(playerId, userId) : new Promise<PublicPlayer>(() => undefined)),
     [repo, userId, ready, version, playerId],
+    ready ? `player:${playerId}:${userId ?? ''}` : undefined,
   );
   const [copied, setCopied] = useState(false);
 

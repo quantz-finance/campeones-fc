@@ -21,7 +21,7 @@ import type { JoinPolicy, Visibility } from '../../../data/types';
 
 export default function NewGroup() {
   const { repo, userId, version } = useApp();
-  const friends = useQuery(() => repo.friendsSnapshot(userId!), [repo, userId, version]);
+  const friends = useQuery(() => repo.friendsSnapshot(userId!), [repo, userId, version], `friends:${userId}`);
   const [name, setName] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);

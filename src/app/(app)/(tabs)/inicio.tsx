@@ -2,6 +2,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { Icon } from '../../../ui/icon';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
+import { tabQueries } from '../../../state/queries';
 import { ScoreBar, SectionHead, Wordmark } from '../../../ui/broadcast';
 import {
   BentoRow,
@@ -29,9 +30,10 @@ import { SportPress } from '../../../ui/press';
 
 export default function Home() {
   const { repo, userId, version, mode, profile, unread } = useApp();
-  const query = useQuery(() => repo.homeSnapshot(userId!), [repo, userId, version]);
-  const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version]);
-  const board = useQuery(() => repo.billboardSnapshot(userId!), [repo, userId, version]);
+  const q = tabQueries(repo, userId!);
+  const query = useQuery(q.home.load, [repo, userId, version], q.home.key);
+  const groups = useQuery(q.groups.load, [repo, userId, version], q.groups.key);
+  const board = useQuery(q.billboard.load, [repo, userId, version], q.billboard.key);
   const lead = groups.data?.find((item) => item.leader);
   const news = buildNews({
     me: userId ?? '',

@@ -22,7 +22,7 @@ type Choice = 'me' | 'them' | 'draw';
 export default function MatchScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { repo, userId, version, mode } = useApp();
-  const query = useQuery(() => repo.matchSnapshot(String(id), userId!), [repo, userId, version, id]);
+  const query = useQuery(() => repo.matchSnapshot(String(id), userId!), [repo, userId, version, id], `match:${userId}:${id}`);
   const [choice, setChoice] = useState<Choice>('me');
   const [withGoals, setWithGoals] = useState(true);
   const [mine, setMine] = useState(1);

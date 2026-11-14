@@ -51,7 +51,7 @@ const Row = memo(function Row({ row, index, me }: { row: RankRow; index: number;
 export default function Ranking() {
   const { repo, userId, version, mode, profile } = useApp();
   const fake = appModeOf(profile, mode !== 'supabase') === 'fake';
-  const query = useQuery(() => repo.rankingSnapshot(userId!), [repo, userId, version]);
+  const query = useQuery(() => repo.rankingSnapshot(userId!), [repo, userId, version], `ranking:${userId}`);
   const [search, setSearch] = useState('');
   // El puesto es el del ranking completo, aunque el buscador filtre.
   const places = useMemo(() => new Map((query.data?.rows ?? []).map((row, index) => [row.playerId, index])), [query.data]);

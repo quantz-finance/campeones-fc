@@ -11,7 +11,7 @@ import { push } from '../../ui/nav';
 
 export default function Stats() {
   const { repo, userId, version } = useApp();
-  const query = useQuery(() => repo.personalSnapshot(userId!), [repo, userId, version]);
+  const query = useQuery(() => repo.personalSnapshot(userId!), [repo, userId, version], `personal:${userId}`);
   return (
     <Screen>
       <Top title="Tus números" kicker="Estadísticas" back />

@@ -8,6 +8,7 @@ import { Icon } from '../../../ui/icon';
 import { avatars, branding } from '../../../../config/branding';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
+import { tabQueries } from '../../../state/queries';
 import { Affiliation, SectionHead, StatCell } from '../../../ui/broadcast';
 import { Banner, Button, Field, Gate } from '../../../ui/controls';
 import { elo, firstName, goalsPerMatch, pct, recordLine } from '../../../ui/format';
@@ -24,11 +25,14 @@ import { humanError } from '../../../ui/errors';
 export default function Profile() {
   const app = useApp();
   const profile = app.profile;
-  const personal = useQuery(() => app.repo.personalSnapshot(app.userId!), [app.repo, app.userId, app.version]);
-  const trophies = useQuery(() => app.repo.trophies(app.userId!), [app.repo, app.userId, app.version]);
-  const groups = useQuery(() => app.repo.groupsSnapshot(app.userId!), [app.repo, app.userId, app.version]);
+  // Mismas llaves que la precarga del AppProvider: al tocar Perfil ya está calculado.
+  const q = tabQueries(app.repo, app.userId!);
+  const deps = [app.repo, app.userId, app.version];
+  const personal = useQuery(q.personal.load, deps, q.personal.key);
+  const trophies = useQuery(q.trophies.load, deps, q.trophies.key);
+  const groups = useQuery(q.groups.load, deps, q.groups.key);
   // La misma carta que la ficha pública (puesto global, Elo máx., títulos, logros y redes).
-  const card = useQuery(() => app.repo.publicPlayer(app.userId!, app.userId!), [app.repo, app.userId, app.version]);
+  const card = useQuery(q.myCard.load, deps, q.myCard.key);
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
   const [username, setUsername] = useState(profile?.username ?? '');
   const [avatarKey, setAvatarKey] = useState(profile?.avatarKey ?? 'rayo');

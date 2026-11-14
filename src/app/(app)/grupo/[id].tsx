@@ -24,7 +24,7 @@ import { humanError } from '../../../ui/errors';
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { repo, userId, version, showFlash } = useApp();
-  const query = useQuery(() => repo.groupSnapshot(String(id), userId!), [repo, userId, version, id]);
+  const query = useQuery(() => repo.groupSnapshot(String(id), userId!), [repo, userId, version, id], `group:${userId}:${id}`);
   const [search, setSearch] = useState('');
   const [visibility, setVisibility] = useState<Visibility | null>(null);
   const [joinPolicy, setJoinPolicy] = useState<JoinPolicy | null>(null);

@@ -24,7 +24,7 @@ import { push } from '../../../ui/nav';
 export default function TournamentScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { repo, userId, version, showFlash } = useApp();
-  const query = useQuery(() => repo.tournamentSnapshot(String(id), userId!), [repo, userId, version, id]);
+  const query = useQuery(() => repo.tournamentSnapshot(String(id), userId!), [repo, userId, version, id], `tournament:${userId}:${id}`);
   const [visibility, setVisibility] = useState<Visibility | null>(null);
   const [joinPolicy, setJoinPolicy] = useState<JoinPolicy | null>(null);
   const [maxPlayers, setMaxPlayers] = useState<number | null>(null);

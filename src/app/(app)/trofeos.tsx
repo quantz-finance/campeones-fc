@@ -11,8 +11,8 @@ import { TrofeosTabla } from '../../ui/trofeos-tabla';
 
 export default function Trophies() {
   const { repo, userId, version } = useApp();
-  const query = useQuery(() => repo.trophies(userId!), [repo, userId, version]);
-  const personal = useQuery(() => repo.personalSnapshot(userId!), [repo, userId, version]);
+  const query = useQuery(() => repo.trophies(userId!), [repo, userId, version], `trophies:${userId}`);
+  const personal = useQuery(() => repo.personalSnapshot(userId!), [repo, userId, version], `personal:${userId}`);
   const { logro } = useLocalSearchParams<{ logro?: string | string[] }>();
   const wanted = Array.isArray(logro) ? logro[0] : logro;
   const [open, setOpen] = useState<TrophyView | null>(null);

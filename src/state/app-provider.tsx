@@ -1,9 +1,10 @@
 import { signInTestUser } from '../lib/demo-login';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AppState, Platform, StyleSheet, View } from 'react-native';
 import { T } from '../ui/text';
 import { colors, space } from '../ui/theme';
 import { createRepository, type Repository } from '../data';
+import { forgetSavedWorlds } from '../data/supabase-repository';
 import { readDemoSession, readPendingInvite, writeDemoSession, writePendingInvite } from '../data/demo-store';
 import type { Profile } from '../data/types';
 import type { Notice } from '../data/notices';
@@ -16,6 +17,16 @@ import { cavosConfigured } from '../lib/cavos/config';
 import { cavosStore } from '../lib/cavos/store';
 import { isNetworkError } from '../domain/errors';
 import { reportError } from '../lib/analytics';
+import { clearQueryCache, prefetchQuery, sameData } from './query-cache';
+import { PREFETCH_ORDER, routeQueries, tabQueries } from './queries';
+import { setNavPrefetcher } from '../ui/nav';
+
+/** Corre cuando el hilo de JS está libre (requestIdleCallback donde existe). */
+function whenIdle(run: () => void) {
+  const idle = (globalThis as { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => unknown }).requestIdleCallback;
+  if (idle) idle(run, { timeout: 2000 });
+  else setTimeout(run, 0);
+}
 
 export type Flash = { id: string; title: string; body?: string; href?: string; tone?: 'accent' | 'danger' };
 
@@ -55,6 +66,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [flash, setFlash] = useState<Flash | null>(null);
   const [offline, setOffline] = useState(false);
+  const [noticeTick, setNoticeTick] = useState(0);
+  const versionRef = useRef(version);
+  versionRef.current = version;
 
   // Cada carga de fondo pasa por aquí: una falla de red solo enciende el aviso «Sin conexión»
   // (nunca un error sin atrapar ni un cierre de sesión); cualquier otra falla se reporta.
@@ -113,7 +127,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .getProfile(userId)
       .then((next) => {
         if (!active) return;
-        setProfile(next);
+        // Mismo perfil que antes: misma referencia, así no se vuelve a pintar toda la app.
+        setProfile((current) => (sameData(current, next) ? current : next));
         setOffline(false);
       })
       .catch((cause: unknown) => {
@@ -134,7 +149,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     void repo
       .notices(userId)
       .then((next) => {
-        if (active) setNotices(next);
+        if (active) setNotices((current) => (sameData(current, next) ? current : next));
       })
       .catch((cause: unknown) => {
         if (active && isNetworkError(cause)) setOffline(true);
@@ -142,7 +157,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [repo, userId, version]);
+  }, [repo, userId, version, noticeTick]);
 
   // Respaldo de Realtime: al volver a la app (pestaña visible, red de vuelta) y cada 30 s se relee todo,
   // así los dos lados quedan al día aunque el socket se haya dormido (p. ej. al saltar a WhatsApp).
@@ -155,7 +170,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const now = Date.now();
       if (now - last < 2000) return;
       last = now;
-      repo.invalidate();
+      // Relee en segundo plano y solo avisa si cambió algo: antes cada 30 s se recalculaban y
+      // repintaban todas las pantallas abiertas aunque nada hubiera cambiado.
+      if (repo.refresh) void repo.refresh(userId).catch((cause: unknown) => onBackgroundError(cause, 'refresh'));
+      else repo.invalidate();
+      setNoticeTick((n) => n + 1);
     };
     const web = Platform.OS === 'web' && typeof document !== 'undefined';
     const visible = () => !web || document.visibilityState === 'visible';
@@ -182,6 +201,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       clearInterval(timer);
       sub.remove();
+    };
+  }, [repo, userId, onBackgroundError]);
+
+  // Al navegar, los datos del destino se calculan durante la animación de salida.
+  useEffect(() => {
+    if (!repo || !userId) {
+      setNavPrefetcher(null);
+      return;
+    }
+    setNavPrefetcher((path) => {
+      for (const q of routeQueries(path, { repo, userId, ready, version: versionRef.current })) void prefetchQuery(q.key, q.deps, q.load);
+    });
+    return () => setNavPrefetcher(null);
+  }, [repo, userId, ready]);
+
+  // Precarga: con la app ya pintada y quieta, deja calculados Perfil, Grupos y Torneos para que
+  // al tocar la pestaña aparezcan al instante (antes Perfil tardaba en salir).
+  useEffect(() => {
+    if (!repo || !userId) {
+      clearQueryCache();
+      return;
+    }
+    let alive = true;
+    const timer = setTimeout(() => {
+      whenIdle(async () => {
+        const q = tabQueries(repo, userId);
+        for (const name of PREFETCH_ORDER) {
+          if (!alive) return;
+          await prefetchQuery(q[name].key, [repo, userId, versionRef.current], q[name].load as () => Promise<unknown>);
+          // Un respiro entre cálculo y cálculo: un toque a mitad de la precarga responde enseguida.
+          await new Promise((resolve) => setTimeout(resolve, 16));
+        }
+      });
+    }, 1200);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
     };
   }, [repo, userId]);
 
@@ -300,6 +356,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // Solo este dispositivo: cerrar sesión aquí no saca al usuario de su otro teléfono o de la app instalada.
           await getSupabase().auth.signOut({ scope: 'local' });
         }
+        // Lo guardado en este teléfono para pintar al instante se borra con la sesión.
+        void forgetSavedWorlds();
+        clearQueryCache();
         writeDemoSession(null);
         setUserId(null);
         setProfile(null);
