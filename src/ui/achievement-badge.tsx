@@ -5,10 +5,11 @@
 import { useIsFocused } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, Platform, StyleSheet, View } from 'react-native';
-import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { logroArt } from '../content/logros-art';
 import type { AchievementCode } from '../domain/types';
 import { useReducedMotion } from './motion';
+import { Icon } from './icon';
 import { T } from './text';
 import { colors, space } from './theme';
 
@@ -131,6 +132,30 @@ function Holo({ size, phase, moving }: { size: number; phase: number; moving: bo
   );
 }
 
+function ProgressRing({ size, ratio }: { size: number; ratio: number }) {
+  const stroke = Math.max(2, size * 0.055);
+  const r = size / 2 - stroke;
+  const c = 2 * Math.PI * r;
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(241,210,122,0.22)" strokeWidth={stroke} fill="none" />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke="#F1D27A"
+          strokeWidth={stroke}
+          fill="none"
+          strokeDasharray={`${c} ${c}`}
+          strokeDashoffset={c * (1 - ratio)}
+          strokeLinecap="round"
+        />
+      </Svg>
+    </View>
+  );
+}
+
 export function AchievementBadge({
   code,
   unlocked,
@@ -138,6 +163,7 @@ export function AchievementBadge({
   index = 0,
   title,
   detail,
+  progress,
 }: {
   code: AchievementCode;
   unlocked: boolean;
@@ -146,6 +172,8 @@ export function AchievementBadge({
   index?: number;
   title?: string;
   detail?: string;
+  /** Contador 0..target; el anillo solo se pinta si está bloqueado y current > 0. */
+  progress?: { current: number; target: number } | null;
 }) {
   const ref = useRef<any>(null);
   const reduced = useReducedMotion();
@@ -159,18 +187,32 @@ export function AchievementBadge({
     return release;
   }, [moving]);
 
-  // Menos de 56 px: variante small (marco simple, silueta maciza) para que se lea en listas.
-  const art = logroArt(code, size);
+  // Menos de 56 px: variante small. Bloqueado = arte grafito lila (no un filtro gris).
+  const art = logroArt(code, size, unlocked);
+  const ratio = progress && progress.target > 0 ? Math.min(1, Math.max(0, progress.current / progress.target)) : 0;
+  const ring = !unlocked && ratio > 0;
+  const lockSize = Math.max(14, Math.round(size * 0.3));
   return (
     <View style={[styles.wrap, { width: title || detail ? Math.max(size, 96) : size }]} accessibilityLabel={`${title ?? code}${unlocked ? '' : ' (bloqueado)'}`}>
-      <View ref={ref} style={[styles.badge, { width: size, height: size, borderRadius: size / 2 }, unlocked ? styles.on : styles.off]}>
-        <Image
-          source={art}
-          style={[{ width: size, height: size }, !unlocked && styles.lockedArt, !unlocked && web ? ({ filter: 'grayscale(1)' } as object) : null]}
-          resizeMode="contain"
-        />
-        {!unlocked && !web ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.desat, { borderRadius: size / 2 }]} /> : null}
-        {unlocked ? <Holo size={size} phase={(index * 0.37) % 1} moving={moving} /> : null}
+      <View ref={ref} style={[styles.badge, { width: size, height: size }, unlocked ? styles.on : styles.off]}>
+        <Image source={art} style={{ width: size, height: size }} resizeMode="contain" />
+        {unlocked ? (
+          <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.clip, { borderRadius: size / 2 }]}>
+            <Holo size={size} phase={(index * 0.37) % 1} moving={moving} />
+          </View>
+        ) : null}
+        {ring ? <ProgressRing size={size} ratio={ratio} /> : null}
+        {!unlocked ? (
+          <View
+            pointerEvents="none"
+            style={[
+              styles.lock,
+              { width: lockSize, height: lockSize, borderRadius: lockSize / 2, right: -1, bottom: -1 },
+            ]}
+          >
+            <Icon name="candado" size={Math.max(8, Math.round(lockSize * 0.58))} color="#C9A2FF" />
+          </View>
+        ) : null}
       </View>
       {title ? (
         <T variant="strong" style={styles.title} numberOfLines={2} color={unlocked ? colors.text : colors.faint}>
@@ -188,13 +230,12 @@ export function AchievementBadge({
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: space.xs },
-  badge: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  on: { shadowColor: '#00FF87', shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
+  badge: { alignItems: 'center', justifyContent: 'center' },
+  on: { shadowColor: '#D4AF37', shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
   off: {},
   clip: { overflow: 'hidden' },
   rot: { position: 'absolute' },
-  lockedArt: { opacity: 0.38 },
-  desat: { backgroundColor: '#8A8A8A', mixBlendMode: 'saturation' } as object,
   title: { fontSize: 13, textAlign: 'center' },
   detail: { textAlign: 'center', textTransform: 'none', letterSpacing: 0 },
+  lock: { position: 'absolute', alignItems: 'center', justifyContent: 'center', backgroundColor: '#24002A', borderWidth: 1, borderColor: 'rgba(201,162,255,0.45)' },
 });

@@ -1,4 +1,4 @@
-import { trophyCatalog } from '../content/trophies';
+import { RARITY_RANK, trophyByCode, trophyCatalog } from '../content/trophies';
 import type { PublicPlayer } from '../data/public-player';
 import type { AchievementCode, Outcome } from '../domain/types';
 import type { SocialLinks } from '../domain/social';
@@ -28,6 +28,26 @@ export function rankLabel(place: number | null, rankedPlayers: number): string {
 
 export function achievementsLabel(unlocked: number, total: number): string {
   return `Logros · ${unlocked} de ${total}`;
+}
+
+export const FICHA_STRIP_EARNED = 5;
+export const FICHA_STRIP_LOCKED = 3;
+
+export type FichaBadge = { code: AchievementCode; unlocked: boolean; title: string };
+
+/** En la tira de la ficha: ganados primero (hasta 5) o, si no hay, los de mayor rareza; el resto va en «+N». */
+export function fichaAchievementStrip(items: FichaBadge[]): { shown: FichaBadge[]; extra: number } {
+  const earned = items.filter((item) => item.unlocked);
+  if (earned.length > 0) {
+    const shown = earned.slice(0, FICHA_STRIP_EARNED);
+    return { shown, extra: items.length - shown.length };
+  }
+  const locked = items.slice().sort((a, b) => {
+    const rank = RARITY_RANK[trophyByCode[b.code].rarity] - RARITY_RANK[trophyByCode[a.code].rarity];
+    return rank || a.code.localeCompare(b.code);
+  });
+  const shown = locked.slice(0, FICHA_STRIP_LOCKED);
+  return { shown, extra: items.length - shown.length };
 }
 
 export function streakText(streak: PlayerCardData['streak']): string {

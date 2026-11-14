@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Platform, Share, StyleSheet, View } from 'react-native';
 import { branding } from '../../../config/branding';
 import { trophyCatalog } from '../../content/trophies';
+import { AchievementsBoard } from '../../ui/achievements-board';
 import type { PublicPlayer } from '../../data/public-player';
 import { DEFAULT_NATIVE_API_BASE } from '../../lib/api';
 import { useApp } from '../../state/app-provider';
@@ -19,7 +20,6 @@ import { SportPress } from '../../ui/press';
 import { Screen, Top } from '../../ui/screen';
 import { copyText } from '../../ui/share';
 import { DetailSkeleton } from '../../ui/skeleton';
-import { AchievementBadge } from '../../ui/achievement-badge';
 import { PlayerCard, cardFromPublic } from '../../ui/player-card';
 import { SocialButtons } from '../../ui/social-icons';
 import { T } from '../../ui/text';
@@ -117,23 +117,15 @@ export default function PlayerPage() {
                 )}
               </Rise>
               <Rise index={4} style={styles.section}>
-                <SectionHead title="Logros" />
-                <View style={styles.album}>
-                  {trophyCatalog.map((trophy, index) => {
-                    const got = data.achievements.find((item) => item.code === trophy.code);
-                    return (
-                      <AchievementBadge
-                        key={trophy.code}
-                        code={trophy.code}
-                        unlocked={Boolean(got)}
-                        index={index}
-                        size={84}
-                        title={trophy.title}
-                        detail={got ? formatDay(got.earnedAt) : 'Bloqueado'}
-                      />
-                    );
-                  })}
-                </View>
+                <SectionHead title="Logros" action={`${data.achievements.length} / 24`} />
+                <AchievementsBoard
+                  items={trophyCatalog.map((trophy) => ({
+                    ...trophy,
+                    earned: data.achievements.some((item) => item.code === trophy.code),
+                    earnedAt: data.achievements.find((item) => item.code === trophy.code)?.earnedAt,
+                  }))}
+                  size={72}
+                />
               </Rise>
               {data.groups.length ? (
                 <Rise index={5} style={styles.section}>

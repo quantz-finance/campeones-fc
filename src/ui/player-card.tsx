@@ -8,7 +8,7 @@ import { StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { AchievementBadge } from './achievement-badge';
 import { elo, firstName, pct } from './format';
-import { achievementsLabel, rankLabel, streakText, type PlayerCardData } from './player-card-data';
+import { achievementsLabel, fichaAchievementStrip, rankLabel, streakText, type PlayerCardData } from './player-card-data';
 import { CountRoll, useReducedMotion } from './motion';
 import { initialsOf, PORTRAIT } from './player-portrait';
 import { SportPress } from './press';
@@ -156,6 +156,7 @@ export function PlayerCard({ data, kicker, onPress }: { data: PlayerCardData; ki
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const rest = data.profile.displayName.trim().split(/\s+/).slice(1).join(' ');
   const unlocked = data.achievements.filter((item) => item.unlocked).length;
+  const strip = fichaAchievementStrip(data.achievements);
   const subtitle = rest ? `${rest} · @${data.profile.username}` : `@${data.profile.username}`;
   return (
     <SportPress style={styles.card} onPress={onPress} disabled={!onPress} accessibilityLabel={`Ficha de ${data.profile.displayName}`}>
@@ -227,9 +228,14 @@ export function PlayerCard({ data, kicker, onPress }: { data: PlayerCardData; ki
           </View>
           <View style={styles.foot}>
             <View style={styles.badges}>
-              {data.achievements.map((item, index) => (
+              {strip.shown.map((item, index) => (
                 <AchievementBadge key={item.code} code={item.code} unlocked={item.unlocked} index={index} size={38} />
               ))}
+              {strip.extra > 0 ? (
+                <T variant="strong" color="#F1D27A" style={styles.more}>
+                  {`+${strip.extra}`}
+                </T>
+              ) : null}
             </View>
             <T variant="label" color={INK.faint} style={styles.achievements}>
               {achievementsLabel(unlocked, data.achievements.length)}
@@ -312,6 +318,7 @@ const styles = StyleSheet.create({
   foot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginTop: 12 },
   badges: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   achievements: { fontSize: 10, lineHeight: 13, letterSpacing: 1.3, fontStyle: 'normal' },
+  more: { fontSize: 14, fontWeight: '800', letterSpacing: 0.2, color: '#F1D27A' },
 });
 
 export { cardFromPublic, type PlayerCardData } from './player-card-data';

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { SocialEditor } from '../../../ui/social-editor';
-import { AchievementBadge } from '../../../ui/achievement-badge';
+import { AchievementsBoard } from '../../../ui/achievements-board';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Icon } from '../../../ui/icon';
@@ -20,12 +20,6 @@ import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
 import { push } from '../../../ui/nav';
 import { humanError } from '../../../ui/errors';
-
-const stickerMeta = {
-  first_win: { title: 'Primera', icon: 'rayo' as const, color: colors.accentText, tilt: '0deg' },
-  streak_5: { title: 'En fuego', icon: 'racha' as const, color: colors.red, tilt: '0deg' },
-  tournament_champion: { title: 'Campeón', icon: 'medalla' as const, color: colors.blue, tilt: '0deg' },
-};
 
 export default function Profile() {
   const app = useApp();
@@ -115,19 +109,8 @@ export default function Profile() {
                 <StatCell value={String(data.record.bestWinStreak)} label="Mejor racha" />
                 <StatCell value={elo(maxElo)} label="Elo máximo" />
               </View>
-              <SectionHead title="Álbum de logros" action={`${earned} / 3`} />
-              <View style={styles.album}>
-                {(trophies.data ?? []).map((trophy, index) => (
-                  <AchievementBadge
-                    key={trophy.code}
-                    code={trophy.code}
-                    unlocked={trophy.earned}
-                    index={index}
-                    title={stickerMeta[trophy.code].title}
-                    detail={trophy.earned ? trophy.title : trophy.description}
-                  />
-                ))}
-              </View>
+              <SectionHead title="Álbum de logros" action={`${earned} / 24`} />
+              <AchievementsBoard items={trophies.data ?? []} size={72} />
               <View style={styles.rivals}>
                 {data.bestRival ? (
                   <Pressable style={[styles.rival, { borderLeftColor: colors.blue }]} onPress={() => push(`/versus/${data.bestRival!.profile.id}`)}>
