@@ -96,6 +96,15 @@ export function CardsSkeleton({ cards = 4 }: { cards?: number }) {
   );
 }
 
+/** La carta de la ficha mientras llegan los datos (para no enseñar 0 de Elo y 0 logros de mentira). */
+export function PlayerCardSkeleton() {
+  return (
+    <Shimmer>
+      <Bone w="100%" h={430} />
+    </Shimmer>
+  );
+}
+
 /** Inicio: ficha (bloque rojo + datos), "por confirmar" y accesos rápidos. */
 export function HomeSkeleton() {
   return (

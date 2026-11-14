@@ -16,7 +16,7 @@ import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { Rise, useDelayed } from '../../../ui/motion';
 import { PlayerCard, cardFromFicha } from '../../../ui/player-card';
-import { CardsSkeleton } from '../../../ui/skeleton';
+import { CardsSkeleton, PlayerCardSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
 import { push } from '../../../ui/nav';
 import { humanError } from '../../../ui/errors';
@@ -75,6 +75,12 @@ export default function Profile() {
           <Icon name={editing ? 'cerrar' : 'editar'} size={18} color={colors.text} />
         </Pressable>
       </View>
+      {/* Mientras no llega ni la ficha pública ni el snapshot, una carta esqueleto: sin esto se veían
+          0 de Elo, 0 partidos y los 24 logros bloqueados durante la carga. Si las dos fallan (sin red),
+          se pinta la carta con el perfil local. */}
+      {card.loading && personal.loading && !card.data && !personal.data ? (
+        <PlayerCardSkeleton />
+      ) : (
       <Rise index={0}>
         <PlayerCard
           data={cardFromFicha({
@@ -89,6 +95,7 @@ export default function Profile() {
           onPress={() => push('/estadisticas')}
         />
       </Rise>
+      )}
       <View style={styles.idRow}>
         <View style={styles.flex}>
           {/* Nombre y @usuario ya van en la carta; aquí solo el país y el botón de foto. */}

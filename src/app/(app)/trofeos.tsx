@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { useIsFocused, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../../state/app-provider';
 import { useQuery } from '../../state/use-query';
 import type { TrophyView } from '../../data/snapshots';
@@ -16,11 +16,23 @@ export default function Trophies() {
   const { logro } = useLocalSearchParams<{ logro?: string | string[] }>();
   const wanted = Array.isArray(logro) ? logro[0] : logro;
   const [open, setOpen] = useState<TrophyView | null>(null);
+  // El enlace ?logro= abre el escenario una sola vez: al refrescarse los datos (cada 30 s o por
+  // Realtime) no se vuelve a abrir solo después de que lo cierras.
+  const handled = useRef<string | null>(null);
   useEffect(() => {
-    if (!query.data || !wanted) return;
+    if (!query.data || !wanted || handled.current === wanted) return;
     const hit = query.data.find((item) => item.code === wanted);
-    if (hit) setOpen(hit);
+    if (hit) {
+      handled.current = wanted;
+      setOpen(hit);
+    }
   }, [query.data, wanted]);
+  // Si otra pantalla toma el foco (un enlace, una notificación), el escenario se cierra: es un Modal
+  // y si no se quedaba tapando la pantalla nueva.
+  const focused = useIsFocused();
+  useEffect(() => {
+    if (!focused) setOpen(null);
+  }, [focused]);
   const record = personal.data?.record;
   const currentWinStreak = record?.currentStreak.type === 'win' ? record.currentStreak.count : 0;
   const currentUnbeaten = record && record.currentStreak.type !== 'loss' && record.currentStreak.type !== 'none' ? record.currentStreak.count : 0;
