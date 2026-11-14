@@ -602,7 +602,8 @@ export function createSupabaseRepository(): Repository {
         return {
           tournament: cup,
           groupName: asNullable(row.group_name),
-          registeredCount: asNumber(row.registered_count) ?? 0,
+          // Un torneo ya arrancado guarda a sus jugadores en player_ids (no en inscripciones).
+          registeredCount: asNumber(row.registered_count) || cup.playerIds.length,
           requested: Boolean(row.requested),
           registered: Boolean(row.registered),
         };

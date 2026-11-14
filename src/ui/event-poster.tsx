@@ -158,12 +158,14 @@ export function PublicTournamentRow({
             {tournament.name}
           </T>
           <T variant="tiny" color={colors.muted} numberOfLines={1}>
-            {open ? 'Abierto' : 'Con invitación'}
+            {tournament.status === 'in_progress' ? 'En juego' : tournament.status === 'completed' ? 'Finalizado' : open ? 'Abierto' : 'Con invitación'}
             {tournament.startsAt ? ` · ${formatEventWhen(tournament.startsAt)}` : ''}
             {groupName ? ` · ${groupName}` : ''}
           </T>
           <T variant="tiny" color={colors.faint}>
-            {slotsLine(registeredCount, tournament.maxPlayers)}
+            {tournament.status === 'registration'
+              ? slotsLine(registeredCount, tournament.maxPlayers)
+              : `${registeredCount || tournament.playerIds.length} jugadores`}
           </T>
         </View>
       </Pressable>

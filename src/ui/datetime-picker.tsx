@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useRef } from 'react';
+import { Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { colors, radius, space } from './theme';
 import { T } from './text';
 import {
@@ -25,8 +26,19 @@ export function DateTimePicker({
   label?: string;
 }) {
   const today = startOfDayCostaRica();
-  const days = upcomingDays(16);
+  const scroller = useRef<ScrollViewInstance>(null);
+  // Al abrir, la fila se corre hasta el día elegido (una sola vez, para no pelear con el dedo).
+  const scrolled = useRef(false);
   const selected: CivilTime | null = value ? civilInZone(value) : null;
+  // Dos meses de días; si la fecha guardada queda fuera (más lejos o ya pasada), se agrega su chip
+  // para que se vea marcada y no parezca que el torneo no tiene fecha.
+  const upcoming = upcomingDays(60);
+  const days =
+    selected && !upcoming.some((day) => sameDay(selected, day))
+      ? [...upcoming, { year: selected.year, month: selected.month, day: selected.day }].sort(
+          (a, b) => a.year - b.year || a.month - b.month || a.day - b.day,
+        )
+      : upcoming;
   const hour = selected?.hour ?? 21;
   const minute = selected ? snapMinute(selected.minute) : 0;
 
@@ -53,7 +65,7 @@ export function DateTimePicker({
   return (
     <View style={styles.wrap}>
       <T variant="tiny">{label}</T>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.days}>
+      <ScrollView ref={scroller} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.days}>
         <Pressable
           onPress={() => onChange(null)}
           accessibilityRole="button"
@@ -73,6 +85,15 @@ export function DateTimePicker({
               onPress={() => setDay(day.year, day.month, day.day)}
               accessibilityRole="button"
               accessibilityLabel={tag}
+              onLayout={
+                on
+                  ? (event) => {
+                      if (scrolled.current) return;
+                      scrolled.current = true;
+                      scroller.current?.scrollTo({ x: Math.max(0, event.nativeEvent.layout.x - 80), animated: false });
+                    }
+                  : undefined
+              }
               style={[styles.chip, on ? styles.chipOn : styles.chipOff]}
             >
               <T variant="label" color={on ? colors.ink : colors.text}>
