@@ -33,6 +33,8 @@ import {
   projectTournament,
 } from './project';
 import type { Repository } from './repository';
+import { adRequestProblem, cleanAdRequest, uuidV4 } from '../domain/ad-request';
+import { DomainError } from '../domain/errors';
 import {
   createRegistrationTournament as createRegistrationTournamentInWorld,
   decideGroupJoin as decideGroupJoinInWorld,
@@ -66,6 +68,7 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
   let db = structuredClone(initial);
   const listeners = new Set<() => void>();
   const now = () => options.now?.() ?? new Date();
+  const adRequests: { id: string; userId: string; at: number; message: string }[] = [];
 
   const notify = () => {
     for (const listener of listeners) listener();
@@ -224,6 +227,23 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
       return commit((world, at) => {
         startTournamentInWorld(world, me, tournamentId, at);
       });
+    },
+    async submitAdRequest(me, input) {
+      // Demo: se guarda solo en memoria, con las mismas reglas y el mismo freno que la base.
+      const problem = adRequestProblem(input);
+      if (problem) throw new DomainError('invalid', problem);
+      const at = now().getTime();
+      const mine = adRequests.filter((r) => r.userId === me);
+      if (mine.filter((r) => at - r.at < 3_600_000).length >= 3) {
+        throw new DomainError('rate_limited', 'Ya nos enviaste varias solicitudes. Espera un rato y vuelve a intentarlo.');
+      }
+      const clean = cleanAdRequest(input);
+      if (mine.some((r) => at - r.at < 86_400_000 && r.message.toLowerCase() === clean.message.toLowerCase())) {
+        throw new DomainError('duplicate', 'Ya recibimos esta solicitud. Te vamos a escribir pronto.');
+      }
+      const id = uuidV4();
+      adRequests.push({ id, userId: me, at, message: clean.message });
+      return { id, notified: false };
     },
     async visibleSponsor(_me, placement, id) {
       if (placement === 'groups-list') return groupsHomeSponsor(view());

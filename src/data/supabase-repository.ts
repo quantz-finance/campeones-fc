@@ -1,4 +1,5 @@
-import { fetchPublicPlayer } from '../lib/api';
+import { apiPost, fetchPublicPlayer } from '../lib/api';
+import { adRequestProblem, adRequestServerMessage, cleanAdRequest, uuidV4 } from '../domain/ad-request';
 import { projectPublicPlayer } from './public-player';
 import { cleanSocialLinks } from '../domain/social';
 import { hideDemo, joinDemo } from './demo-filter';
@@ -659,6 +660,41 @@ export function createSupabaseRepository(): Repository {
       const { error } = await supabase.rpc('start_tournament', { tid: tournamentId });
       fail(error);
       notify();
+    },
+    async submitAdRequest(me, input, image) {
+      const problem = adRequestProblem(input);
+      if (problem) throw new DomainError('invalid', problem);
+      const clean = cleanAdRequest(input);
+      const id = uuidV4();
+      let imagePath: string | null = null;
+      if (image) {
+        // Bucket privado: cada quien sube solo a su carpeta; la app no puede volver a leerla.
+        imagePath = `${me}/${id}.${image.ext}`;
+        const up = await supabase.storage.from('ad-requests').upload(imagePath, image.body, { contentType: image.type, upsert: false });
+        if (up.error) throw new DomainError('remote', adRequestServerMessage(up.error.message));
+      }
+      // Sin .select(): la tabla no deja leer, ni siquiera la propia solicitud.
+      const { error } = await supabase.from('ad_requests').insert({
+        id,
+        user_id: me,
+        business: clean.business,
+        contact_name: clean.contactName,
+        contact: clean.contact,
+        section: clean.section,
+        message: clean.message,
+        image_path: imagePath,
+      });
+      if (error) throw remoteError(adRequestServerMessage(error.message));
+      // El correo al equipo lo manda el servidor. Si falla, la solicitud ya quedó guardada en revisión.
+      let notified = false;
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        if (token) notified = (await apiPost<{ notified?: boolean }>('/api/anuncio', token, { id })).notified === true;
+      } catch {
+        notified = false;
+      }
+      return { id, notified };
     },
     async visibleSponsor(me, placement, id) {
       const world = await worldFor(me);

@@ -9,13 +9,11 @@ import {
   MoversTile,
   ResultsGrid,
   RivalryTile,
-  SponsorBanner,
-  SponsorTile,
   StarsCarousel,
   StreaksTile,
   TopTile,
 } from '../../../ui/billboard';
-import { sponsorsFor } from '../../../content/sponsors';
+import { AdCarousel } from '../../../ui/ad-carousel';
 import type { BillboardSnapshot } from '../../../data/snapshots';
 import { Gate } from '../../../ui/controls';
 import { firstName, formatWhen, scoreText, tagOf } from '../../../ui/format';
@@ -153,6 +151,7 @@ export default function Home() {
 
 
 const styles = StyleSheet.create({
+  adTile: { flex: 1, alignSelf: 'flex-start' },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bell: {
     width: 42,
@@ -185,9 +184,6 @@ const styles = StyleSheet.create({
 
 /** Portada en mosaico: piezas de distintos tamaños (ancho completo, medio ancho, fichas cuadradas). */
 function Mosaic({ board, me, first }: { board: BillboardSnapshot; me: string; first: number }) {
-  const banner = sponsorsFor('home', 'banner')[0];
-  const tiles = sponsorsFor('home', 'tile');
-  const cupAds = sponsorsFor('tournament');
   const side = board.movers.length > 0 || board.streaks.length > 0;
   return (
     <View style={styles.mosaic}>
@@ -203,19 +199,17 @@ function Mosaic({ board, me, first }: { board: BillboardSnapshot; me: string; fi
                 {board.movers.length ? <MoversTile board={board} me={me} /> : null}
                 {board.streaks.length ? <StreaksTile board={board} me={me} /> : null}
               </View>
-            ) : tiles[0] ? (
-              <SponsorTile slot={tiles[0]} />
-            ) : null}
+            ) : (
+              <AdCarousel section="inicio-ficha" style={styles.adTile} />
+            )}
           </BentoRow>
         </Rise>
       ) : null}
-      {banner ? (
-        <Rise index={first + 3}>
-          <SponsorBanner slot={banner} />
-        </Rise>
-      ) : null}
+      <Rise index={first + 3}>
+        <AdCarousel section="inicio-franja" />
+      </Rise>
       <Rise index={first + 4}>
-        <HotCups items={board.tournaments} sponsored={cupAds} />
+        <HotCups items={board.tournaments} />
       </Rise>
       <Rise index={first + 5}>
         <ResultsGrid board={board} />
@@ -223,9 +217,9 @@ function Mosaic({ board, me, first }: { board: BillboardSnapshot; me: string; fi
       <Rise index={first + 6}>
         <BentoRow>
           {board.rivalries.length ? <RivalryTile items={board.rivalries} me={me} /> : null}
-          {(board.rivalries.length ? tiles.slice(-1) : tiles).map((slot) => (
-            <SponsorTile key={slot.id} slot={slot} />
-          ))}
+          {/* Fichas de anuncio: junto a la rivalidad, o dos (desfasadas) si no hay rivalidad. */}
+          <AdCarousel section="inicio-ficha" startAt={side ? 0 : 1} style={styles.adTile} />
+          {board.rivalries.length ? null : <AdCarousel section="inicio-ficha" startAt={side ? 2 : 3} style={styles.adTile} />}
         </BentoRow>
       </Rise>
     </View>

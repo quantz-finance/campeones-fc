@@ -12,6 +12,7 @@ import { SearchCreateRow, SearchEmpty } from '../../../ui/search-field';
 import { rememberPick, useRecentPicks } from '../../../ui/recent-picks';
 import { matchesText } from '../../../domain/search';
 import { ClubCromo, CrestRow, MiniCromo } from '../../../ui/club-cromo';
+import { AdCarousel } from '../../../ui/ad-carousel';
 import { humanError } from '../../../ui/errors';
 import { visibilityOf } from '../../../data/types';
 
@@ -93,9 +94,10 @@ export default function Groups() {
               <SectionHead title="Grupos públicos" action={pub.length ? String(pub.length) : undefined} />
               {pub.length === 0 ? (
                 <T variant="tiny">{search ? 'No hay grupos públicos con ese nombre.' : 'Todavía no hay grupos públicos para explorar.'}</T>
-              ) : (
-                <View style={styles.grid}>
-                  {pub.map((item) => (
+              ) : null}
+              <View style={styles.grid}>
+                {pub.flatMap((item, index) => {
+                  const cell = (
                     <MiniCromo
                       key={item.group.id}
                       group={item.group}
@@ -107,9 +109,12 @@ export default function Groups() {
                       onOpen={() => open(item.group.id)}
                       onJoin={() => act(item.group.id, item.joinPolicy)}
                     />
-                  ))}
-                </View>
-              )}
+                  );
+                  // El anuncio ocupa una celda de la cuadrícula: la tercera (o la última si hay menos).
+                  return index === Math.min(2, pub.length) - 1 ? [cell, <AdCarousel key="anuncio" section="grupos-publicos" style={styles.adCell} />] : [cell];
+                })}
+                {pub.length === 0 ? <AdCarousel section="grupos-publicos" style={styles.adCell} /> : null}
+              </View>
             </>
           );
         }}
@@ -120,4 +125,5 @@ export default function Groups() {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: space.md },
+  adCell: { width: '48.5%' },
 });

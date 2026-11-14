@@ -3,6 +3,7 @@ import type { SocialLinks } from '../domain/social';
 import type { Profile } from './types';
 import type { Notice } from './notices';
 import type { PhotoKind, PhotoPayload } from '../lib/photos';
+import type { AdRequestInput } from '../domain/ad-request';
 import type { LogoKind } from '../content/crest-ids';
 import type { ReportDraft } from '../domain/types';
 import type { Match } from '../domain/types';
@@ -21,6 +22,8 @@ import type {
   TournamentSnapshot,
   TrophyView,
 } from './snapshots';
+
+export type AdImagePayload = { body: Blob | ArrayBuffer; type: string; ext: 'webp' | 'jpg' | 'png' };
 
 export type Repository = {
   mode: 'demo' | 'supabase';
@@ -72,6 +75,8 @@ export type Repository = {
   createRegistrationTournament(input: RegistrationTournamentInput): Promise<{ id: string }>;
   startTournament(me: string, tournamentId: string): Promise<void>;
   visibleSponsor(me: string, placement: Sponsor['placement'], id?: string | null): Promise<Sponsor | null>;
+  /** «Quiero ver mi anuncio aquí»: guarda la solicitud (en revisión) y pide al servidor avisar por correo. */
+  submitAdRequest(me: string, input: AdRequestInput, image?: AdImagePayload | null): Promise<{ id: string; notified: boolean }>;
   /** logo: id del set de escudos (opcional; si la base aún no tiene la columna, se ignora y queda el de por defecto). */
   createGroup(me: string, name: string, memberIds: string[], logo?: string | null, access?: { visibility: Visibility; joinPolicy: JoinPolicy }): Promise<{ id: string }>;
   /** Elige el escudo (grupo) o trofeo (torneo) del set. Quita la foto subida. Solo dueño del grupo / creador del torneo. */

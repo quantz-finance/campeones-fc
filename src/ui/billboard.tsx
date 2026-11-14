@@ -8,7 +8,7 @@ import { Icon, type UiIconName } from './icon';
 import { Image } from 'expo-image';
 import type { Href } from 'expo-router';
 import type { BillboardPlayer, BillboardRivalry, BillboardSnapshot, BillboardTournament } from '../data/snapshots';
-import type { SponsorSlot } from '../content/sponsors';
+import { AdCarousel } from './ad-carousel';
 import { InitialsMark, Shield } from './broadcast';
 import { initialsOf } from './player-portrait';
 import { elo, firstName, formatWhen, monogram, signed, tagOf } from './format';
@@ -310,79 +310,10 @@ export function StarsCarousel({ board, me }: { board: BillboardSnapshot; me: str
   );
 }
 
-/* ---------- Patrocinios (anuncios de la casa por ahora) ---------- */
+/* ---------- Torneos más calientes (con el carrusel de anuncios «inicio-copas» al final) ---------- */
 
-function openSponsor(slot: SponsorSlot) {
-  if (!slot.href) return;
-  if (/^https?:\/\//.test(slot.href)) void Linking.openURL(slot.href);
-  else push(slot.href as Href);
-}
-
-function SponsorTag() {
-  return (
-    <View style={styles.sponsorTag}>
-      <T variant="tiny" color={colors.faint} style={{ fontSize: 9 }}>
-        Patrocinado
-      </T>
-    </View>
-  );
-}
-
-export function SponsorBanner({ slot }: { slot: SponsorSlot }) {
-  return (
-    <SportPress style={styles.sponsorBanner} onPress={slot.href ? () => openSponsor(slot) : undefined} accessibilityLabel={`Patrocinado: ${slot.title}`}>
-      {slot.imageUrl ? <SponsorImage uri={slot.imageUrl} /> : <View style={styles.sponsorStripes} pointerEvents="none" />}
-      <SponsorTag />
-      <View style={styles.sponsorIcon}>
-        <Icon name="notificaciones" size={22} color={colors.ink} />
-      </View>
-      <View style={{ flex: 1, gap: space.xs }}>
-        <T variant="display" style={styles.sponsorTitle} numberOfLines={1}>
-          {slot.title}
-        </T>
-        {slot.body ? (
-          <T variant="body" color={colors.muted} style={[styles.plain, { fontSize: 13 }]} numberOfLines={2}>
-            {slot.body}
-          </T>
-        ) : null}
-        {slot.cta ? (
-          <View style={styles.sponsorCta}>
-            <T variant="tiny" color={colors.text} style={{ fontSize: 10 }}>
-              {slot.cta}
-            </T>
-          </View>
-        ) : null}
-      </View>
-    </SportPress>
-  );
-}
-
-function SponsorImage({ uri }: { uri: string }) {
-  return <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} />;
-}
-
-export function SponsorTile({ slot, style }: { slot: SponsorSlot; style?: StyleProp<ViewStyle> }) {
-  return (
-    <SportPress style={[styles.tile, styles.sponsorTile, style]} onPress={slot.href ? () => openSponsor(slot) : undefined} accessibilityLabel={`Patrocinado: ${slot.title}`}>
-      {slot.imageUrl ? <SponsorImage uri={slot.imageUrl} /> : null}
-      <SponsorTag />
-      <Icon name={slot.placement === 'tournament' || /torneo/i.test(slot.title) ? 'trofeo' : 'notificaciones'} size={24} color={colors.accentText} />
-      <T variant="title" style={{ fontSize: 16, lineHeight: 18 }} numberOfLines={2}>
-        {slot.title}
-      </T>
-      {slot.body ? (
-        <T variant="tiny" color={colors.muted}>
-          {slot.body}
-        </T>
-      ) : null}
-    </SportPress>
-  );
-}
-
-/* ---------- Torneos más calientes (con un torneo patrocinado al final) ---------- */
-
-export function HotCups({ items, sponsored }: { items: BillboardTournament[]; sponsored: SponsorSlot[] }) {
-  if (!items.length && !sponsored.length) return null;
+export function HotCups({ items, ads = true }: { items: BillboardTournament[]; ads?: boolean }) {
+  if (!items.length && !ads) return null;
   return (
     <View style={styles.block}>
       <TileHead title="Torneos más calientes" icon="racha" action="Ver todos" onAction={() => push('/torneos')} />
@@ -433,9 +364,8 @@ export function HotCups({ items, sponsored }: { items: BillboardTournament[]; sp
             </SportPress>
           );
         })}
-        {sponsored.map((slot) => (
-          <SponsorTile key={slot.id} slot={slot} style={styles.cup} />
-        ))}
+        {/* Dentro de este carrusel horizontal, el de anuncios no se desliza: rota fundiéndose. */}
+        {ads ? <AdCarousel section="inicio-copas" swipeable={false} style={styles.cupAd} /> : null}
       </ScrollView>
     </View>
   );
@@ -640,19 +570,7 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.28)' },
   dotOn: { width: 20, backgroundColor: '#FFFFFF' },
   /* accesos */
-  /* patrocinios */
-  sponsorBanner: { ...cardBase, minHeight: 96, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, overflow: 'hidden', borderStyle: 'dashed', borderColor: colors.lineStrong, backgroundColor: colors.surface },
-  sponsorStripes: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    opacity: 0.5,
-    ...(web ? ({ backgroundImage: 'repeating-linear-gradient(-45deg, transparent 0 14px, rgba(255,255,255,0.04) 14px 28px)' } as object) : null),
-  },
-  sponsorTag: { position: 'absolute', top: space.sm, right: space.sm, borderWidth: 1, borderColor: colors.line, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1 },
-  sponsorIcon: { width: 46, height: 46, borderRadius: 14, backgroundColor: colors.yellow, alignItems: 'center', justifyContent: 'center' },
-  sponsorTitle: { fontSize: 24, lineHeight: 26, fontStyle: 'normal' },
-  sponsorCta: { borderWidth: 1, borderColor: colors.lineStrong, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: space.xs },
-  sponsorTile: { borderStyle: 'dashed', borderColor: colors.lineStrong, justifyContent: 'flex-end', minHeight: 120 },
-  /* torneos */
+  cupAd: { width: 168, flexShrink: 0 },
   cup: { ...cardBase, width: 168, minHeight: 168, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', padding: space.md, gap: space.sm },
   cupLive: { borderColor: colors.yellow },
   cupTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.xs },

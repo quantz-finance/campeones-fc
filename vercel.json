@@ -52,6 +52,9 @@
     },
     "api/account.ts": {
       "maxDuration": 20
+    },
+    "api/anuncio.ts": {
+      "maxDuration": 20
     }
   },
   "crons": [

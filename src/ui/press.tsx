@@ -27,6 +27,7 @@ export function SportPress({
   children,
   hitSlop,
   accessibilityLabel,
+  accessibilityHint,
   accessibilityRole,
   accessibilityState,
 }: {
@@ -36,6 +37,7 @@ export function SportPress({
   children: SportChild;
   hitSlop?: PressableProps['hitSlop'];
   accessibilityLabel?: string;
+  accessibilityHint?: string;
   accessibilityRole?: PressableProps['accessibilityRole'];
   accessibilityState?: PressableProps['accessibilityState'];
 }) {
@@ -47,6 +49,7 @@ export function SportPress({
       disabled={disabled || !onPress}
       hitSlop={hitSlop}
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
       accessibilityRole={accessibilityRole}
       accessibilityState={accessibilityState}
       onHoverIn={() => setHover(true)}

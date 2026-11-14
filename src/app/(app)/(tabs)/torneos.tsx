@@ -10,6 +10,7 @@ import { T } from '../../../ui/text';
 import { push } from '../../../ui/nav';
 import { SearchCreateRow, SearchEmpty } from '../../../ui/search-field';
 import { EventPoster, MiniPoster, PublicTournamentRow } from '../../../ui/event-poster';
+import { AdCarousel } from '../../../ui/ad-carousel';
 import { matchesText } from '../../../domain/search';
 import { humanError } from '../../../ui/errors';
 import { joinPolicyOf } from '../../../data/types';
@@ -114,6 +115,7 @@ export default function TournamentsTab() {
                 </ScrollView>
               )}
               <SectionHead title="Torneos públicos" action={pub.length ? String(pub.length) : undefined} />
+              <AdCarousel section="torneos-lista" />
               {pub.length === 0 ? (
                 <T variant="tiny" color={colors.muted}>
                   {search ? 'No hay torneos públicos con ese nombre.' : 'Todavía no hay torneos públicos para explorar.'}
