@@ -15,7 +15,7 @@ function Scoreboard({ trophies }: { trophies: TrophyView[] }) {
   return (
     <View style={styles.board}>
       <View style={styles.boardGold}>
-        <Svg width="100%" height="100%" viewBox="0 0 72 58" preserveAspectRatio="none" style={StyleSheet.absoluteFill}>
+        <Svg viewBox="0 0 72 58" preserveAspectRatio="none" style={StyleSheet.absoluteFill} pointerEvents="none">
           <Defs>
             <LinearGradient id="cfcBoardGold" x1="0" y1="0" x2="0" y2="1">
               <Stop offset="0" stopColor="#F1D27A" />
@@ -52,7 +52,7 @@ function Scoreboard({ trophies }: { trophies: TrophyView[] }) {
 function Stripe({ title, got, total, gradId }: { title: string; got: number; total: number; gradId: string }) {
   return (
     <View style={styles.stripe}>
-      <Svg width="100%" height="28" viewBox="0 0 100 28" preserveAspectRatio="none" style={StyleSheet.absoluteFill}>
+      <Svg viewBox="0 0 100 28" preserveAspectRatio="none" style={StyleSheet.absoluteFill} pointerEvents="none">
         <Defs>
           <LinearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
             <Stop offset="0" stopColor="#00FF87" />
@@ -102,7 +102,7 @@ function Row({ trophy, last, onOpen }: { trophy: TrophyView; last: boolean; onOp
       {trophy.earned ? (
         <View style={styles.right}>
           <T style={styles.won}>GANADO</T>
-          {trophy.earnedAt ? (
+          {formatDay(trophy.earnedAt) ? (
             <T style={styles.wonDate} color="#E4D4EE">
               {formatDay(trophy.earnedAt)}
             </T>
@@ -149,7 +149,7 @@ export function TrofeosTabla({ trophies, onOpen }: { trophies: TrophyView[]; onO
 }
 
 const styles = StyleSheet.create({
-  root: { gap: 12 },
+  root: { gap: 12, width: '100%', maxWidth: '100%', alignSelf: 'stretch', overflow: 'hidden' },
   board: { flexDirection: 'row', alignItems: 'stretch', borderRadius: 6, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(241,210,122,0.4)', minHeight: 58 },
   boardGold: { width: 72, paddingVertical: 8, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#D4AF37' },
   boardNum: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5, lineHeight: 32 },
@@ -158,8 +158,8 @@ const styles = StyleSheet.create({
   boardCell: { flex: 1, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 1, borderLeftColor: 'rgba(201,162,255,0.15)', paddingVertical: 8 },
   boardCount: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3, lineHeight: 20 },
   boardRarity: { fontSize: 8, fontWeight: '800', letterSpacing: 1, color: '#B99BC6', marginTop: 4, textTransform: 'uppercase' },
-  table: {},
-  stripe: { height: 28, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 },
+  table: { width: '100%', overflow: 'hidden' },
+  stripe: { height: 28, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, overflow: 'hidden' },
   stripeTitle: { flex: 1, fontSize: 11, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase' },
   stripeCount: { fontSize: 10, fontWeight: '800', letterSpacing: 1, marginRight: 12 },
   body: { backgroundColor: 'rgba(255,255,255,0.035)', borderWidth: 1, borderColor: 'rgba(201,162,255,0.16)', borderTopWidth: 0 },

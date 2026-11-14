@@ -1,3 +1,4 @@
+import { plausibleIso } from '../domain/dates';
 import type { MatchStatus, Outcome } from '../domain/types';
 import type { SideRecord, Streak } from '../domain/stats';
 
@@ -62,8 +63,10 @@ export function formatWhen(iso: string, now = Date.now()): string {
   return diff >= 0 ? `en ${unit}` : `hace ${unit}`;
 }
 
-export function formatDay(iso: string): string {
-  return new Intl.DateTimeFormat('es-CR', { day: 'numeric', month: 'short' }).format(new Date(iso));
+export function formatDay(iso: string | null | undefined): string {
+  const at = plausibleIso(iso);
+  if (!at) return '';
+  return new Intl.DateTimeFormat('es-CR', { day: 'numeric', month: 'short' }).format(new Date(at));
 }
 
 export function firstName(displayName: string): string {

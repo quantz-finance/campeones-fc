@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Modal, PanResponder, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, LinearGradient, Path, Stop } from 'react-native-svg';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 import { RARITY_LABEL, siblingsOf, trophyByCode, whyTitle } from '../content/trophies';
@@ -20,12 +20,23 @@ const MEDAL = 200;
 const CLOSE_DY = 120;
 const CLOSE_VY = 0.8;
 
+const PLATE_W = 280;
+const PLATE_H = 36;
+const PLATE_CX = PLATE_W / 2;
+const PLATE_CY = 16;
+const PLATE_RX = 124;
+const PLATE_RY = 13;
+
 function leds() {
   const out: { x: number; y: number; o: number }[] = [];
-  const n = 14;
+  const n = 16;
   for (let i = 0; i < n; i++) {
-    const a = Math.PI * (0.15 + 0.7 * (i / (n - 1)));
-    out.push({ x: 150 + 132 * Math.cos(a), y: 26 + 22 * Math.sin(a), o: 0.45 + 0.55 * Math.sin(a) });
+    const a = Math.PI * (i / (n - 1));
+    out.push({
+      x: PLATE_CX + PLATE_RX * Math.cos(Math.PI - a),
+      y: PLATE_CY + PLATE_RY * Math.sin(a),
+      o: 0.35 + 0.65 * Math.sin(a),
+    });
   }
   return out;
 }
@@ -166,7 +177,6 @@ export function LogroEscenario({
   const invertY = sway.interpolate({ inputRange: [-1, 1], outputRange: ['12deg', '-12deg'] });
   const medalScale = medal.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] });
   const shineX = shine.interpolate({ inputRange: [0, 1], outputRange: [-180, 180] });
-  const ledRotate = ledsSpin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   const lockRotate = lockTick.interpolate({ inputRange: [-1, 0, 1], outputRange: ['-6deg', '0deg', '6deg'] });
   const ratio = trophy.progress && trophy.progress.target > 0 ? Math.min(1, trophy.progress.current / trophy.progress.target) : 0;
 
@@ -177,17 +187,15 @@ export function LogroEscenario({
         <Animated.View style={[styles.stage, { transform: [{ translateY }], paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) }]}>
           <View {...pan.panHandlers}>
           <View style={styles.topBar}>
+            <SportPress onPress={close} style={styles.close} accessibilityLabel="Cerrar" accessibilityRole="button" hitSlop={8}>
+              <Icon name="cerrar" size={18} color="#FFFFFF" />
+            </SportPress>
             {trophy.earned ? (
               <View style={styles.inCase}>
                 <View style={styles.liveDot} />
                 <T style={styles.inCaseText}>EN TU VITRINA</T>
               </View>
-            ) : (
-              <View style={{ width: 1 }} />
-            )}
-            <SportPress onPress={close} style={styles.close} accessibilityLabel="Cerrar" accessibilityRole="button">
-              <Icon name="cerrar" size={18} color="#FFFFFF" />
-            </SportPress>
+            ) : null}
           </View>
           <View style={styles.handleWrap}>
             <View style={styles.handle} />
@@ -240,10 +248,33 @@ export function LogroEscenario({
               </View>
             </Animated.View>
 
-            <View style={styles.turntable}>
-              <View style={styles.plateShadow} />
-              <View style={[styles.plate, { borderColor: trophy.earned ? 'rgba(241,210,122,0.6)' : 'rgba(201,162,255,0.4)' }]} />
-              <Animated.View style={[styles.ledRing, { transform: [{ rotate: ledRotate }] }]}>
+            <View style={styles.turntable} pointerEvents="none">
+              <Svg width={PLATE_W} height={PLATE_H + 10} style={styles.plateSvg}>
+                <Defs>
+                  <LinearGradient id="cfcPlateRim" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor={trophy.earned ? '#F1D27A' : '#E0C8F5'} />
+                    <Stop offset="0.45" stopColor={trophy.earned ? '#D4AF37' : '#8D6AA8'} />
+                    <Stop offset="1" stopColor={trophy.earned ? '#8A6A16' : '#4A3358'} />
+                  </LinearGradient>
+                  <LinearGradient id="cfcPlateFloor" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor={trophy.earned ? 'rgba(241,210,122,0.35)' : 'rgba(201,162,255,0.2)'} />
+                    <Stop offset="0.5" stopColor="#2A0030" />
+                    <Stop offset="1" stopColor="#14001A" />
+                  </LinearGradient>
+                </Defs>
+                <Ellipse cx={PLATE_CX} cy={PLATE_CY + 7} rx={PLATE_RX + 4} ry={PLATE_RY + 3} fill="#000000" opacity={0.45} />
+                <Ellipse cx={PLATE_CX} cy={PLATE_CY} rx={PLATE_RX} ry={PLATE_RY} fill="url(#cfcPlateFloor)" />
+                <Ellipse
+                  cx={PLATE_CX}
+                  cy={PLATE_CY}
+                  rx={PLATE_RX}
+                  ry={PLATE_RY}
+                  fill="none"
+                  stroke="url(#cfcPlateRim)"
+                  strokeWidth={3.5}
+                />
+              </Svg>
+              <View style={styles.ledRing}>
                 {LEDS.map((led, i) => (
                   <View
                     key={i}
@@ -259,15 +290,15 @@ export function LogroEscenario({
                     ]}
                   />
                 ))}
-              </Animated.View>
+              </View>
               <Animated.View
                 pointerEvents="none"
                 style={[
                   styles.reflection,
-                  { opacity: medal.interpolate({ inputRange: [0, 1], outputRange: [0, 0.14] }), transform: [{ scaleY: -1 }, { rotateY: invertY }] },
+                  { opacity: medal.interpolate({ inputRange: [0, 1], outputRange: [0, 0.18] }), transform: [{ scaleY: -1 }, { rotateY: invertY }] },
                 ]}
               >
-                <AchievementBadge code={trophy.code} unlocked={trophy.earned} size={160} progress={null} />
+                <AchievementBadge code={trophy.code} unlocked={trophy.earned} size={140} progress={null} />
                 <View style={styles.reflectionFade} />
               </Animated.View>
             </View>
@@ -331,7 +362,7 @@ export function LogroEscenario({
                         {item.title}
                       </T>
                       <T style={styles.sibMeta} color={got ? '#00FF87' : '#B99BC6'}>
-                        {got ? (row?.earnedAt ? `✓ ${formatDay(row.earnedAt)}` : '✓ Ganado') : row?.progress ? `${Math.min(row.progress.current, row.progress.target)}/${row.progress.target}` : 'Por ganar'}
+                        {got ? (formatDay(row?.earnedAt) ? `✓ ${formatDay(row?.earnedAt)}` : '✓ Ganado') : row?.progress ? `${Math.min(row.progress.current, row.progress.target)}/${row.progress.target}` : 'Por ganar'}
                       </T>
                     </SportPress>
                   );
@@ -410,28 +441,27 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   dim: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(20,0,26,0.94)' },
   stage: { flex: 1 },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, zIndex: 5 },
+  topBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, zIndex: 8 },
   inCase: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 24, paddingHorizontal: 9, backgroundColor: 'rgba(0,0,0,0.4)', borderWidth: 1, borderColor: 'rgba(0,255,135,0.5)', borderRadius: 4 },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#00FF87' },
   inCaseText: { fontSize: 10, fontWeight: '800', letterSpacing: 1.3, color: '#00FF87' },
-  close: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(201,162,255,0.3)', backgroundColor: 'rgba(255,255,255,0.04)', alignItems: 'center', justifyContent: 'center' },
+  close: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(201,162,255,0.45)', backgroundColor: 'rgba(20,0,26,0.72)', alignItems: 'center', justifyContent: 'center', zIndex: 8 },
   handleWrap: { alignItems: 'center', marginTop: 6, zIndex: 5 },
   handle: { width: 42, height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.35)' },
-  lights: { height: 300, alignItems: 'center', justifyContent: 'flex-start', marginTop: 4 },
+  lights: { height: 340, alignItems: 'center', justifyContent: 'flex-start', marginTop: 4 },
   spotWrap: { position: 'absolute', top: -50, width: 260, height: 520 },
   spotLeft: { left: -70, transform: [{ rotate: '-24deg' }] },
   spotRight: { right: -70, transform: [{ rotate: '24deg' }] },
   halo: { position: 'absolute', top: 20, width: 260, height: 260, borderRadius: 130 },
-  medal: { width: MEDAL, height: MEDAL, marginTop: 8 },
+  medal: { width: MEDAL, height: MEDAL, marginTop: 8, zIndex: 2 },
   clipMedal: { overflow: 'hidden', borderRadius: MEDAL / 2 },
   shine: { position: 'absolute', width: 48, height: MEDAL * 2, left: MEDAL / 2 - 24, top: -MEDAL / 2 },
-  turntable: { position: 'absolute', left: 0, right: 0, top: 200, height: 80, alignItems: 'center' },
-  plateShadow: { position: 'absolute', width: 300, height: 56, borderRadius: 150, top: 18, backgroundColor: '#14001A' },
-  plate: { position: 'absolute', width: 280, height: 50, borderRadius: 140, top: 8, backgroundColor: '#2A0030', borderWidth: 1.5 },
-  ledRing: { position: 'absolute', width: 300, height: 70, top: 0 },
+  turntable: { position: 'absolute', left: 0, right: 0, top: 224, height: 116, alignItems: 'center', zIndex: 1 },
+  plateSvg: { position: 'absolute', top: 0 },
+  ledRing: { position: 'absolute', width: PLATE_W, height: PLATE_H + 10, top: 0 },
   led: { position: 'absolute', width: 5, height: 5, borderRadius: 3, shadowOpacity: 0.9, shadowRadius: 4, shadowOffset: { width: 0, height: 0 } },
-  reflection: { position: 'absolute', top: 36, width: 160, height: 80, alignItems: 'center', overflow: 'hidden' },
-  reflectionFade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(20,0,26,0.55)' },
+  reflection: { position: 'absolute', top: 30, width: 140, height: 70, alignItems: 'center', overflow: 'hidden' },
+  reflectionFade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(20,0,26,0.62)' },
   info: { flex: 1, marginTop: 8 },
   infoInner: { paddingHorizontal: 16, gap: 10, paddingBottom: 8 },
   nameRow: { flexDirection: 'row', alignItems: 'stretch', height: 44 },

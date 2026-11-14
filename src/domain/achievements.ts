@@ -1,3 +1,4 @@
+import { plausibleIso } from './dates';
 import { replayRatings } from './elo';
 import { rules } from './rules';
 import { rankPlayers, resultOf, summarize } from './stats';
@@ -332,14 +333,16 @@ export function achievementUnlockDates(input: AchievementInput): Partial<Record<
   const dates: Partial<Record<AchievementCode, string>> = {};
   const earned = new Set(earnedAchievementCodes(input));
   const put = (code: AchievementCode, value: string | null | undefined) => {
-    if (earned.has(code) && value) dates[code] = value;
+    const at = plausibleIso(value);
+    if (earned.has(code) && at) dates[code] = at;
   };
 
   put('primer-partido', dateOfNth(matches, playerId, 1));
   put('primera-victoria', dateOfFirstWin(matches, playerId));
   const joins = members
-    .filter((item) => item.userId === playerId && item.joinedAt)
-    .map((item) => item.joinedAt!)
+    .filter((item) => item.userId === playerId)
+    .map((item) => plausibleIso(item.joinedAt))
+    .filter((at): at is string => Boolean(at))
     .sort();
   put('debut-grupo', joins[0] ?? null);
   let rankingAt: string | null = null;
@@ -419,8 +422,9 @@ export function achievementUnlockDates(input: AchievementInput): Partial<Record<
     let best: string | null = null;
     for (const group of groups.filter((item) => item.createdBy === playerId)) {
       const joinsAt = members
-        .filter((item) => item.groupId === group.id && item.joinedAt)
-        .map((item) => item.joinedAt!)
+        .filter((item) => item.groupId === group.id)
+        .map((item) => plausibleIso(item.joinedAt))
+        .filter((at): at is string => Boolean(at))
         .sort();
       if (joinsAt.length >= 6) {
         const at = joinsAt[5];

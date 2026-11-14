@@ -18,7 +18,7 @@ export function stageStats(
   if (trophy.earned) {
     const section = trophySections.find((item) => item.id === trophy.section)?.title ?? trophy.section;
     return [
-      { value: trophy.earnedAt ? formatDay(trophy.earnedAt) : 'Ganado', label: 'GANADO', color: '#00FF87' },
+      { value: formatDay(trophy.earnedAt) || 'Ganado', label: 'GANADO', color: '#00FF87' },
       { value: section, label: 'SECCIÓN', color: '#FFFFFF' },
       { value: `${ctx.earnedCount}/${ctx.total}`, label: 'TU VITRINA', color: '#F1D27A' },
     ];

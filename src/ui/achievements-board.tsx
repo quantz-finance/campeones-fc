@@ -43,7 +43,7 @@ export function AchievementsBoard({
                     <T variant="title">{trophy.title}</T>
                     <T color={colors.muted}>{trophy.description}</T>
                     <T variant="tiny" color={trophy.earned ? colors.accentText : colors.faint}>
-                      {trophy.earned && trophy.earnedAt ? `Lo conseguiste el ${formatDay(trophy.earnedAt)}` : 'Bloqueado'}
+                      {trophy.earned && formatDay(trophy.earnedAt) ? `Lo conseguiste el ${formatDay(trophy.earnedAt)}` : trophy.earned ? 'Ganado' : 'Bloqueado'}
                     </T>
                   </View>
                 </View>

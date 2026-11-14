@@ -76,6 +76,22 @@ describe('logros: condiciones computables', () => {
     });
   });
 
+  it('ignora fechas epoch al datar debut-grupo y usa el alta real si existe', () => {
+    const input = {
+      playerId: 'a',
+      matches: [],
+      groupMembers: [
+        { groupId: 'demo', userId: 'a', joinedAt: '1970-01-01T00:00:00.000Z' },
+        { groupId: 'real', userId: 'a', joinedAt: '2026-11-08T15:00:00.000Z' },
+      ],
+    };
+    expect(earnedAchievementCodes(input)).toContain('debut-grupo');
+    expect(achievementUnlockDates(input)['debut-grupo']).toBe('2026-11-08T15:00:00.000Z');
+    const onlyEpoch = { playerId: 'a', matches: [], groupMembers: [{ groupId: 'demo', userId: 'a', joinedAt: '1970-01-01T00:00:00.000Z' }] };
+    expect(earnedAchievementCodes(onlyEpoch)).toContain('debut-grupo');
+    expect(achievementUnlockDates(onlyEpoch)['debut-grupo']).toBeUndefined();
+  });
+
   it('pone en el ranking a los 3 partidos del grupo y líder si queda #1', () => {
     const groupMembers = members('g1', ['a', 'b']);
     const matches = [

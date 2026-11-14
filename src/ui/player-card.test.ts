@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PublicPlayer } from '../data/public-player';
 import { ACHIEVEMENT_CODES } from '../domain/types';
-import { achievementsLabel, cardFromPublic, fichaAchievementStrip, rankLabel, streakText } from './player-card-data';
+import { achievementsLabel, cardFromFicha, cardFromPublic, fichaAchievementStrip, rankLabel, streakText } from './player-card-data';
 
 const sample: PublicPlayer = {
   profile: {
@@ -76,7 +76,23 @@ describe('ficha retrato a sangre', () => {
     const strip = fichaAchievementStrip(earned);
     expect(strip.shown).toHaveLength(5);
     expect(strip.shown.every((item) => item.unlocked)).toBe(true);
-    expect(strip.extra).toBe(19);
+    expect(strip.extra).toBe(3);
+    const rata = locked.map((item, i) => ({ ...item, unlocked: i < 15 }));
+    const rataStrip = fichaAchievementStrip(rata);
+    expect(rataStrip.shown).toHaveLength(5);
+    expect(rataStrip.extra).toBe(10);
+  });
+
+  it('arma la carta del perfil sin ficha pública (iniciales, también sin red)', () => {
+    const card = cardFromFicha({
+      profile: { displayName: 'Ana Prueba', username: 'ana', photoUrl: null },
+      trophies: [{ code: 'debut-grupo', earned: true }],
+    });
+    expect(card.profile.displayName).toBe('Ana Prueba');
+    expect(card.profile.photoUrl).toBeNull();
+    expect(card.rating).toBe(1200);
+    expect(card.achievements.find((item) => item.code === 'debut-grupo')?.unlocked).toBe(true);
+    expect(card.achievements.filter((item) => item.unlocked)).toHaveLength(1);
   });
 
 });

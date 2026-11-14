@@ -15,7 +15,7 @@ import { Screen } from '../../../ui/screen';
 import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { Rise, useDelayed } from '../../../ui/motion';
-import { PlayerCard, cardFromPublic } from '../../../ui/player-card';
+import { PlayerCard, cardFromFicha } from '../../../ui/player-card';
 import { CardsSkeleton } from '../../../ui/skeleton';
 import { PhotoButton } from '../../../ui/photo-button';
 import { push } from '../../../ui/nav';
@@ -75,21 +75,25 @@ export default function Profile() {
           <Icon name={editing ? 'cerrar' : 'editar'} size={18} color={colors.text} />
         </Pressable>
       </View>
+      <Rise index={0}>
+        <PlayerCard
+          data={cardFromFicha({
+            profile,
+            displayName,
+            publicPlayer: card.data,
+            personal: personal.data,
+            trophies: trophies.data,
+            place: groups.data?.[0]?.yourPlace ?? null,
+          })}
+          kicker={groups.data?.[0]?.yourPlace ? `#${groups.data[0].yourPlace} ${groups.data[0].group.name}` : 'Tu ficha'}
+          onPress={() => push('/estadisticas')}
+        />
+      </Rise>
       <Gate query={personal}>
         {(data) => {
           const maxElo = data.evolution.reduce((max, point) => Math.max(max, point.rating), data.rating);
-          const firstGroup = groups.data?.[0];
           return (
             <>
-              <Rise index={0}>
-                {card.data ? (
-                  <PlayerCard
-                    data={{ ...cardFromPublic(card.data, displayName), profile: { ...cardFromPublic(card.data, displayName).profile, photoUrl: profile.photoUrl } }}
-                    kicker={firstGroup?.yourPlace ? `#${firstGroup.yourPlace} ${firstGroup.group.name}` : 'Tu ficha'}
-                    onPress={() => push('/estadisticas')}
-                  />
-                ) : null}
-              </Rise>
               <View style={styles.idRow}>
                 <View style={styles.flex}>
                   {/* Nombre y @usuario ya van en la carta; aquí solo el país y el botón de foto. */}

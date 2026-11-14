@@ -321,4 +321,4 @@ const styles = StyleSheet.create({
   more: { fontSize: 14, fontWeight: '800', letterSpacing: 0.2, color: '#F1D27A' },
 });
 
-export { cardFromPublic, type PlayerCardData } from './player-card-data';
+export { cardFromFicha, cardFromPublic, type PlayerCardData } from './player-card-data';

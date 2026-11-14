@@ -32,6 +32,13 @@ describe('escenario de transmisión: datos del marcador', () => {
     expect(stageStats(row, { earnedCount: 1, total: 24, ...streaks })[0].value).toBe('Ganado');
   });
 
+  it('una fecha epoch o inválida no se muestra (ni «31 dic»)', () => {
+    const epoch = trophy({ code: 'debut-grupo', earned: true, earnedAt: '1970-01-01T00:00:00.000Z', section: 'debut' });
+    expect(stageStats(epoch, { earnedCount: 1, total: 24, ...streaks })[0].value).toBe('Ganado');
+    const bad = trophy({ code: 'debut-grupo', earned: true, earnedAt: 'no-es-fecha', section: 'debut' });
+    expect(stageStats(bad, { earnedCount: 1, total: 24, ...streaks })[0].value).toBe('Ganado');
+  });
+
   it('racha bloqueada: progreso y rachas reales', () => {
     const row = trophy({ code: 'racha-5', earned: false, progress: { current: 3, target: 5 } });
     const cells = stageStats(row, { earnedCount: 4, total: 24, ...streaks });

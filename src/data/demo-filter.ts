@@ -32,6 +32,7 @@ export function joinDemo(world: World, me: string, ids: Pick<DemoIds, 'users' | 
   const linked = new Set(
     world.friendships.filter((f) => f.requesterId === me || f.addresseeId === me).map((f) => (f.requesterId === me ? f.addresseeId : f.requesterId)),
   );
+  // Epoch a propósito: no es un alta real y no debe mostrarse como fecha de logro.
   const at = new Date(0).toISOString();
   const friendships = [...world.friendships];
   for (const id of ids.users) {
