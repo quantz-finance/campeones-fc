@@ -81,6 +81,20 @@ export default function TournamentScreen() {
                   </T>
                   {data.isOrganizer ? (
                     <>
+                      {data.joinRequests.length ? (
+                        <View style={styles.requests}>
+                          <T variant="strong">Solicitudes</T>
+                          {data.joinRequests.map((item) => (
+                            <View key={item.id} style={styles.requestRow}>
+                              <T variant="medium" style={{ flex: 1 }} numberOfLines={1}>
+                                {item.profile.displayName}
+                              </T>
+                              <Button label="Aprobar" onPress={() => void repo.decideTournamentJoin(userId!, item.id, true).catch((cause: unknown) => showFlash({ id: `tdec-${item.id}`, title: 'No se pudo decidir', body: humanError(cause), tone: 'danger' }))} />
+                              <Button label="Rechazar" tone="ghost" onPress={() => void repo.decideTournamentJoin(userId!, item.id, false).catch((cause: unknown) => showFlash({ id: `tdec-${item.id}`, title: 'No se pudo decidir', body: humanError(cause), tone: 'danger' }))} />
+                            </View>
+                          ))}
+                        </View>
+                      ) : null}
                       <AccessFields
                         visibility={visibility ?? visibilityOf(data.tournament)}
                         joinPolicy={joinPolicy ?? joinPolicyOf(data.tournament)}
@@ -118,20 +132,6 @@ export default function TournamentScreen() {
                             .finally(() => setBusy(false));
                         }}
                       />
-                      {data.joinRequests.length ? (
-                        <View style={styles.requests}>
-                          <T variant="strong">Solicitudes</T>
-                          {data.joinRequests.map((item) => (
-                            <View key={item.id} style={styles.requestRow}>
-                              <T variant="medium" style={{ flex: 1 }} numberOfLines={1}>
-                                {item.profile.displayName}
-                              </T>
-                              <Button label="Aprobar" onPress={() => void repo.decideTournamentJoin(userId!, item.id, true).catch((cause: unknown) => showFlash({ id: `tdec-${item.id}`, title: 'No se pudo decidir', body: humanError(cause), tone: 'danger' }))} />
-                              <Button label="Rechazar" tone="ghost" onPress={() => void repo.decideTournamentJoin(userId!, item.id, false).catch((cause: unknown) => showFlash({ id: `tdec-${item.id}`, title: 'No se pudo decidir', body: humanError(cause), tone: 'danger' }))} />
-                            </View>
-                          ))}
-                        </View>
-                      ) : null}
                       {data.tournament.status === 'registration' ? (
                         <Button
                           label="Empezar torneo"
