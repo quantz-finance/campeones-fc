@@ -1,7 +1,7 @@
 // Sistema de movimiento: entradas de transmisión y salidas tipo menú de juego.
 // Solo opacity + transform. Web = CSS (hilo del compositor). Nativo = Animated.
 // Respeta prefers-reduced-motion. Sin librerías extra.
-import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useMotionMode } from './motion-context';
 import {
@@ -205,29 +205,22 @@ export function BroadcastView({
   const reduced = useReducedMotion();
   const mode = useMotionMode();
   const v = useRef(new Animated.Value(reduced || web ? 1 : 0)).current;
-  const move = travel[variant];
 
-  useEffect(() => {
+  // useLayoutEffect: el valor vuelve a 0 antes de pintar el cuadro con el modo nuevo. Con useEffect
+  // se alcanzaba a ver un cuadro con el final de la animación anterior (un destello al salir).
+  useLayoutEffect(() => {
     if (web || reduced) return;
-    if (mode === 'exit') {
-      v.setValue(0);
-      Animated.timing(v, {
-        toValue: 1,
-        duration: EXIT_MS,
-        delay: staggerDelay(index, EXIT_STAGGER_MS, EXIT_STAGGER_CAP),
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
-      }).start();
-      return;
-    }
+    const exit = mode === 'exit';
     v.setValue(0);
-    Animated.timing(v, {
+    const anim = Animated.timing(v, {
       toValue: 1,
-      duration: ENTER_MS,
-      delay: staggerDelay(index),
-      easing: Easing.out(Easing.cubic),
+      duration: exit ? EXIT_MS : ENTER_MS,
+      delay: exit ? staggerDelay(index, EXIT_STAGGER_MS, EXIT_STAGGER_CAP) : staggerDelay(index),
+      easing: exit ? Easing.in(Easing.cubic) : Easing.out(Easing.cubic),
       useNativeDriver: true,
-    }).start();
+    });
+    anim.start();
+    return () => anim.stop();
   }, [mode, reduced, index, v, replay]);
 
   const webStyle = useMemo(() => {
@@ -244,23 +237,32 @@ export function BroadcastView({
     }, `${mode}${replay % 2}`);
   }, [mode, reduced, index, variant, replay]);
 
+  const animated = useBroadcastStyle(v, mode, variant);
   if (reduced) return <View style={style}>{children}</View>;
   if (web) return <View style={[style, webStyle]}>{children}</View>;
 
-  const opacity = v.interpolate({ inputRange: [0, 1], outputRange: mode === 'exit' ? [1, 0] : [0, 1] });
-  const translateX = v.interpolate({
-    inputRange: [0, 1],
-    outputRange: mode === 'exit' ? [0, move.exitX] : [move.enterX, 0],
-  });
-  const translateY = v.interpolate({
-    inputRange: [0, 1],
-    outputRange: mode === 'exit' ? [0, variant === 'logo' ? -24 : 0] : [move.enterY, 0],
-  });
-  const scale = v.interpolate({
-    inputRange: [0, 1],
-    outputRange: mode === 'exit' ? [1, 0.92] : [move.enterScale, 1],
-  });
-  return <Animated.View style={[style, { opacity, transform: [{ translateX }, { translateY }, { scale }] }]}>{children}</Animated.View>;
+  return <Animated.View style={[style, animated]}>{children}</Animated.View>;
+}
+
+/**
+ * Las interpolaciones se crean una vez por modo. Crearlas en cada render (al llegar datos, etc.)
+ * desconectaba los nodos nativos a mitad de la animación y la entrada quedaba congelada en opacidad 0:
+ * la pantalla se veía vacía hasta salir de ella.
+ */
+function useBroadcastStyle(v: Animated.Value, mode: 'enter' | 'exit', variant: Variant) {
+  return useMemo(() => {
+    const move = travel[variant];
+    const exit = mode === 'exit';
+    const range = { inputRange: [0, 1] };
+    return {
+      opacity: v.interpolate({ ...range, outputRange: exit ? [1, 0] : [0, 1] }),
+      transform: [
+        { translateX: v.interpolate({ ...range, outputRange: exit ? [0, move.exitX] : [move.enterX, 0] }) },
+        { translateY: v.interpolate({ ...range, outputRange: exit ? [0, variant === 'logo' ? -24 : 0] : [move.enterY, 0] }) },
+        { scale: v.interpolate({ ...range, outputRange: exit ? [1, 0.92] : [move.enterScale, 1] }) },
+      ],
+    };
+  }, [v, mode, variant]);
 }
 
 /** Entra con golpe de transmisión. `index` escalona hasta el ítem 7. */

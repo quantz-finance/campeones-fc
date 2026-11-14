@@ -44,4 +44,19 @@ describe('transición entre pantallas', () => {
     expect(calls).toEqual(['b']);
     expect(seen).toEqual([true, false]);
   });
+
+  test('navega antes de apagar la salida (sin parpadeo de la pantalla anterior)', () => {
+    const controller = createTransitController(200);
+    const order: string[] = [];
+    controller.subscribe((value) => order.push(value ? 'exit-on' : 'exit-off'));
+    let pending: (() => void) | null = null;
+    controller.request(
+      () => order.push('navigate'),
+      (run) => {
+        pending = run;
+      },
+    );
+    pending!();
+    expect(order).toEqual(['exit-on', 'navigate', 'exit-off']);
+  });
 });

@@ -51,11 +51,14 @@ export function createTransitController(exitMs: number) {
       schedule(() => {
         const job = pending ?? run;
         pending = null;
-        emit(false);
+        // Primero navega y después avisa que terminó la salida, en el mismo tick (React lo junta
+        // en un solo render). Al revés, la pantalla vieja volvía a entrar un instante antes de
+        // que montara la nueva: el «parpadeo» de la pantalla anterior.
         try {
           job();
         } finally {
           locked = false;
+          emit(false);
         }
       }, exitMs);
       return 'started';

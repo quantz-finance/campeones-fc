@@ -7,6 +7,8 @@ import { EASE_IN, EXIT_MS } from './motion-tokens';
 import { colors } from './theme';
 
 const web = Platform.OS === 'web';
+/** Si tras la salida la pantalla sigue enfocada este tiempo, la navegación no ocurrió: vuelve a entrar. */
+const STAY_MS = 900;
 
 function isPassthrough(child: ReactNode): boolean {
   if (!isValidElement(child)) return false;
@@ -43,9 +45,36 @@ export function Scene({ children }: { children: ReactNode }) {
   const [replay, setReplay] = useState(0);
   const sawFocus = useRef(false);
 
+  // Solo sale la pantalla que estaba enfocada cuando empezó la salida (flanco de subida).
+  // Al terminar la salida NO vuelve a entrar de inmediato: si la navegación tarda un poco en
+  // aplicarse (p. ej. una ficha en el stack raíz), entrar ahí era el «parpadeo» de la pantalla
+  // anterior. Vuelve a entrar cuando la enfocan de nuevo, o si sigue enfocada pasado un rato
+  // (la navegación no ocurrió).
+  const prevExit = useRef(globalExit);
+  const focusedRef = useRef(focused);
+  focusedRef.current = focused;
+  const wasFocused = useRef(focused);
   useEffect(() => {
-    if (globalExit && focused) setMode('exit');
-    else if (focused && !globalExit) setMode('enter');
+    const rising = globalExit && !prevExit.current;
+    const falling = !globalExit && prevExit.current;
+    prevExit.current = globalExit;
+    const regained = focused && !wasFocused.current;
+    wasFocused.current = focused;
+    if (rising && focused) {
+      setMode('exit');
+      return;
+    }
+    if (globalExit || !focused) return;
+    if (regained) {
+      setMode('enter');
+      return;
+    }
+    if (falling) {
+      const timer = setTimeout(() => {
+        if (focusedRef.current) setMode('enter');
+      }, STAY_MS);
+      return () => clearTimeout(timer);
+    }
   }, [globalExit, focused]);
 
   useFocusEffect(

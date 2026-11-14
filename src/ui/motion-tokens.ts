@@ -1,11 +1,11 @@
 /** Tiempos compartidos del sistema de movimiento. Solo transform/opacity. */
 
-export const STAGGER_MS = 42;
-export const STAGGER_CAP = 7;
-export const ENTER_MS = 440;
-export const EXIT_MS = 200;
-export const EXIT_STAGGER_MS = 18;
-export const EXIT_STAGGER_CAP = 5;
+export const STAGGER_MS = 34;
+export const STAGGER_CAP = 6;
+export const ENTER_MS = 380;
+export const EXIT_MS = 150;
+export const EXIT_STAGGER_MS = 10;
+export const EXIT_STAGGER_CAP = 4;
 /** La salida termina cuando el último elemento (con su retraso) ya salió. */
 export const EXIT_TOTAL_MS = EXIT_MS + EXIT_STAGGER_MS * EXIT_STAGGER_CAP;
 export const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';
