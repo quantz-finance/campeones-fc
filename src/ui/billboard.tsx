@@ -1,7 +1,7 @@
 // Portada del inicio en mosaico: los jugadores del círculo como estrellas. Solo datos de partidos confirmados.
 import { SocialGlyph, socialEntries } from './social-icons';
 import { useId, useState } from 'react';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { PhotoLayer } from './entity-image';
 import { Linking, Platform, ScrollView, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Icon, type UiIconName } from './icon';
@@ -15,7 +15,7 @@ import { elo, firstName, formatWhen, monogram, signed, tagOf } from './format';
 import { CountRoll } from './motion';
 import { push } from './nav';
 import { SportPress } from './press';
-import { colors, layout, space } from './theme';
+import { colors, font, layout, space } from './theme';
 import { T } from './text';
 import { useLang } from '../i18n/lang';
 
@@ -59,7 +59,7 @@ export function FormDots({ form, size = 16 }: { form: BillboardPlayer['form']; s
 function TileHead({ title, action, onAction, icon }: { title: string; action?: string; onAction?: () => void; icon?: UiIconName }) {
   return (
     <View style={styles.tileHead}>
-      {icon ? <Icon name={icon} size={16} color={colors.accentText} /> : null}
+      {icon === 'estrella' ? <SolidStar size={14} color={colors.accentText} /> : icon ? <Icon name={icon} size={16} color={colors.accentText} /> : null}
       <T variant="label" color={colors.text} style={styles.tileTitle} numberOfLines={1}>
         {title}
       </T>
@@ -86,24 +86,19 @@ function useCardWidth() {
 
 /* ---------- Las estrellas: carrusel del top 5 ---------- */
 
-// Cromo coleccionable (propuesta 1 de Stan, assets/estrellas-propuestas): marco dorado con filete interior,
-// foto cuadrada (1:1) a la derecha, nombre grande, @usuario, redes, grilla Elo · victorias · V-E-D y el ranking en dorado.
-// Solo datos reales del jugador. Sin foto: iniciales grandes dentro del mismo cuadro.
-const GOLD = { hi: '#F1D27A', mid: '#D4AF37', lo: '#8A6A16', line: 'rgba(241,210,122,0.4)', hair: 'rgba(241,210,122,0.45)' } as const;
-const CROMO_H = 268; // un poco más baja que la maqueta (300): menos aire entre las redes y la grilla
-const CROMO_BORDER = 4; // un poco más delgado que la maqueta (6)
+// Cromo coleccionable: propuesta 1 de Stan, idéntica a la maqueta (assets/estrellas-propuestas/_build/html/1-cromo.html).
+// Marco dorado degradado de 6 pt (dibujado en SVG para que se vea nítido en las cuatro esquinas), filete dorado interior,
+// foto a la derecha fundida con el morado (cover centrado: una foto cuadrada se ve bien), número de serie = ranking,
+// grilla Elo · victorias · V-E-D y el ranking en dorado. Solo datos reales. Sin foto: iniciales en el mismo lugar.
+const GOLD = { hi: '#F1D27A', mid: '#D4AF37', lo: '#8A6A16' } as const;
+const CROMO = { h: 300, frame: 6, radius: 20, innerRadius: 15, photoW: 188 } as const;
+const cromoForm = { win: '#00FF87', draw: '#B99BC6', loss: '#FF4D8D' } as const;
 
-function Gradient({ id, stops, x2 = '0', y2 = '1' }: { id: string; stops: [number, string][]; x2?: string; y2?: string }) {
+/** Estrella rellena de la maqueta (el ícono «estrella» del paquete es de trazo). */
+function SolidStar({ size, color }: { size: number; color: string }) {
   return (
-    <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
-      <Defs>
-        <LinearGradient id={id} x1="0" y1="0" x2={x2} y2={y2}>
-          {stops.map(([offset, color]) => (
-            <Stop key={offset} offset={String(offset)} stopColor={color} />
-          ))}
-        </LinearGradient>
-      </Defs>
-      <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${id})`} />
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.4 6.3L12 16.8 6.3 20l1.4-6.3L2.9 9.4l6.4-.7z" fill={color} />
     </Svg>
   );
 }
@@ -114,75 +109,93 @@ function StarCard({ star, me, width }: { star: BillboardSnapshot['stars'][number
   const rest = lastNames(player.profile.displayName);
   const sub = [rest, `@${player.profile.username}`].filter(Boolean).join(' · ');
   const socials = socialEntries(player.profile.socialLinks).slice(0, 4);
-  const inner = width - CROMO_BORDER * 2;
-  const photo = Math.min(150, Math.round(inner * 0.42));
-  // Arriba el texto convive con la foto; la grilla de abajo usa el ancho hasta el ranking.
-  const textW = inner - photo - 16 - 18 - 12;
-  const gridW = inner - 18 - 16 - (player.place ? 84 : 0);
+  const innerW = width - CROMO.frame * 2;
+  const innerH = CROMO.h - CROMO.frame * 2;
   return (
     <SportPress
-      style={[styles.cromo, { width, height: CROMO_H }]}
+      style={[styles.cromo, { width }]}
       onPress={() => push(playerHref(me, player.profile.id))}
       accessibilityLabel={`${starKicker(reason)}: ${player.profile.displayName}`}
     >
-      <Gradient id={`g${uid}`} x2="1" y2="1" stops={[[0, GOLD.hi], [0.35, GOLD.mid], [0.7, GOLD.lo], [1, GOLD.mid]]} />
-      <View style={styles.cromoIn}>
-        <Gradient id={`b${uid}`} stops={[[0, '#4A0A55'], [1, '#2A0030']]} />
-        <View style={styles.cromoHair} pointerEvents="none" />
-        {/* Foto cuadrada arriba a la derecha, con su número de ranking como serie del cromo. */}
-        <View style={[styles.cromoPhoto, { width: photo, height: photo }]} pointerEvents="none">
-          <T variant="display" color={GOLD.hi} style={{ fontSize: Math.round(photo * 0.38), fontStyle: 'normal', opacity: 0.85 }}>
+      {/* Marco: degradado dorado a 150° (como el CSS) en un rect redondeado, sin depender de overflow. */}
+      <Svg width={width} height={CROMO.h} style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Defs>
+          <LinearGradient id={`f${uid}`} x1="0.25" y1="0" x2="0.75" y2="1">
+            <Stop offset="0" stopColor={GOLD.hi} />
+            <Stop offset="0.35" stopColor={GOLD.mid} />
+            <Stop offset="0.7" stopColor={GOLD.lo} />
+            <Stop offset="1" stopColor={GOLD.mid} />
+          </LinearGradient>
+        </Defs>
+        <Rect x={0} y={0} width={width} height={CROMO.h} rx={CROMO.radius} ry={CROMO.radius} fill={`url(#f${uid})`} />
+      </Svg>
+      <View style={[styles.cromoIn, { width: innerW, height: innerH }]}>
+        <Svg width={innerW} height={innerH} style={StyleSheet.absoluteFill} pointerEvents="none">
+          <Defs>
+            <LinearGradient id={`b${uid}`} x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor="#4A0A55" />
+              <Stop offset="1" stopColor="#2A0030" />
+            </LinearGradient>
+          </Defs>
+          <Rect x={0} y={0} width={innerW} height={innerH} fill={`url(#b${uid})`} />
+        </Svg>
+        <View style={[styles.cromoPhoto, { width: CROMO.photoW }]} pointerEvents="none">
+          <T variant="display" color={GOLD.hi} style={styles.cromoInitials}>
             {initialsOf(player.profile.displayName)}
           </T>
           <PhotoLayer uri={player.profile.photoUrl} />
-          {player.place ? (
-            <View style={styles.cromoSerial}>
-              <T variant="tiny" color={colors.bg} style={styles.cromoSerialText}>
-                {`N.º ${String(player.place).padStart(2, '0')}`}
-              </T>
-            </View>
-          ) : null}
+          {/* Fundido: de izquierda (#3E0748 → transparente al 45 %) y de abajo (#2A0030 → transparente al 40 %). */}
+          <Svg width={CROMO.photoW} height={innerH} style={StyleSheet.absoluteFill}>
+            <Defs>
+              <LinearGradient id={`l${uid}`} x1="0" y1="0" x2="1" y2="0">
+                <Stop offset="0" stopColor="#3E0748" stopOpacity={1} />
+                <Stop offset="0.45" stopColor="#3E0748" stopOpacity={0} />
+              </LinearGradient>
+              <LinearGradient id={`d${uid}`} x1="0" y1="1" x2="0" y2="0">
+                <Stop offset="0" stopColor="#2A0030" stopOpacity={1} />
+                <Stop offset="0.4" stopColor="#2A0030" stopOpacity={0} />
+              </LinearGradient>
+            </Defs>
+            <Rect x={0} y={0} width={CROMO.photoW} height={innerH} fill={`url(#l${uid})`} />
+            <Rect x={0} y={0} width={CROMO.photoW} height={innerH} fill={`url(#d${uid})`} />
+          </Svg>
         </View>
+        <View style={styles.cromoHair} pointerEvents="none" />
         {player.place ? (
-          <View style={styles.cromoPlace} pointerEvents="none" accessibilityLabel={`Ranking #${player.place}`}>
-            <T variant="tiny" color={GOLD.hi} style={styles.cromoLabel}>
-              Ranking
-            </T>
-            <T variant="display" color={GOLD.hi} style={styles.cromoPlaceNum}>
-              {`#${player.place}`}
+          <View style={styles.cromoSerial} pointerEvents="none">
+            <T variant="tiny" color="#37003C" style={styles.cromoSerialText}>
+              {`N.º ${String(player.place).padStart(2, '0')}`}
             </T>
           </View>
         ) : null}
-        <View style={[styles.cromoText, { width: gridW }]}>
-          <View style={{ width: textW }}>
-            <View style={styles.cromoKicker}>
-              <Icon name="estrella" size={11} color={GOLD.hi} />
-              <T variant="tiny" color={GOLD.hi} style={styles.cromoLabel} numberOfLines={1}>
-                {starKicker(reason)}
-              </T>
-            </View>
-            <T variant="display" style={styles.cromoName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
-              {firstName(player.profile.displayName)}
+        <View style={styles.cromoText}>
+          <View style={styles.cromoKicker}>
+            <SolidStar size={12} color={GOLD.hi} />
+            <T variant="tiny" color={GOLD.hi} style={styles.cromoLabel} numberOfLines={1}>
+              {starKicker(reason)}
             </T>
-            <T color="#C9A2FF" style={styles.cromoSub} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
-              {sub}
-            </T>
-            {socials.length ? (
-              <View style={styles.cromoSocial}>
-                {socials.map(([network]) => (
-                  <SocialGlyph key={network} network={network} size={15} color={GOLD.hi} />
-                ))}
-              </View>
-            ) : null}
           </View>
+          <T variant="display" style={styles.cromoName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
+            {firstName(player.profile.displayName)}
+          </T>
+          <T color="#C9A2FF" style={styles.cromoSub} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+            {sub}
+          </T>
+          {socials.length ? (
+            <View style={styles.cromoSocial}>
+              {socials.map(([network]) => (
+                <SocialGlyph key={network} network={network} size={15} color={GOLD.hi} />
+              ))}
+            </View>
+          ) : null}
           <View style={styles.cromoGrid}>
-            <CromoStat value={player.rating} label="Elo" format={(n) => elo(Math.round(n))} />
+            <CromoStat w={62} value={player.rating} label="Elo" format={(n) => elo(Math.round(n))} />
             {reason === 'top' ? (
-              <CromoStat value={Math.round(player.winRate * 100)} label="% Vict." />
+              <CromoStat w={52} value={Math.round(player.winRate * 100)} label="% Vict." />
             ) : (
-              <CromoStat value={player.windowWins} label={reason === 'week' ? 'Vict · semana' : 'Vict · mes'} />
+              <CromoStat w={52} value={player.windowWins} label={reason === 'week' ? 'Vict·sem' : 'Vict·mes'} />
             )}
-            <View style={styles.cromoCell}>
+            <View style={{ width: 76 }}>
               <T variant="display" style={styles.cromoNum} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
                 {`${player.wins}-${player.draws}-${player.losses}`}
               </T>
@@ -194,23 +207,43 @@ function StarCard({ star, me, width }: { star: BillboardSnapshot['stars'][number
           <View style={styles.cromoFoot}>
             {reason !== 'top' && player.windowDelta > 0 ? (
               <View style={styles.cromoDelta}>
-                <Icon name="tendencia-sube" size={11} color={colors.accentText} />
-                <T variant="tiny" color={colors.accentText} style={styles.cromoDeltaText}>
+                <Icon name="tendencia-sube" size={11} color="#00FF87" />
+                <T color="#00FF87" style={styles.cromoDeltaText}>
                   {`${signed(Math.round(player.windowDelta))} Elo`}
                 </T>
               </View>
             ) : null}
-            <FormDots form={player.form.slice(0, 5)} size={14} />
+            {player.form.length ? (
+              <View style={styles.cromoForm} accessibilityLabel="Últimos resultados">
+                {player.form.slice(0, 5).map((outcome, i) => (
+                  <View key={i} style={[styles.cromoFd, { backgroundColor: cromoForm[outcome] }]}>
+                    <T color="#37003C" style={styles.cromoFdText}>
+                      {formLetter[outcome]}
+                    </T>
+                  </View>
+                ))}
+              </View>
+            ) : null}
           </View>
         </View>
+        {player.place ? (
+          <View style={styles.cromoPlace} pointerEvents="none" accessibilityLabel={`Ranking #${player.place}`}>
+            <T variant="tiny" color={GOLD.hi} style={styles.cromoPlaceLabel}>
+              Ranking
+            </T>
+            <T variant="display" color={GOLD.hi} style={styles.cromoPlaceNum}>
+              {`#${player.place}`}
+            </T>
+          </View>
+        ) : null}
       </View>
     </SportPress>
   );
 }
 
-function CromoStat({ value, label, format = (n) => String(Math.round(n)) }: { value: number; label: string; format?: (n: number) => string }) {
+function CromoStat({ value, label, w, format = (n) => String(Math.round(n)) }: { value: number; label: string; w: number; format?: (n: number) => string }) {
   return (
-    <View style={styles.cromoCell}>
+    <View style={{ width: w }}>
       <CountRoll value={value} format={format}>
         {(shown) => (
           <T variant="display" style={styles.cromoNum} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
@@ -570,28 +603,32 @@ const styles = StyleSheet.create({
   tileHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 20 },
   tileTitle: { flex: 1, fontSize: 12 },
   tile: { ...cardBase, flex: 1, padding: space.md, gap: GAP },
-  /* estrellas: cromo */
-  cromo: { borderRadius: 20, padding: CROMO_BORDER, overflow: 'hidden' },
-  cromoIn: { flex: 1, borderRadius: 16, overflow: 'hidden' },
-  cromoHair: { position: 'absolute', top: 6, left: 6, right: 6, bottom: 6, borderWidth: 1, borderColor: GOLD.hair, borderRadius: 11 },
-  cromoPhoto: { position: 'absolute', top: 16, right: 16, borderRadius: 10, overflow: 'hidden', borderWidth: 1, borderColor: GOLD.line, backgroundColor: '#3E0748', alignItems: 'center', justifyContent: 'center' },
-  cromoSerial: { position: 'absolute', top: 6, right: 6, backgroundColor: GOLD.hi, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 },
-  cromoSerialText: { fontSize: 10, letterSpacing: 1.2 },
-  cromoPlace: { position: 'absolute', right: 16, bottom: 14, alignItems: 'flex-end' },
-  cromoPlaceNum: { fontSize: 38, lineHeight: 40, fontStyle: 'normal' },
-  cromoText: { position: 'absolute', left: 18, top: 18, bottom: 16 },
-  cromoKicker: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  cromoLabel: { fontSize: 10, letterSpacing: 1.3 },
-  cromoName: { fontSize: 42, lineHeight: 44, marginTop: 10, fontStyle: 'normal', letterSpacing: -1 },
-  cromoSub: { fontSize: 16, lineHeight: 20 },
-  cromoSocial: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
-  cromoGrid: { flexDirection: 'row', gap: 16, marginTop: 'auto', borderTopWidth: 1, borderTopColor: GOLD.line, paddingTop: 8 },
-  cromoCell: { flexShrink: 1 },
-  cromoNum: { fontSize: 20, lineHeight: 22, fontStyle: 'normal' },
-  cromoStatLabel: { fontSize: 9, letterSpacing: 1.1, marginTop: 2 },
-  cromoFoot: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: 8, minHeight: 14 },
-  cromoDelta: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  cromoDeltaText: { fontSize: 11, letterSpacing: 0 },
+  /* estrellas: cromo (valores de 1-cromo.html) */
+  cromo: { height: CROMO.h, borderRadius: CROMO.radius, padding: CROMO.frame },
+  cromoIn: { borderRadius: CROMO.innerRadius, overflow: 'hidden' },
+  cromoPhoto: { position: 'absolute', right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: '#3E0748' },
+  cromoInitials: { fontSize: 72, lineHeight: 80, fontStyle: 'normal', opacity: 0.5 },
+  cromoHair: { position: 'absolute', top: 7, left: 7, right: 7, bottom: 7, borderWidth: 1, borderColor: 'rgba(241,210,122,0.45)', borderRadius: 10 },
+  cromoSerial: { position: 'absolute', right: 16, top: 16, backgroundColor: GOLD.hi, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5 },
+  cromoSerialText: { fontSize: 11, lineHeight: 14, fontFamily: font.bold, letterSpacing: 1.5, textTransform: 'none' },
+  cromoText: { position: 'absolute', left: 20, top: 20, bottom: 18, width: 200 },
+  cromoKicker: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  cromoLabel: { fontSize: 10, lineHeight: 13, letterSpacing: 1.3 },
+  cromoName: { fontSize: 44, lineHeight: 44, marginTop: 14, fontStyle: 'normal', letterSpacing: -1 },
+  cromoSub: { fontSize: 18, lineHeight: 23, fontFamily: font.medium },
+  cromoSocial: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },
+  cromoGrid: { flexDirection: 'row', gap: 4, marginTop: 'auto', borderTopWidth: 1, borderTopColor: 'rgba(241,210,122,0.35)', paddingTop: 10 },
+  cromoNum: { fontSize: 20, lineHeight: 20, fontStyle: 'normal', letterSpacing: -0.5 },
+  cromoStatLabel: { fontSize: 9, lineHeight: 11, letterSpacing: 1.3, marginTop: 3 },
+  cromoFoot: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, minHeight: 14 },
+  cromoDelta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  cromoDeltaText: { fontSize: 11, lineHeight: 14, fontFamily: font.bold },
+  cromoForm: { flexDirection: 'row', gap: 4 },
+  cromoFd: { width: 14, height: 14, borderRadius: 4, alignItems: 'center', justifyContent: 'center' },
+  cromoFdText: { fontSize: 9, lineHeight: 11, fontFamily: font.display },
+  cromoPlace: { position: 'absolute', right: 16, bottom: 16, alignItems: 'flex-end' },
+  cromoPlaceLabel: { fontSize: 9, lineHeight: 11, letterSpacing: 1.3 },
+  cromoPlaceNum: { fontSize: 40, lineHeight: 40, fontStyle: 'normal', letterSpacing: -0.5 },
   star: { ...cardBase, minHeight: 232, overflow: 'hidden', backgroundColor: colors.navy, padding: space.lg, justifyContent: 'flex-end', borderRadius: 22 },
   starEmpty: { gap: layout.inCard, justifyContent: 'center', minHeight: 200 },
   emptyTitle: { fontSize: 30, lineHeight: 32, fontStyle: 'normal' },
@@ -599,9 +636,9 @@ const styles = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   form: { flexDirection: 'row', gap: space.xs },
   formDot: { borderRadius: 5, alignItems: 'center', justifyContent: 'center' },
-  dots: { flexDirection: 'row', justifyContent: 'center', gap: space.sm },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lineStrong },
-  dotOn: { width: 18, backgroundColor: colors.accentText },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.28)' },
+  dotOn: { width: 20, backgroundColor: '#FFFFFF' },
   /* accesos */
   /* patrocinios */
   sponsorBanner: { ...cardBase, minHeight: 96, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, overflow: 'hidden', borderStyle: 'dashed', borderColor: colors.lineStrong, backgroundColor: colors.surface },
