@@ -105,7 +105,7 @@ export default function AdRequestForm() {
                   <View style={styles.shapeBox}>
                     <View style={[styles.shape, { aspectRatio: s.width / s.height }, s.width / s.height > 1 ? { width: 30 } : { height: 22 }, on && styles.shapeOn]} />
                   </View>
-                  <T variant="strong" color={on ? colors.accentInk : colors.text} style={styles.flex} numberOfLines={1}>
+                  <T variant="strong" color={on ? colors.accentInk : colors.text} style={[styles.flex, styles.optionLabel]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
                     {s.label}
                   </T>
                   <T variant="tiny" color={on ? colors.accentInk : colors.muted} style={styles.plain}>
@@ -136,7 +136,7 @@ export default function AdRequestForm() {
           ) : (
             <SportPress onPress={choosePhoto} style={styles.upload} accessibilityRole="button" accessibilityLabel="Sube una foto de tu producto. JPG o PNG, sin logos de terceros.">
               <View style={styles.uploadIcon}>
-                <Icon name="camara" size={22} color={colors.gold} />
+                <Icon name="camara" size={22} color={GOLD} />
               </View>
               <View style={styles.flex}>
                 <T variant="strong">Sube una foto de tu producto</T>
@@ -237,6 +237,9 @@ function SmallAction({ label, onPress }: { label: string; onPress: () => void })
   );
 }
 
+// Dorado suave de la maqueta (no el amarillo de marca).
+const GOLD = '#D9B45A';
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   plain: { textTransform: 'none', letterSpacing: 0 },
@@ -271,9 +274,10 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     backgroundColor: colors.bgDeep,
   },
+  optionLabel: { fontSize: 15 },
   optionOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   shapeBox: { width: 34, alignItems: 'center', justifyContent: 'center' },
-  shape: { borderWidth: 1.5, borderColor: colors.gold, borderRadius: 3 },
+  shape: { borderWidth: 1.5, borderColor: GOLD, borderRadius: 3 },
   shapeOn: { borderColor: colors.accentInk },
   checkSpace: { width: 16 },
   upload: {
@@ -284,7 +288,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: colors.gold,
+    borderColor: GOLD,
     backgroundColor: colors.bgDeep,
   },
   uploadIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },

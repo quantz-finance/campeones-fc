@@ -12,6 +12,8 @@ import { T } from '../../../ui/text';
 import { colors, font, hex, space } from '../../../ui/theme';
 
 const STAGE = 230;
+// Dorado suave de la maqueta (no el amarillo de marca).
+const GOLD = '#D9B45A';
 const DOTS = 28;
 
 export default function AdRequestSent() {
@@ -35,7 +37,7 @@ export default function AdRequestSent() {
               <Stop offset="1" stopColor={hex.violet} stopOpacity="0" />
             </LinearGradient>
             <RadialGradient id="floor" cx="50%" cy="50%" rx="50%" ry="50%">
-              <Stop offset="0" stopColor={hex.gold} stopOpacity="0.35" />
+              <Stop offset="0" stopColor={GOLD} stopOpacity="0.35" />
               <Stop offset="1" stopColor={hex.gold} stopOpacity="0" />
             </RadialGradient>
           </Defs>
@@ -44,9 +46,9 @@ export default function AdRequestSent() {
           <Ellipse cx="180" cy={STAGE + 14} rx="150" ry="26" fill="url(#floor)" />
           {Array.from({ length: DOTS }, (_, i) => {
             const a = (i / DOTS) * Math.PI * 2;
-            return <Circle key={i} cx={180 + Math.cos(a) * 112} cy={STAGE / 2 + Math.sin(a) * 112} r={2.2} fill={i % 2 ? hex.gold : hex.faint} opacity={i % 2 ? 0.9 : 0.6} />;
+            return <Circle key={i} cx={180 + Math.cos(a) * 112} cy={STAGE / 2 + Math.sin(a) * 112} r={2.2} fill={i % 2 ? GOLD : hex.faint} opacity={i % 2 ? 0.9 : 0.6} />;
           })}
-          <Circle cx="180" cy={STAGE / 2} r="88" fill={hex.ink} stroke={hex.gold} strokeOpacity={0.45} strokeWidth={1.5} />
+          <Circle cx="180" cy={STAGE / 2} r="88" fill={hex.ink} stroke={GOLD} strokeOpacity={0.45} strokeWidth={1.5} />
         </Svg>
         <View style={styles.check}>
           <Icon name="confirmado" size={58} color={colors.accentInk} />
@@ -99,7 +101,7 @@ const styles = StyleSheet.create({
   check: { position: 'absolute', top: STAGE / 2 - 62, width: 124, height: 124, borderRadius: 62, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   strip: { flexDirection: 'row', alignItems: 'stretch', borderRadius: 4, overflow: 'hidden', minHeight: 46 },
   stripMain: { flex: 1, backgroundColor: colors.accent, paddingHorizontal: space.lg, textAlignVertical: 'center', paddingVertical: 12 },
-  stripTag: { backgroundColor: colors.gold, paddingHorizontal: space.lg, justifyContent: 'center' },
+  stripTag: { backgroundColor: GOLD, paddingHorizontal: space.lg, justifyContent: 'center' },
   copy: { gap: space.md },
   title: { fontSize: 27, lineHeight: 32 },
   summary: { borderRadius: 16, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.bgDeep, paddingHorizontal: space.lg },
