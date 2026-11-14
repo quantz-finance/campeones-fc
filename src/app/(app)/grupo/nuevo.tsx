@@ -75,10 +75,10 @@ export default function NewGroup() {
       <Top title="Nuevo grupo" kicker="Junta" back />
       <Field label="Nombre" value={name} onChangeText={setName} placeholder="La junta del viernes" autoCapitalize="sentences" maxLength={rules.maxGroupName} />
       <Panel>
-        <LogoPicker kind="groups" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
+        <AccessFields visibility={visibility} joinPolicy={joinPolicy} onVisibility={setVisibility} onPolicy={setJoinPolicy} kind="group" />
       </Panel>
       <Panel>
-        <AccessFields visibility={visibility} joinPolicy={joinPolicy} onVisibility={setVisibility} onPolicy={setJoinPolicy} kind="group" />
+        <LogoPicker kind="groups" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
       </Panel>
       <Gate query={friends}>
         {(data) => {

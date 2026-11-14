@@ -131,9 +131,6 @@ export default function NewTournament() {
             ? 'Todos contra todos. Gana quien sume más puntos. Si hay empate arriba, no hay campeón único.'
             : 'La liga necesita entre 3 y 16 jugadores.'}
       </T>
-      <Panel>
-        <LogoPicker kind="tournaments" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
-      </Panel>
       {mode === 'registration' ? (
         <Panel>
           {groupId ? (
@@ -156,6 +153,9 @@ export default function NewTournament() {
           <Field label="Inicio (opcional)" value={startsAt} onChangeText={setStartsAt} placeholder="2026-11-28 21:00" autoCapitalize="none" />
         </Panel>
       ) : null}
+      <Panel>
+        <LogoPicker kind="tournaments" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
+      </Panel>
       {mode === 'now' ? (
         <Gate query={query}>
           {(group) =>
