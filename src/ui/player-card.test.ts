@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PublicPlayer } from '../data/public-player';
-import { achievementsLabel, cardFromPublic, rankLabel, streakText } from './player-card-data';
+import { ACHIEVEMENT_CODES } from '../domain/types';
+import { achievementsLabel, cardFromPublic, fichaAchievementStrip, rankLabel, streakText } from './player-card-data';
 
 const sample: PublicPlayer = {
   profile: {
@@ -39,30 +40,43 @@ describe('ficha retrato a sangre', () => {
     expect(card.rating).toBe(1200);
     expect(card.peak).toBe(1200);
     expect(card.titles).toBe(0);
-    expect(card.achievements.map((item) => item.code)).toEqual(['first_win', 'streak_5', 'tournament_champion']);
+    expect(card.achievements.map((item) => item.code)).toEqual([...ACHIEVEMENT_CODES]);
     expect(card.achievements.every((item) => !item.unlocked)).toBe(true);
   });
 
   it('marca logros desbloqueados y cuenta títulos', () => {
     const card = cardFromPublic({
       ...sample,
-      achievements: [{ code: 'first_win', title: 'Primera victoria', earnedAt: '2026-01-01' }],
+      achievements: [{ code: 'primera-victoria', title: 'Primera victoria', earnedAt: '2026-01-01' }],
       titles: [{ id: 't1', name: 'Copa', photoUrl: null, logo: null }],
     });
     expect(card.titles).toBe(1);
-    expect(card.achievements.find((item) => item.code === 'first_win')?.unlocked).toBe(true);
+    expect(card.achievements.find((item) => item.code === 'primera-victoria')?.unlocked).toBe(true);
     expect(card.achievements.filter((item) => item.unlocked)).toHaveLength(1);
   });
 
   it('escribe el ranking, los logros y la racha con los rótulos de la app', () => {
     expect(rankLabel(null, 0)).toBe('Sin ranking aún');
     expect(rankLabel(2, 10)).toBe('Ranking #2 de 10');
-    expect(achievementsLabel(0, 3)).toBe('Logros · 0 de 3');
-    expect(achievementsLabel(2, 3)).toBe('Logros · 2 de 3');
+    expect(achievementsLabel(0, 24)).toBe('Logros · 0 de 24');
+    expect(achievementsLabel(2, 24)).toBe('Logros · 2 de 24');
     expect(streakText({ type: 'none', count: 0 })).toBe('–');
     expect(streakText({ type: 'win', count: 3 })).toBe('3V');
     expect(streakText({ type: 'draw', count: 1 })).toBe('1E');
     expect(streakText({ type: 'loss', count: 2 })).toBe('2D');
+  });
+
+  it('en la tira muestra ganados primero y luego «+N»', () => {
+    const locked = cardFromPublic(sample).achievements;
+    const empty = fichaAchievementStrip(locked);
+    expect(empty.shown).toHaveLength(3);
+    expect(empty.shown.every((item) => !item.unlocked)).toBe(true);
+    expect(empty.extra).toBe(21);
+    const earned = locked.map((item, i) => ({ ...item, unlocked: i < 8 }));
+    const strip = fichaAchievementStrip(earned);
+    expect(strip.shown).toHaveLength(5);
+    expect(strip.shown.every((item) => item.unlocked)).toBe(true);
+    expect(strip.extra).toBe(19);
   });
 
 });

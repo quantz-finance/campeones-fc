@@ -8,17 +8,12 @@ const here = dirname(fileURLToPath(import.meta.url));
 const mapFile = resolve(here, '../content/logros-art.ts');
 const source = readFileSync(mapFile, 'utf8');
 
-function artIdFor(code: string): string {
-  const match = source.match(new RegExp(`${code}: '([a-z0-9-]+)'`));
-  expect(match, code).not.toBeNull();
-  return match![1];
-}
-
-describe('arte de logros v5 (mapa único, reemplazable)', () => {
-  it('cada logro del catálogo apunta a un sello con PNG normal y small que existen', () => {
+describe('arte de logros v7 (dorado y bloqueado grafito lila)', () => {
+  it('cada logro del catálogo tiene PNG normal, small, lock y lock-small', () => {
+    expect(trophyCatalog).toHaveLength(24);
     for (const trophy of trophyCatalog) {
-      const id = artIdFor(trophy.code);
-      for (const sub of ['', 'small/']) {
+      const id = trophy.code;
+      for (const sub of ['', 'small/', 'lock/', 'lock-small/']) {
         const path = `../../assets/logros/${sub}${id}.png`;
         expect(source.includes(`require('${path}')`), `${id} ${sub}`).toBe(true);
         expect(existsSync(resolve(dirname(mapFile), path)), path).toBe(true);
@@ -26,9 +21,9 @@ describe('arte de logros v5 (mapa único, reemplazable)', () => {
     }
   });
 
-  it('los 13 sellos del set están mapeados', () => {
-    const ids = [...source.matchAll(/require\('\.\.\/\.\.\/assets\/logros\/([a-z0-9-]+)\.png'\)/g)].map((m) => m[1]);
-    expect(new Set(ids).size).toBe(13);
+  it('los 24 sellos del set están mapeados', () => {
+    const normal = [...source.matchAll(/assets\/logros\/([a-z0-9-]+)\.png/g)].map((m) => m[1]);
+    expect(new Set(normal).size).toBe(24);
   });
 
   it('ya no es arte provisional', () => {

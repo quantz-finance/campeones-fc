@@ -71,7 +71,7 @@ describe('flujo de partido', () => {
     expect(h2h.youRecord.wins).toBe(1);
     expect(h2h.evolution).toHaveLength(1);
     const trophies = await repo.trophies('a');
-    expect(trophies.find((trophy) => trophy.code === 'first_win')?.earned).toBe(true);
+    expect(trophies.find((trophy) => trophy.code === 'primera-victoria')?.earned).toBe(true);
   });
 
   it('expira la propuesta y permite cancelarla antes', async () => {
@@ -160,7 +160,7 @@ describe('flujo de partido', () => {
     view = await repo.tournamentSnapshot(cup.id, 'a');
     expect(view.tournament.status).toBe('completed');
     expect(view.tournament.winnerId).toBe('d');
-    expect((await repo.trophies('d')).find((trophy) => trophy.code === 'tournament_champion')?.earned).toBe(true);
+    expect((await repo.trophies('d')).find((trophy) => trophy.code === 'campeon-torneo')?.earned).toBe(true);
     const table = await repo.groupSnapshot(group.id, 'a');
     expect(table.table.find((row) => row.playerId === 'd')?.wins).toBe(2);
     expect(table.ranking).toHaveLength(0);

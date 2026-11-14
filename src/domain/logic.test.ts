@@ -190,13 +190,17 @@ describe('bracket y trofeos', () => {
     const wins = [1, 2, 3, 4, 5].map((day) =>
       confirmed(`s${day}`, 'a', 'b', 'a', 1, 0, `2026-10-0${day}T00:00:00.000Z`),
     );
-    expect(earnedAchievementCodes({ playerId: 'a', matches: wins.slice(0, 1), tournamentWins: 0 })).toEqual([
-      'first_win',
-    ]);
-    expect(earnedAchievementCodes({ playerId: 'a', matches: wins, tournamentWins: 0 })).toContain('streak_5');
-    expect(earnedAchievementCodes({ playerId: 'a', matches: [], tournamentWins: 1 })).toEqual([
-      'tournament_champion',
-    ]);
+    expect(earnedAchievementCodes({ playerId: 'a', matches: wins.slice(0, 1) })).toEqual(
+      expect.arrayContaining(['primer-partido', 'primera-victoria']),
+    );
+    expect(earnedAchievementCodes({ playerId: 'a', matches: wins })).toContain('racha-5');
+    expect(
+      earnedAchievementCodes({
+        playerId: 'a',
+        matches: [],
+        tournaments: [{ id: 't1', format: 'round_robin', size: 4, status: 'completed', winnerId: 'a', playerIds: ['a', 'b'] }],
+      }),
+    ).toEqual(['campeon-torneo']);
     expect(summarize(wins, 'a').bestWinStreak).toBe(5);
   });
 

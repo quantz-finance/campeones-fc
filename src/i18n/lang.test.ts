@@ -56,7 +56,7 @@ describe('i18n ficha pública y redes', () => {
     expect(translate('Ese enlace no es de TikTok.', 'en')).toBe("That link isn't from TikTok.");
     expect(translate('Usuario de Instagram no válido.', 'en')).toBe('Invalid Instagram username.');
     expect(translate('Tus redes', 'en')).toBe('Your socials');
-    expect(translate('Logros · 0 de 3', 'en')).toBe('Achievements · 0 of 3');
+    expect(translate('Logros · 0 de 24', 'en')).toBe('Achievements · 0 of 24');
     expect(translate('Ranking #2 de 10', 'en')).toBe('Rank #2 of 10');
   });
 });

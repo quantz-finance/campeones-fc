@@ -11,7 +11,7 @@ describe('ficha pública del jugador', () => {
     expect(p.peak).toBeGreaterThanOrEqual(p.rating);
     expect(p.form.length).toBeLessThanOrEqual(5);
     expect(p.titles.some((t) => t.name === 'Copa del barrio')).toBe(true);
-    expect(p.achievements.map((a) => a.code)).toContain('tournament_champion');
+    expect(p.achievements.map((a) => a.code)).toContain('campeon-torneo');
     expect(p.profile.socialLinks.tiktok).toBe('https://www.tiktok.com/@demo_andres');
     expect(p.groups.length).toBeGreaterThan(0);
     expect(p.recent[0].opponent).not.toBeNull();

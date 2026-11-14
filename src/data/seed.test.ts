@@ -13,11 +13,11 @@ describe('datos de demostración', () => {
     expect(ranking.qualified).toBe(true);
     const personal = projectPersonal(db, IDS.andre);
     expect(personal.record.bestWinStreak).toBeGreaterThanOrEqual(rules.streakTrophy);
-    expect(db.achievements.some((item) => item.userId === IDS.andre && item.code === 'streak_5')).toBe(true);
-    expect(db.achievements.some((item) => item.userId === IDS.andre && item.code === 'tournament_champion')).toBe(
+    expect(db.achievements.some((item) => item.userId === IDS.andre && item.code === 'racha-5')).toBe(true);
+    expect(db.achievements.some((item) => item.userId === IDS.andre && item.code === 'campeon-torneo')).toBe(
       true,
     );
-    expect(db.achievements.some((item) => item.userId === IDS.cami && item.code === 'tournament_champion')).toBe(
+    expect(db.achievements.some((item) => item.userId === IDS.cami && item.code === 'campeon-torneo')).toBe(
       false,
     );
     const pending = db.matches.filter((match) => match.status === 'pending_accept');
