@@ -1,18 +1,21 @@
-// Aviso fijo arriba cuando no hay conexión con el servidor. Se reintenta solo (ver AppProvider);
+// Aviso fijo abajo (mismo lugar que los avisos) cuando no hay conexión con el servidor. Se reintenta solo (ver AppProvider);
 // el botón fuerza un intento ya. Desaparece en cuanto vuelve la red.
+import { usePathname } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../state/app-provider';
 import { Icon } from './icon';
 import { T } from './text';
 import { colors, radius, space } from './theme';
+import { toastBottom } from './toast-place';
 
 export function OfflineBar() {
   const { offline, retry } = useApp();
   const insets = useSafeAreaInsets();
+  const path = usePathname();
   if (!offline) return null;
   return (
-    <View pointerEvents="box-none" style={[styles.wrap, { top: insets.top + space.xs }]}>
+    <View pointerEvents="box-none" style={[styles.wrap, { bottom: toastBottom(path, insets.bottom) }]}>
       <View style={styles.bar} accessibilityRole="alert" accessibilityLiveRegion="polite">
         <Icon name="alerta" size={18} color={colors.warn} />
         <T style={styles.text} numberOfLines={2}>
