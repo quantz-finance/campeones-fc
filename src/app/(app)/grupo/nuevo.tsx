@@ -16,6 +16,8 @@ import { useRecentPicks } from '../../../ui/recent-picks';
 import { mostFrequent, quickIds } from '../../../domain/search';
 import { defaultLogo } from '../../../content/crests';
 import { LogoPicker } from '../../../ui/logo-picker';
+import { AccessFields } from '../../../ui/access-fields';
+import type { JoinPolicy, Visibility } from '../../../data/types';
 
 export default function NewGroup() {
   const { repo, userId, version } = useApp();
@@ -26,6 +28,8 @@ export default function NewGroup() {
   const [busy, setBusy] = useState(false);
   // Escudo inicial al azar (el usuario lo cambia en la cuadrícula).
   const [logo, setLogo] = useState(() => defaultLogo('groups', String(Math.random())));
+  const [visibility, setVisibility] = useState<Visibility>('private');
+  const [joinPolicy, setJoinPolicy] = useState<JoinPolicy>('invite');
 
   const recentRivals = useRecentPicks('rivals');
   const missing =
@@ -44,7 +48,7 @@ export default function NewGroup() {
         setBusy(true);
         setError(null);
         void repo
-          .createGroup(userId!, name, selected, logo)
+          .createGroup(userId!, name, selected, logo, { visibility, joinPolicy })
           .then((group) => {
             track('group_created');
             replace(`/grupo/${group.id}`);
@@ -72,6 +76,9 @@ export default function NewGroup() {
       <Field label="Nombre" value={name} onChangeText={setName} placeholder="La junta del viernes" autoCapitalize="sentences" maxLength={rules.maxGroupName} />
       <Panel>
         <LogoPicker kind="groups" value={logo} onChange={setLogo} photo={{ mode: 'create' }} />
+      </Panel>
+      <Panel>
+        <AccessFields visibility={visibility} joinPolicy={joinPolicy} onVisibility={setVisibility} onPolicy={setJoinPolicy} kind="group" />
       </Panel>
       <Gate query={friends}>
         {(data) => {

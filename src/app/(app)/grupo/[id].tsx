@@ -14,6 +14,8 @@ import { Screen, Top } from '../../../ui/screen';
 import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { LogoEditor } from '../../../ui/logo-picker';
+import { AccessFields } from '../../../ui/access-fields';
+import { joinPolicyOf, visibilityOf, type JoinPolicy, type Visibility } from '../../../data/types';
 import { push } from '../../../ui/nav';
 import { SearchEmpty, SearchField } from '../../../ui/search-field';
 import { matchesPerson } from '../../../domain/search';
@@ -24,6 +26,9 @@ export default function GroupDetail() {
   const { repo, userId, version, showFlash } = useApp();
   const query = useQuery(() => repo.groupSnapshot(String(id), userId!), [repo, userId, version, id]);
   const [search, setSearch] = useState('');
+  const [visibility, setVisibility] = useState<Visibility | null>(null);
+  const [joinPolicy, setJoinPolicy] = useState<JoinPolicy | null>(null);
+  const [accessBusy, setAccessBusy] = useState(false);
 
   return (
     <Screen dock="grupos">
@@ -63,7 +68,45 @@ export default function GroupDetail() {
                   </Pressable>
                 }
               />
+
               <LogoEditor kind="groups" entity={data.group} canEdit={data.yourRole === 'owner' || data.group.createdBy === userId} />
+              {data.yourRole === 'owner' ? (
+                <View style={styles.access}>
+                  <AccessFields
+                    visibility={visibility ?? visibilityOf(data.group)}
+                    joinPolicy={joinPolicy ?? joinPolicyOf(data.group)}
+                    onVisibility={setVisibility}
+                    onPolicy={setJoinPolicy}
+                    kind="group"
+                  />
+                  <Button
+                      label={accessBusy ? 'Guardando…' : 'Guardar acceso'}
+                      pending={accessBusy}
+                      onPress={() => {
+                        setAccessBusy(true);
+                        void repo
+                          .setGroupAccess(userId!, data.group.id, visibility ?? visibilityOf(data.group), joinPolicy ?? joinPolicyOf(data.group))
+                          .then(() => showFlash({ id: `access-${data.group.id}`, title: 'Acceso actualizado', tone: 'accent' }))
+                          .catch((cause: unknown) => showFlash({ id: `access-error-${data.group.id}`, title: 'No se pudo guardar', body: humanError(cause), tone: 'danger' }))
+                          .finally(() => setAccessBusy(false));
+                      }}
+                    />
+                  {data.joinRequests.length ? (
+                    <View style={styles.requests}>
+                      <T variant="strong">Solicitudes</T>
+                      {data.joinRequests.map((item) => (
+                        <View key={item.id} style={styles.requestRow}>
+                          <T variant="medium" style={{ flex: 1 }} numberOfLines={1}>
+                            {item.profile.displayName}
+                          </T>
+                          <Button label="Aprobar" onPress={() => void repo.decideGroupJoin(userId!, item.id, true).catch((cause: unknown) => showFlash({ id: `dec-${item.id}`, title: 'No se pudo decidir', body: humanError(cause), tone: 'danger' }))} />
+                          <Button label="Rechazar" tone="ghost" onPress={() => void repo.decideGroupJoin(userId!, item.id, false).catch((cause: unknown) => showFlash({ id: `dec-${item.id}`, title: 'No se pudo decidir', body: humanError(cause), tone: 'danger' }))} />
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
               <View style={styles.king}>
                 <View style={styles.kingLeft}>
                   <T variant="tiny" color={colors.ink}>
@@ -217,6 +260,9 @@ function formOf(playerId: string, recent: Match[]): ('w' | 'd' | 'l')[] {
 }
 
 const styles = StyleSheet.create({
+  access: { gap: space.md },
+  requests: { gap: space.sm },
+  requestRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   king: { flexDirection: 'row', minHeight: 84, overflow: 'hidden' },
   kingLeft: { flex: 1, backgroundColor: colors.yellow, padding: 12, justifyContent: 'center', transform: [{ skewX: '0deg' }], marginRight: -12, borderRadius: 14 },
   kingRight: { width: 110, backgroundColor: colors.navy, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 12, borderLeftWidth: 4, borderLeftColor: colors.red, borderRadius: 14 },

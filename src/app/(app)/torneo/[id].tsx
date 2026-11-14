@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Icon } from '../../../ui/icon';
 import { roundLabel } from '../../../domain/bracket';
@@ -7,19 +8,28 @@ import type { Match } from '../../../domain/types';
 import { useApp } from '../../../state/app-provider';
 import { useQuery } from '../../../state/use-query';
 import { SectionHead, Toro } from '../../../ui/broadcast';
-import { Button, Gate } from '../../../ui/controls';
-import { firstName, scoreText } from '../../../ui/format';
+import { Button, Chip, Field, Gate } from '../../../ui/controls';
+import { firstName, scoreText, slotsLine, tournamentStatusLabel } from '../../../ui/format';
 import { Screen, Top } from '../../../ui/screen';
 import { colors, layout, space } from '../../../ui/theme';
 import { T } from '../../../ui/text';
 import { LogoEditor } from '../../../ui/logo-picker';
+import { AccessFields } from '../../../ui/access-fields';
+import { humanError } from '../../../ui/errors';
+import { joinPolicyOf, visibilityOf, type JoinPolicy, type Visibility } from '../../../data/types';
 import { Avatar } from '../../../ui/avatar';
 import { push } from '../../../ui/nav';
 
 export default function TournamentScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { repo, userId, version } = useApp();
+  const { repo, userId, version, showFlash } = useApp();
   const query = useQuery(() => repo.tournamentSnapshot(String(id), userId!), [repo, userId, version, id]);
+  const [visibility, setVisibility] = useState<Visibility | null>(null);
+  const [joinPolicy, setJoinPolicy] = useState<JoinPolicy | null>(null);
+  const [maxPlayers, setMaxPlayers] = useState<number | null>(null);
+  const [startsAt, setStartsAt] = useState('');
+  const [busy, setBusy] = useState(false);
+
 
   return (
     <Screen dock="torneos">
@@ -52,21 +62,121 @@ export default function TournamentScreen() {
                 back
                 right={
                   <View style={styles.topRight}>
-                  <View style={[styles.badge, { backgroundColor: data.tournament.status === 'completed' ? colors.up : colors.yellow }]}>
+                  <View style={[styles.badge, { backgroundColor: data.tournament.status === 'completed' ? colors.up : data.tournament.status === 'registration' ? colors.violet : colors.yellow }]}>
                     <T variant="tiny" color={colors.ink}>
-                      {data.tournament.status === 'completed' ? 'Finalizado' : 'En juego'}
+                      {tournamentStatusLabel(data.tournament.status)}
                     </T>
                   </View>
                   </View>
                 }
               />
+
               <LogoEditor kind="tournaments" entity={data.tournament} canEdit={data.tournament.createdBy === userId} />
+              {data.tournament.status === 'registration' || data.isOrganizer ? (
+                <View style={styles.manage}>
+                  <T variant="tiny" color={colors.muted}>
+                    {slotsLine(data.registrations.length, data.tournament.maxPlayers)}
+                    {data.group?.name ? ` · ${data.group.name}` : ''}
+                  </T>
+                  {data.isOrganizer ? (
+                    <>
+                      <AccessFields
+                        visibility={visibility ?? visibilityOf(data.tournament)}
+                        joinPolicy={joinPolicy ?? joinPolicyOf(data.tournament)}
+                        onVisibility={setVisibility}
+                        onPolicy={setJoinPolicy}
+                        kind="tournament"
+                      />
+                      {data.tournament.status === 'registration' ? (
+                        <>
+                          <T variant="tiny">Cupos</T>
+                          <View style={styles.chips}>
+                            {(data.tournament.format === 'single_elim' ? [4, 8, 16] : [4, 8, 12, 16]).map((n) => (
+                              <Chip key={n} label={String(n)} active={(maxPlayers ?? data.tournament.maxPlayers) === n} onPress={() => setMaxPlayers(n)} />
+                            ))}
+                          </View>
+                          <Field label="Inicio (opcional)" value={startsAt} onChangeText={setStartsAt} placeholder="2026-11-28 21:00" autoCapitalize="none" />
+                        </>
+                      ) : null}
+                      <Button
+                        label={busy ? 'Guardando…' : 'Guardar acceso'}
+                        pending={busy}
+                        onPress={() => {
+                          setBusy(true);
+                          let starts: string | null | undefined;
+                          try {
+                            const raw = startsAt.trim();
+                            starts = raw ? new Date(raw.includes('T') ? raw : raw.replace(' ', 'T')).toISOString() : undefined;
+                            if (starts && Number.isNaN(Date.parse(starts))) throw new Error('bad');
+                          } catch {
+                            setBusy(false);
+                            showFlash({ id: `starts-${data.tournament.id}`, title: 'Revisa la fecha', body: 'Ponla como 2026-11-28 21:00.', tone: 'danger' });
+                            return;
+                          }
+                          void repo
+                            .setTournamentAccess(userId!, data.tournament.id, {
+                              visibility: visibility ?? visibilityOf(data.tournament),
+                              joinPolicy: joinPolicy ?? joinPolicyOf(data.tournament),
+                              maxPlayers: maxPlayers ?? data.tournament.maxPlayers,
+                              startsAt: starts ?? null,
+                            })
+                            .then(() => showFlash({ id: `t-access-${data.tournament.id}`, title: 'Acceso actualizado', tone: 'accent' }))
+                            .catch((cause: unknown) => showFlash({ id: `t-access-error-${data.tournament.id}`, title: 'No se pudo guardar', body: humanError(cause), tone: 'danger' }))
+                            .finally(() => setBusy(false));
+                        }}
+                      />
+                      {data.joinRequests.length ? (
+                        <View style={styles.requests}>
+                          <T variant="strong">Solicitudes</T>
+                          {data.joinRequests.map((item) => (
+                            <View key={item.id} style={styles.requestRow}>
+                              <T variant="medium" style={{ flex: 1 }} numberOfLines={1}>
+                                {item.profile.displayName}
+                              </T>
+                              <Button label="Aprobar" onPress={() => void repo.decideTournamentJoin(userId!, item.id, true).catch((cause: unknown) => showFlash({ id: `tdec-${item.id}`, title: 'No se pudo decidir', body: humanError(cause), tone: 'danger' }))} />
+                              <Button label="Rechazar" tone="ghost" onPress={() => void repo.decideTournamentJoin(userId!, item.id, false).catch((cause: unknown) => showFlash({ id: `tdec-${item.id}`, title: 'No se pudo decidir', body: humanError(cause), tone: 'danger' }))} />
+                            </View>
+                          ))}
+                        </View>
+                      ) : null}
+                      {data.tournament.status === 'registration' ? (
+                        <Button
+                          label="Empezar torneo"
+                          onPress={() => {
+                            setBusy(true);
+                            void repo
+                              .startTournament(userId!, data.tournament.id)
+                              .then(() => showFlash({ id: `start-${data.tournament.id}`, title: 'El torneo ya arrancó', tone: 'accent' }))
+                              .catch((cause: unknown) => showFlash({ id: `start-error-${data.tournament.id}`, title: 'No se pudo empezar', body: humanError(cause), tone: 'danger' }))
+                              .finally(() => setBusy(false));
+                          }}
+                        />
+                      ) : null}
+                    </>
+                  ) : data.tournament.status === 'registration' && !data.registrations.some((row) => row.userId === userId) ? (
+                    <Button
+                      label={joinPolicyOf(data.tournament) === 'open' ? 'Inscribirme' : 'Pedir invitación'}
+                      onPress={() => {
+                        const policy = joinPolicyOf(data.tournament);
+                        const run = policy === 'open' ? repo.registerForTournament(userId!, data.tournament.id) : repo.requestTournamentJoin(userId!, data.tournament.id);
+                        void run
+                          .then(() => showFlash({ id: `join-t-${data.tournament.id}`, title: policy === 'open' ? 'Quedaste inscrito' : 'Solicitud enviada', tone: 'accent' }))
+                          .catch((cause: unknown) => showFlash({ id: `join-t-error-${data.tournament.id}`, title: 'No se pudo inscribir', body: humanError(cause), tone: 'danger' }));
+                      }}
+                    />
+                  ) : data.registrations.some((row) => row.userId === userId) ? (
+                    <T variant="strong" color={colors.accentText}>
+                      Ya estás inscrito
+                    </T>
+                  ) : null}
+                </View>
+              ) : null}
               {data.tournament.status === 'completed' ? (
                 <View style={styles.champ}>
                   <View style={styles.cupBox}>
                     <Toro size={84} />
                     <T variant="tiny" color={colors.ink}>
-                      {data.group.name}
+                      {data.group?.name ?? 'Público'}
                     </T>
                   </View>
                   <View style={styles.champBody}>
@@ -82,7 +192,7 @@ export default function TournamentScreen() {
                       </T>
                     ) : (
                       <T variant="tiny" color={colors.ink} style={styles.plain}>
-                        {data.group.name}
+                        {data.group?.name ?? 'Público'}
                       </T>
                     )}
                     <View style={styles.pills}>
@@ -188,7 +298,7 @@ export default function TournamentScreen() {
                   </View>
                 </View>
               ) : null}
-              <Button label="Crear nuevo torneo" tone="ghost" onPress={() => push(`/torneo/nuevo?grupo=${data.group.id}`)} />
+              <Button label="Crear nuevo torneo" tone="ghost" onPress={() => data.group && push(`/torneo/nuevo?grupo=${data.group.id}`)} />
             </>
           );
         }}
@@ -250,6 +360,10 @@ function topScorer(matches: Match[], people: Record<string, { displayName: strin
 }
 
 const styles = StyleSheet.create({
+  manage: { gap: space.md },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  requests: { gap: space.sm },
+  requestRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   topRight: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   badge: { paddingHorizontal: 8, paddingVertical: 5 },
   champ: { flexDirection: 'row', minHeight: 150, overflow: 'hidden' },
