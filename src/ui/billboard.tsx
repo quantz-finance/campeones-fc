@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
   cromoText: { position: 'absolute', left: 20, top: 20, bottom: 18, width: 200 },
   cromoKicker: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   cromoLabel: { fontSize: 10, lineHeight: 13, letterSpacing: 1.3 },
-  cromoName: { fontSize: 44, lineHeight: 44, marginTop: 10, fontStyle: 'normal', letterSpacing: -1 },
+  cromoName: { fontSize: 44, lineHeight: 44, marginTop: 8, fontStyle: 'normal', letterSpacing: -1 },
   cromoSub: { fontSize: 18, lineHeight: 23, fontFamily: font.medium },
   cromoSocial: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 },
   cromoGrid: { flexDirection: 'row', gap: 4, marginTop: 'auto', borderTopWidth: 1, borderTopColor: 'rgba(241,210,122,0.35)', paddingTop: 10 },
