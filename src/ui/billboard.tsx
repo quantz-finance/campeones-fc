@@ -91,7 +91,7 @@ function useCardWidth() {
 // foto a la derecha fundida con el morado (cover centrado: una foto cuadrada se ve bien), número de serie = ranking,
 // grilla Elo · victorias · V-E-D y el ranking en dorado. Solo datos reales. Sin foto: iniciales en el mismo lugar.
 const GOLD = { hi: '#F1D27A', mid: '#D4AF37', lo: '#8A6A16' } as const;
-const CROMO = { h: 248, frame: 6, radius: 20, innerRadius: 15, photoW: 188 } as const;
+const CROMO = { h: 236, frame: 6, radius: 20, innerRadius: 15, photoW: 188 } as const;
 const cromoForm = { win: '#00FF87', draw: '#B99BC6', loss: '#FF4D8D' } as const;
 
 /** Estrella rellena de la maqueta (el ícono «estrella» del paquete es de trazo). */
@@ -614,13 +614,13 @@ const styles = StyleSheet.create({
   cromoText: { position: 'absolute', left: 20, top: 20, bottom: 18, width: 200 },
   cromoKicker: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   cromoLabel: { fontSize: 10, lineHeight: 13, letterSpacing: 1.3 },
-  cromoName: { fontSize: 44, lineHeight: 44, marginTop: 14, fontStyle: 'normal', letterSpacing: -1 },
+  cromoName: { fontSize: 44, lineHeight: 44, marginTop: 10, fontStyle: 'normal', letterSpacing: -1 },
   cromoSub: { fontSize: 18, lineHeight: 23, fontFamily: font.medium },
-  cromoSocial: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },
+  cromoSocial: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 },
   cromoGrid: { flexDirection: 'row', gap: 4, marginTop: 'auto', borderTopWidth: 1, borderTopColor: 'rgba(241,210,122,0.35)', paddingTop: 10 },
   cromoNum: { fontSize: 20, lineHeight: 20, fontStyle: 'normal', letterSpacing: -0.5 },
   cromoStatLabel: { fontSize: 9, lineHeight: 11, letterSpacing: 1.3, marginTop: 3 },
-  cromoFoot: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, minHeight: 14 },
+  cromoFoot: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, minHeight: 14 },
   cromoDelta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   cromoDeltaText: { fontSize: 11, lineHeight: 14, fontFamily: font.bold },
   cromoForm: { flexDirection: 'row', gap: 4 },
