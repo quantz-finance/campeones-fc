@@ -61,3 +61,16 @@ export async function shareTrophy(title: string) {
   }
   await Share.share({ message });
 }
+
+/** «Retar a …»: el mismo Share nativo con un texto de invitación (solo texto, sin retos en la app). */
+export async function shareChallenge(message: string) {
+  if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      await navigator.share({ title: branding.name, text: message });
+      return;
+    } catch {
+      return;
+    }
+  }
+  await Share.share({ message });
+}

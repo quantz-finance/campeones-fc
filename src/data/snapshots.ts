@@ -43,6 +43,8 @@ export type H2HSnapshot = {
   youRecord: SideRecord;
   opponentRecord: SideRecord;
   recent: Match[];
+  /** Todos los partidos confirmados de la serie, del más nuevo al más viejo. */
+  history: Match[];
   evolution: {
     matchId: string;
     at: string;

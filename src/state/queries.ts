@@ -64,6 +64,7 @@ export function routeQueries(
     case 'partido':
       return id ? [{ key: `match:${userId}:${id}`, deps: [...base, id], load: () => repo.matchSnapshot(id, userId) }] : [];
     case 'versus':
+    case 'historial':
       return id ? [{ key: `h2h:${userId}:${id}`, deps: [...base, id], load: () => repo.h2hSnapshot(userId, id) }] : [];
     case 'trofeos':
       return [

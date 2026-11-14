@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import { track } from '../../../lib/analytics';
 import { useApp } from '../../../state/app-provider';
@@ -21,7 +22,12 @@ export default function Play() {
   const groups = useQuery(() => repo.groupsSnapshot(userId!), [repo, userId, version], `groups:${userId}`);
   const recentRivals = useRecentPicks('rivals');
   const recentGroups = useRecentPicks('groups');
-  const [opponentId, setOpponentId] = useState<string | null>(null);
+  // «Registrar» desde Cara a cara llega con ?rival=<id>: el rival queda elegido.
+  const params = useLocalSearchParams<{ rival?: string }>();
+  const [opponentId, setOpponentId] = useState<string | null>(params.rival ? String(params.rival) : null);
+  useEffect(() => {
+    if (params.rival) setOpponentId(String(params.rival));
+  }, [params.rival]);
   const [groupId, setGroupId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

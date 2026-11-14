@@ -164,6 +164,7 @@ export function projectH2H(db: World, userId: string, opponentId: string): H2HSn
     youRecord: stats.you,
     opponentRecord: stats.them,
     recent: stats.recent,
+    history: stats.history,
     evolution: stats.evolution,
   };
 }

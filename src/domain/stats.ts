@@ -204,6 +204,8 @@ export function headToHead(allMatches: Match[], playerId: string, opponentId: st
     you,
     them,
     recent: chrono.slice().reverse().slice(0, 8),
+    /** La serie completa, del más nuevo al más viejo (para «Historial»). */
+    history: chrono.slice().reverse(),
     evolution,
   };
 }
