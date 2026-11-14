@@ -6,6 +6,8 @@ import type { PhotoKind, PhotoPayload } from '../lib/photos';
 import type { LogoKind } from '../content/crest-ids';
 import type { ReportDraft } from '../domain/types';
 import type { Match } from '../domain/types';
+import type { PublicGroupCard, PublicTournamentCard, MyTournamentCard, RegistrationTournamentInput } from './public-access';
+import type { JoinPolicy, Sponsor, Visibility } from './types';
 import type {
   BillboardSnapshot,
   FriendsSnapshot,
@@ -52,8 +54,26 @@ export type Repository = {
   personalSnapshot(me: string): Promise<PersonalSnapshot>;
   rankingSnapshot(me: string): Promise<RankingSnapshot>;
   groupsSnapshot(me: string): Promise<GroupSummary[]>;
+  searchPublicGroups(me: string, q?: string): Promise<PublicGroupCard[]>;
+  joinPublicGroup(me: string, groupId: string): Promise<void>;
+  requestGroupJoin(me: string, groupId: string): Promise<void>;
+  decideGroupJoin(me: string, requestId: string, approve: boolean): Promise<void>;
+  setGroupAccess(me: string, groupId: string, visibility: Visibility, joinPolicy: JoinPolicy): Promise<void>;
+  searchPublicTournaments(me: string, q?: string): Promise<PublicTournamentCard[]>;
+  myTournaments(me: string): Promise<MyTournamentCard[]>;
+  registerForTournament(me: string, tournamentId: string): Promise<void>;
+  requestTournamentJoin(me: string, tournamentId: string): Promise<void>;
+  decideTournamentJoin(me: string, requestId: string, approve: boolean): Promise<void>;
+  setTournamentAccess(
+    me: string,
+    tournamentId: string,
+    patch: { visibility: Visibility; joinPolicy: JoinPolicy; maxPlayers?: number | null; startsAt?: string | null },
+  ): Promise<void>;
+  createRegistrationTournament(input: RegistrationTournamentInput): Promise<{ id: string }>;
+  startTournament(me: string, tournamentId: string): Promise<void>;
+  visibleSponsor(me: string, placement: Sponsor['placement'], id?: string | null): Promise<Sponsor | null>;
   /** logo: id del set de escudos (opcional; si la base aún no tiene la columna, se ignora y queda el de por defecto). */
-  createGroup(me: string, name: string, memberIds: string[], logo?: string | null): Promise<{ id: string }>;
+  createGroup(me: string, name: string, memberIds: string[], logo?: string | null, access?: { visibility: Visibility; joinPolicy: JoinPolicy }): Promise<{ id: string }>;
   /** Elige el escudo (grupo) o trofeo (torneo) del set. Quita la foto subida. Solo dueño del grupo / creador del torneo. */
   setLogo(kind: LogoKind, targetId: string, logo: string, me: string): Promise<void>;
   groupSnapshot(groupId: string, me: string): Promise<GroupSnapshot>;

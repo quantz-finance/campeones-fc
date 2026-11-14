@@ -10,7 +10,7 @@ export function hideDemo(world: World, ids: DemoIds): World {
   const keptMatches = new Set(matches.map((m) => m.id));
   const groups = world.groups.filter((g) => !ids.groups.has(g.id));
   const keptGroups = new Set(groups.map((g) => g.id));
-  const tournaments = world.tournaments.filter((t) => !ids.tournaments.has(t.id) && keptGroups.has(t.groupId));
+  const tournaments = world.tournaments.filter((t) => !ids.tournaments.has(t.id) && (!t.groupId || keptGroups.has(t.groupId)));
   const keptTournaments = new Set(tournaments.map((t) => t.id));
   return {
     ...world,
@@ -23,6 +23,12 @@ export function hideDemo(world: World, ids: DemoIds): World {
     tournaments: tournaments.map((t) => ({ ...t, playerIds: t.playerIds.filter((p) => !u.has(p)) })),
     slots: world.slots.filter((s) => keptTournaments.has(s.tournamentId)),
     achievements: world.achievements.filter((a) => !u.has(a.userId) && (!a.refId || !ids.matches.has(a.refId))),
+    groupJoinRequests: (world.groupJoinRequests ?? []).filter((r) => keptGroups.has(r.groupId) && !u.has(r.userId)),
+    tournamentRegistrations: (world.tournamentRegistrations ?? []).filter((r) => keptTournaments.has(r.tournamentId) && !u.has(r.userId)),
+    tournamentJoinRequests: (world.tournamentJoinRequests ?? []).filter((r) => keptTournaments.has(r.tournamentId) && !u.has(r.userId)),
+    sponsors: (world.sponsors ?? []).filter((s) =>
+      (!s.groupId || keptGroups.has(s.groupId)) && (!s.tournamentId || keptTournaments.has(s.tournamentId))
+    ),
   };
 }
 

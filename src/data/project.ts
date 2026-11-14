@@ -269,16 +269,35 @@ export function projectGroup(db: World, groupId: string, userId: string): GroupS
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     people: people(db, memberIds),
     minMatches: rules.minMatchesForRanking,
+    joinRequests:
+      role === 'owner'
+        ? (db.groupJoinRequests ?? [])
+            .filter((item) => item.groupId === groupId && item.status === 'pending')
+            .map((item) => {
+              const user = db.users.find((row) => row.id === item.userId);
+              return user
+                ? { id: item.id, userId: item.userId, createdAt: item.createdAt, profile: toProfile(user) }
+                : null;
+            })
+            .filter((row): row is { id: string; userId: string; createdAt: string; profile: import('./types').Profile } => Boolean(row))
+        : [],
   };
 }
 
 export function projectTournament(db: World, tournamentId: string, userId: string): TournamentSnapshot {
   const tournament = db.tournaments.find((item) => item.id === tournamentId);
-  if (!tournament || !isMember(db, tournament.groupId, userId)) {
+  const registered = (db.tournamentRegistrations ?? []).some((r) => r.tournamentId === tournamentId && r.userId === userId);
+  const canSee =
+    Boolean(tournament) &&
+    (isMember(db, tournament!.groupId, userId) ||
+      tournament!.playerIds.includes(userId) ||
+      tournament!.createdBy === userId ||
+      registered ||
+      tournament!.visibility === 'public');
+  if (!tournament || !canSee) {
     throw new DomainError('not_found', 'No encontramos ese torneo.');
   }
-  const group = db.groups.find((item) => item.id === tournament.groupId);
-  if (!group) throw new DomainError('not_found', 'No encontramos el grupo del torneo.');
+  const group = tournament.groupId ? db.groups.find((item) => item.id === tournament.groupId) ?? null : null;
   const slots = db.slots
     .filter((slot) => slot.tournamentId === tournament.id)
     .slice()
@@ -289,6 +308,28 @@ export function projectTournament(db: World, tournamentId: string, userId: strin
     if (slot.playerAId) ids.add(slot.playerAId);
     if (slot.playerBId) ids.add(slot.playerBId);
   }
+  const isOrganizer = tournament.createdBy === userId;
+  const profileOf = (userId: string) => {
+    const user = db.users.find((row) => row.id === userId);
+    return user ? toProfile(user) : null;
+  };
+  const registrations = (db.tournamentRegistrations ?? [])
+    .filter((item) => item.tournamentId === tournament.id)
+    .map((item) => {
+      const profile = profileOf(item.userId);
+      return profile ? { userId: item.userId, registeredAt: item.registeredAt, profile } : null;
+    })
+    .filter((row): row is { userId: string; registeredAt: string; profile: import('./types').Profile } => Boolean(row));
+  for (const id of registrations.map((r) => r.userId)) ids.add(id);
+  const joinRequests = isOrganizer
+    ? (db.tournamentJoinRequests ?? [])
+        .filter((item) => item.tournamentId === tournament.id && item.status === 'pending')
+        .map((item) => {
+          const profile = profileOf(item.userId);
+          return profile ? { id: item.id, userId: item.userId, createdAt: item.createdAt, profile } : null;
+        })
+        .filter((row): row is { id: string; userId: string; createdAt: string; profile: import('./types').Profile } => Boolean(row))
+    : [];
   return {
     tournament,
     group,
@@ -296,6 +337,9 @@ export function projectTournament(db: World, tournamentId: string, userId: strin
     matches,
     people: people(db, ids),
     totalRounds: totalRounds(tournament.format, tournament.size ?? tournament.playerIds.length),
+    registrations,
+    joinRequests,
+    isOrganizer,
   };
 }
 
@@ -436,7 +480,7 @@ export function projectBillboard(db: World, userId: string, now: Date = new Date
       const known = (id: string | null) => (id && db.users.some((user) => user.id === id) ? person(db, id) : null);
       return {
         tournament: cup,
-        groupName: groupName.get(cup.groupId) ?? '',
+        groupName: (cup.groupId ? groupName.get(cup.groupId) : undefined) ?? '',
         played: games.length,
         lastAt,
         leader: known(leaderId),

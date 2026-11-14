@@ -17,7 +17,7 @@ export type AchievementTournament = {
   id: string;
   format: TournamentFormat;
   size: number | null;
-  status: 'in_progress' | 'completed';
+  status: 'registration' | 'in_progress' | 'completed';
   winnerId: string | null;
   playerIds: string[];
 };

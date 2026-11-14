@@ -55,7 +55,8 @@ export function acceptedFriendIds(db: World, userId: string): string[] {
   return ids;
 }
 
-export function isMember(db: World, groupId: string, userId: string): boolean {
+export function isMember(db: World, groupId: string | null | undefined, userId: string): boolean {
+  if (!groupId) return false;
   return db.groupMembers.some((member) => member.groupId === groupId && member.userId === userId);
 }
 
@@ -475,7 +476,7 @@ export function mutateCreateGroup(db: World, me: string, name: string, memberIds
   for (const id of unique) {
     if (!areFriends(db, me, id)) throw new DomainError('not_friend', 'Solo puedes sumar a tus amigos.');
   }
-  const group: Group = { id: createId(), name: trimmed, createdBy: me, createdAt: now.toISOString(), logo: isLogoId('groups', logo) ? logo : null };
+  const group: Group = { id: createId(), name: trimmed, createdBy: me, createdAt: now.toISOString(), logo: isLogoId('groups', logo) ? logo : null, visibility: 'private', joinPolicy: 'invite' };
   db.groups.push(group);
   const joinedAt = now.toISOString();
   db.groupMembers.push({ groupId: group.id, userId: me, role: 'owner', joinedAt });
@@ -528,6 +529,8 @@ export function mutateCreateTournament(
     createdAt: now.toISOString(),
     playerIds: [...input.playerIds],
     logo: isLogoId('tournaments', input.logo) ? input.logo : null,
+    visibility: 'private',
+    joinPolicy: 'invite',
   };
   const slots =
     input.format === 'single_elim'

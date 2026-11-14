@@ -28,12 +28,17 @@ import {
   type Achievement,
   type Friendship,
   type Group,
+  type GroupJoinRequest,
   type GroupMember,
   type Invite,
+  type Sponsor,
   type Tournament,
+  type TournamentJoinRequest,
+  type TournamentRegistration,
   type UserAccount,
   type World,
 } from './types';
+import { groupsHomeSponsor, myTournamentCards, oneSponsor, searchPublicGroups as searchPublicGroupsInWorld, searchPublicTournaments as searchPublicTournamentsInWorld, tournamentsHomeSponsor, visibleSponsors } from './public-access';
 
 type Row = Record<string, unknown>;
 
@@ -116,7 +121,7 @@ async function saveLogoSoft(kind: 'groups' | 'tournaments', id: string, logo: st
 
 async function pullWorld(userId: string): Promise<World> {
   const supabase = getSupabase();
-  const [profiles, friendships, matches, reports, groups, members, tournaments, slots, achievements, invites] =
+  const [profiles, friendships, matches, reports, groups, members, tournaments, slots, achievements, invites, groupReqs, cupRegs, cupReqs, sponsors] =
     await Promise.all([
       supabase.from('profiles').select('*'),
       supabase.from('friendships').select('*'),
@@ -128,9 +133,20 @@ async function pullWorld(userId: string): Promise<World> {
       supabase.from('tournament_slots').select('*'),
       supabase.from('achievements').select('*'),
       supabase.from('invite_links').select('*').eq('creator_id', userId),
+      supabase.from('group_join_requests').select('*'),
+      supabase.from('tournament_registrations').select('*'),
+      supabase.from('tournament_join_requests').select('*'),
+      supabase.from('sponsors').select('*'),
     ]);
+  function missingRelation(error: { code?: string; message?: string } | null): boolean {
+    if (!error) return false;
+    return error.code === '42P01' || error.code === 'PGRST205' || /does not exist|schema cache/i.test(error.message ?? '');
+  }
   for (const result of [profiles, friendships, matches, reports, groups, members, tournaments, slots, achievements, invites]) {
     fail(result.error);
+  }
+  for (const result of [groupReqs, cupRegs, cupReqs, sponsors]) {
+    if (result.error && !missingRelation(result.error)) fail(result.error);
   }
   const world = emptyWorld();
   world.users = ((profiles.data ?? []) as Row[]).map(mapUser);
@@ -165,6 +181,8 @@ async function pullWorld(userId: string): Promise<World> {
       photoUrl: asNullable(row.photo_url),
       // Sin la migración entity_logos la columna no viene: queda null y se usa el escudo por defecto.
       logo: asNullable(row.logo),
+      visibility: row.visibility === 'public' ? 'public' : 'private',
+      joinPolicy: row.join_policy === 'open' ? 'open' : 'invite',
     }),
   );
   world.groupMembers = ((members.data ?? []) as Row[]).map(
@@ -178,7 +196,7 @@ async function pullWorld(userId: string): Promise<World> {
   world.tournaments = ((tournaments.data ?? []) as Row[]).map(
     (row): Tournament => ({
       id: asString(row.id),
-      groupId: asString(row.group_id),
+      groupId: asString(row.group_id) || null,
       name: asString(row.name),
       format: asString(row.format) as Tournament['format'],
       size: asNumber(row.size),
@@ -189,6 +207,10 @@ async function pullWorld(userId: string): Promise<World> {
       playerIds: Array.isArray(row.player_ids) ? row.player_ids.map(asString) : [],
       photoUrl: asNullable(row.photo_url),
       logo: asNullable(row.logo),
+      visibility: row.visibility === 'public' ? 'public' : 'private',
+      joinPolicy: row.join_policy === 'open' ? 'open' : 'invite',
+      startsAt: asNullable(row.starts_at),
+      maxPlayers: asNumber(row.max_players),
     }),
   );
   world.slots = ((slots.data ?? []) as Row[]).map(
@@ -222,6 +244,51 @@ async function pullWorld(userId: string): Promise<World> {
       creatorId: asString(row.creator_id),
       createdAt: asString(row.created_at),
       expiresAt: asString(row.expires_at),
+    }),
+  );
+  world.groupJoinRequests = groupReqs.error ? [] : ((groupReqs.data ?? []) as Row[]).map(
+    (row): GroupJoinRequest => ({
+      id: asString(row.id),
+      groupId: asString(row.group_id),
+      userId: asString(row.user_id),
+      status: (asString(row.status) as GroupJoinRequest['status']) || 'pending',
+      createdAt: asString(row.created_at),
+      decidedAt: asNullable(row.decided_at),
+      decidedBy: asNullable(row.decided_by),
+    }),
+  );
+  world.tournamentRegistrations = cupRegs.error ? [] : ((cupRegs.data ?? []) as Row[]).map(
+    (row): TournamentRegistration => ({
+      tournamentId: asString(row.tournament_id),
+      userId: asString(row.user_id),
+      registeredAt: asString(row.registered_at),
+    }),
+  );
+  world.tournamentJoinRequests = cupReqs.error ? [] : ((cupReqs.data ?? []) as Row[]).map(
+    (row): TournamentJoinRequest => ({
+      id: asString(row.id),
+      tournamentId: asString(row.tournament_id),
+      userId: asString(row.user_id),
+      status: (asString(row.status) as TournamentJoinRequest['status']) || 'pending',
+      createdAt: asString(row.created_at),
+      decidedAt: asNullable(row.decided_at),
+      decidedBy: asNullable(row.decided_by),
+    }),
+  );
+  world.sponsors = sponsors.error ? [] : ((sponsors.data ?? []) as Row[]).map(
+    (row): Sponsor => ({
+      id: asString(row.id),
+      placement: asString(row.placement) as Sponsor['placement'],
+      groupId: asNullable(row.group_id),
+      tournamentId: asNullable(row.tournament_id),
+      name: asString(row.name),
+      kicker: asNullable(row.kicker),
+      body: asNullable(row.body),
+      cta: asNullable(row.cta),
+      href: asNullable(row.href),
+      imageUrl: asNullable(row.image_url),
+      prize: asNullable(row.prize),
+      size: row.size === 'tile' ? 'tile' : 'banner',
     }),
   );
   // Modo prueba apagado (default): sin jugadores, partidos, grupos ni torneos de demo.
@@ -443,13 +510,158 @@ export function createSupabaseRepository(): Repository {
     async groupsSnapshot(me) {
       return projectGroups(await worldFor(me), me);
     },
-    async createGroup(_me, name, memberIds, logo) {
+    async createGroup(_me, name, memberIds, logo, access) {
       const { data, error } = await supabase.rpc('create_group', { group_name: name, member_ids: memberIds });
       fail(error);
       const id = asString(data);
       if (logo) await saveLogoSoft('groups', id, logo);
+      if (access) {
+        const accessRes = await supabase.rpc('set_group_access', {
+          gid: id,
+          new_visibility: access.visibility,
+          new_join_policy: access.joinPolicy,
+        });
+        fail(accessRes.error);
+      }
       notify();
       return { id };
+    },
+    async searchPublicGroups(me, q) {
+      const { data, error } = await supabase.rpc('search_public_groups', { q: q ?? '' });
+      if (error) return searchPublicGroupsInWorld(await worldFor(me), me, q);
+      const rows = (data ?? []) as Row[];
+      const world = await worldFor(me);
+      const byId = new Map(world.groups.map((g) => [g.id, g]));
+      return rows.map((row) => {
+        const id = asString(row.id);
+        const joinPolicy = row.join_policy === 'open' ? 'open' as const : 'invite' as const;
+        const group = byId.get(id) ?? {
+          id,
+          name: asString(row.name),
+          createdBy: '',
+          createdAt: '',
+          logo: asNullable(row.logo),
+          photoUrl: asNullable(row.photo_url),
+          visibility: 'public' as const,
+          joinPolicy,
+        };
+        return {
+          group,
+          memberCount: asNumber(row.member_count) ?? 0,
+          joinPolicy,
+          requested: Boolean(row.requested),
+        };
+      });
+    },
+    async joinPublicGroup(_me, groupId) {
+      const { error } = await supabase.rpc('join_public_group', { gid: groupId });
+      fail(error);
+      notify();
+    },
+    async requestGroupJoin(_me, groupId) {
+      const { error } = await supabase.rpc('request_group_join', { gid: groupId });
+      fail(error);
+      notify();
+    },
+    async decideGroupJoin(_me, requestId, approve) {
+      const { error } = await supabase.rpc('decide_group_join', { request_id: requestId, approve });
+      fail(error);
+      notify();
+    },
+    async setGroupAccess(_me, groupId, visibility, joinPolicy) {
+      const { error } = await supabase.rpc('set_group_access', { gid: groupId, new_visibility: visibility, new_join_policy: joinPolicy });
+      fail(error);
+      notify();
+    },
+    async searchPublicTournaments(me, q) {
+      const { data, error } = await supabase.rpc('search_public_tournaments', { q: q ?? '' });
+      if (error) return searchPublicTournamentsInWorld(await worldFor(me), me, q);
+      const world = await worldFor(me);
+      const byId = new Map(world.tournaments.map((c) => [c.id, c]));
+      return ((data ?? []) as Row[]).map((row) => {
+        const id = asString(row.id);
+        const cup = byId.get(id) ?? {
+          id,
+          groupId: asString(row.group_id) || null,
+          name: asString(row.name),
+          format: (asString(row.format) === 'round_robin' ? 'round_robin' : 'single_elim') as 'single_elim' | 'round_robin',
+          size: asNumber(row.max_players),
+          status: (asString(row.status) as 'registration' | 'in_progress' | 'completed') || 'registration',
+          createdBy: '',
+          winnerId: null,
+          createdAt: '',
+          playerIds: [],
+          logo: asNullable(row.logo),
+          photoUrl: asNullable(row.photo_url),
+          visibility: 'public' as const,
+          joinPolicy: row.join_policy === 'invite' ? 'invite' as const : 'open' as const,
+          startsAt: asNullable(row.starts_at),
+          maxPlayers: asNumber(row.max_players),
+        };
+        return {
+          tournament: cup,
+          groupName: asNullable(row.group_name),
+          registeredCount: asNumber(row.registered_count) ?? 0,
+          requested: Boolean(row.requested),
+          registered: Boolean(row.registered),
+        };
+      });
+    },
+    async myTournaments(me) {
+      return myTournamentCards(await worldFor(me), me);
+    },
+    async registerForTournament(_me, tournamentId) {
+      const { error } = await supabase.rpc('register_for_tournament', { tid: tournamentId });
+      fail(error);
+      notify();
+    },
+    async requestTournamentJoin(_me, tournamentId) {
+      const { error } = await supabase.rpc('request_tournament_join', { tid: tournamentId });
+      fail(error);
+      notify();
+    },
+    async decideTournamentJoin(_me, requestId, approve) {
+      const { error } = await supabase.rpc('decide_tournament_join', { request_id: requestId, approve });
+      fail(error);
+      notify();
+    },
+    async setTournamentAccess(_me, tournamentId, patch) {
+      const { error } = await supabase.rpc('set_tournament_access', {
+        tid: tournamentId,
+        new_visibility: patch.visibility,
+        new_join_policy: patch.joinPolicy,
+        new_max_players: patch.maxPlayers ?? null,
+        new_starts_at: patch.startsAt ?? null,
+      });
+      fail(error);
+      notify();
+    },
+    async createRegistrationTournament(input) {
+      const { data, error } = await supabase.rpc('create_registration_tournament', {
+        tournament_name: input.name,
+        tournament_format: input.format,
+        cup_max_players: input.maxPlayers ?? (input.format === 'single_elim' ? 8 : 8),
+        cup_visibility: input.visibility,
+        cup_join_policy: input.joinPolicy,
+        cup_starts_at: input.startsAt ?? null,
+        cup_group_id: input.groupId ?? null,
+      });
+      fail(error);
+      const id = asString(data);
+      if (input.logo) await saveLogoSoft('tournaments', id, input.logo);
+      notify();
+      return { id };
+    },
+    async startTournament(_me, tournamentId) {
+      const { error } = await supabase.rpc('start_tournament', { tid: tournamentId });
+      fail(error);
+      notify();
+    },
+    async visibleSponsor(me, placement, id) {
+      const world = await worldFor(me);
+      if (placement === 'groups-list') return groupsHomeSponsor(world);
+      if (placement === 'tournaments-list') return tournamentsHomeSponsor(world);
+      return oneSponsor(visibleSponsors(world, placement, id));
     },
     async setLogo(kind, targetId, logo) {
       const { error } = await supabase.rpc('set_logo', { kind, target: targetId, logo });

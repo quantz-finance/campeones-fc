@@ -14,7 +14,7 @@ export type NewsInput = {
   actionCount: number;
   streak: Streak;
   leader?: { groupName: string; leaderName: string } | null;
-  tournaments?: { name: string; status: 'in_progress' | 'completed'; players: number; winnerName: string | null }[];
+  tournaments?: { name: string; status: 'registration' | 'in_progress' | 'completed'; players: number; winnerName: string | null }[];
 };
 
 export const genericNews = [

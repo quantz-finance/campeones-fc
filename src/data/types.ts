@@ -41,6 +41,11 @@ export type Invite = {
   expiresAt: string;
 };
 
+export type Visibility = 'private' | 'public';
+export type JoinPolicy = 'open' | 'invite';
+export type JoinRequestStatus = 'pending' | 'approved' | 'rejected';
+export type TournamentStatus = 'registration' | 'in_progress' | 'completed';
+
 export type Group = {
   id: string;
   name: string;
@@ -49,6 +54,9 @@ export type Group = {
   photoUrl?: string | null;
   /** Escudo elegido del set (id de GROUP_CRESTS). null/ausente = escudo por defecto según el id. */
   logo?: string | null;
+  /** Ausente o private = solo para miembros. */
+  visibility?: Visibility;
+  joinPolicy?: JoinPolicy;
 };
 
 export type GroupMember = {
@@ -60,11 +68,12 @@ export type GroupMember = {
 
 export type Tournament = {
   id: string;
-  groupId: string;
+  /** Null si el torneo público no cuelga de un grupo. */
+  groupId: string | null;
   name: string;
   format: TournamentFormat;
   size: number | null;
-  status: 'in_progress' | 'completed';
+  status: TournamentStatus;
   createdBy: string;
   winnerId: string | null;
   createdAt: string;
@@ -72,6 +81,46 @@ export type Tournament = {
   photoUrl?: string | null;
   /** Trofeo elegido del set (id de TOURNAMENT_TROPHIES). null/ausente = trofeo por defecto según el id. */
   logo?: string | null;
+  visibility?: Visibility;
+  joinPolicy?: JoinPolicy;
+  startsAt?: string | null;
+  maxPlayers?: number | null;
+};
+
+export type JoinRequest = {
+  id: string;
+  userId: string;
+  status: JoinRequestStatus;
+  createdAt: string;
+  decidedAt?: string | null;
+  decidedBy?: string | null;
+};
+
+export type GroupJoinRequest = JoinRequest & { groupId: string };
+export type TournamentJoinRequest = JoinRequest & { tournamentId: string };
+
+export type TournamentRegistration = {
+  tournamentId: string;
+  userId: string;
+  registeredAt: string;
+};
+
+export type SponsorPlacement = 'home' | 'group' | 'tournament' | 'groups-list' | 'tournaments-list';
+
+/** Patrocinio real (nunca se siembra en producción). El premio, si hay, es en especie. */
+export type Sponsor = {
+  id: string;
+  placement: SponsorPlacement;
+  groupId?: string | null;
+  tournamentId?: string | null;
+  name: string;
+  kicker?: string | null;
+  body?: string | null;
+  cta?: string | null;
+  href?: string | null;
+  imageUrl?: string | null;
+  prize?: string | null;
+  size?: 'banner' | 'tile';
 };
 
 export type Achievement = {
@@ -93,6 +142,10 @@ export type World = {
   tournaments: Tournament[];
   slots: Slot[];
   achievements: Achievement[];
+  groupJoinRequests: GroupJoinRequest[];
+  tournamentRegistrations: TournamentRegistration[];
+  tournamentJoinRequests: TournamentJoinRequest[];
+  sponsors: Sponsor[];
 };
 
 export function emptyWorld(): World {
@@ -107,6 +160,10 @@ export function emptyWorld(): World {
     tournaments: [],
     slots: [],
     achievements: [],
+    groupJoinRequests: [],
+    tournamentRegistrations: [],
+    tournamentJoinRequests: [],
+    sponsors: [],
   };
 }
 
@@ -132,4 +189,13 @@ export function isAvatarKey(value: string): value is AvatarKey {
     'fuego',
     'montana',
   ].includes(value);
+}
+
+
+export function visibilityOf(item: { visibility?: Visibility }): Visibility {
+  return item.visibility === 'public' ? 'public' : 'private';
+}
+
+export function joinPolicyOf(item: { joinPolicy?: JoinPolicy }): JoinPolicy {
+  return item.joinPolicy === 'open' ? 'open' : 'invite';
 }

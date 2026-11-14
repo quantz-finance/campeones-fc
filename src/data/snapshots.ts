@@ -93,15 +93,19 @@ export type GroupSnapshot = {
   tournaments: Tournament[];
   people: People;
   minMatches: number;
+  joinRequests: { id: string; userId: string; createdAt: string; profile: Profile }[];
 };
 
 export type TournamentSnapshot = {
   tournament: Tournament;
-  group: Group;
+  group: Group | null;
   slots: Slot[];
   matches: Match[];
   people: People;
   totalRounds: number;
+  registrations: { userId: string; registeredAt: string; profile: Profile }[];
+  joinRequests: { id: string; userId: string; createdAt: string; profile: Profile }[];
+  isOrganizer: boolean;
 };
 
 export type TrophyView = {

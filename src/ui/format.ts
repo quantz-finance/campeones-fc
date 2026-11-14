@@ -69,6 +69,33 @@ export function formatDay(iso: string | null | undefined): string {
   return new Intl.DateTimeFormat('es-CR', { day: 'numeric', month: 'short' }).format(new Date(at));
 }
 
+/** Sáb 28 nov · 9:00. Vacío si la fecha no es creíble. */
+export function formatEventWhen(iso: string | null | undefined): string {
+  const at = plausibleIso(iso);
+  if (!at) return '';
+  const raw = new Intl.DateTimeFormat('es-CR', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(at));
+  const cleaned = raw.replace(',', '').replace(/\s+/g, ' ').trim();
+  const marked = cleaned.replace(/(\d{1,2}:\d{2})/, '· $1');
+  return marked ? marked[0].toUpperCase() + marked.slice(1) : '';
+}
+
+export function slotsLine(registered: number, max: number | null | undefined): string {
+  if (max == null) return `${registered} inscritos`;
+  return `${registered}/${max} inscritos`;
+}
+
+export function tournamentStatusLabel(status: 'registration' | 'in_progress' | 'completed'): string {
+  if (status === 'registration') return 'Inscripciones abiertas';
+  if (status === 'completed') return 'Finalizado';
+  return 'En juego';
+}
+
 export function firstName(displayName: string): string {
   return displayName.trim().split(/\s+/)[0] || displayName;
 }

@@ -33,6 +33,25 @@ import {
   projectTournament,
 } from './project';
 import type { Repository } from './repository';
+import {
+  createRegistrationTournament as createRegistrationTournamentInWorld,
+  decideGroupJoin as decideGroupJoinInWorld,
+  decideTournamentJoin as decideTournamentJoinInWorld,
+  groupsHomeSponsor,
+  joinPublicGroup as joinPublicGroupInWorld,
+  myTournamentCards,
+  oneSponsor,
+  registerForTournament as registerForTournamentInWorld,
+  requestGroupJoin as requestGroupJoinInWorld,
+  requestTournamentJoin as requestTournamentJoinInWorld,
+  searchPublicGroups as searchPublicGroupsInWorld,
+  searchPublicTournaments as searchPublicTournamentsInWorld,
+  setGroupAccess as setGroupAccessInWorld,
+  setTournamentAccess as setTournamentAccessInWorld,
+  startTournament as startTournamentInWorld,
+  tournamentsHomeSponsor,
+  visibleSponsors,
+} from './public-access';
 import type { TrophyView } from './snapshots';
 import { toProfile, type Profile, type World } from './types';
 
@@ -151,11 +170,65 @@ export function createMemoryRepository(initial: World, options: MemoryOptions = 
     async groupsSnapshot(me) {
       return projectGroups(view(), me);
     },
-    createGroup(me, name, memberIds, logo) {
+    createGroup(me, name, memberIds, logo, access) {
       return commit((world, at) => {
         const group = mutateCreateGroup(world, me, name, memberIds, at, logo);
+        if (access) setGroupAccessInWorld(world, me, group.id, access.visibility, access.joinPolicy);
         return { id: group.id };
       });
+    },
+    searchPublicGroups(me, q) {
+      return Promise.resolve(searchPublicGroupsInWorld(view(), me, q));
+    },
+    joinPublicGroup(me, groupId) {
+      return commit((world, at) => joinPublicGroupInWorld(world, me, groupId, at));
+    },
+    requestGroupJoin(me, groupId) {
+      return commit((world, at) => {
+        requestGroupJoinInWorld(world, me, groupId, at);
+      });
+    },
+    decideGroupJoin(me, requestId, approve) {
+      return commit((world, at) => decideGroupJoinInWorld(world, me, requestId, approve, at));
+    },
+    setGroupAccess(me, groupId, visibility, joinPolicy) {
+      return commit((world) => setGroupAccessInWorld(world, me, groupId, visibility, joinPolicy));
+    },
+    searchPublicTournaments(me, q) {
+      return Promise.resolve(searchPublicTournamentsInWorld(view(), me, q));
+    },
+    myTournaments(me) {
+      return Promise.resolve(myTournamentCards(view(), me));
+    },
+    registerForTournament(me, tournamentId) {
+      return commit((world, at) => registerForTournamentInWorld(world, me, tournamentId, at));
+    },
+    requestTournamentJoin(me, tournamentId) {
+      return commit((world, at) => {
+        requestTournamentJoinInWorld(world, me, tournamentId, at);
+      });
+    },
+    decideTournamentJoin(me, requestId, approve) {
+      return commit((world, at) => decideTournamentJoinInWorld(world, me, requestId, approve, at));
+    },
+    setTournamentAccess(me, tournamentId, patch) {
+      return commit((world) => setTournamentAccessInWorld(world, me, tournamentId, patch));
+    },
+    createRegistrationTournament(input) {
+      return commit((world, at) => {
+        const cup = createRegistrationTournamentInWorld(world, input, at);
+        return { id: cup.id };
+      });
+    },
+    startTournament(me, tournamentId) {
+      return commit((world, at) => {
+        startTournamentInWorld(world, me, tournamentId, at);
+      });
+    },
+    async visibleSponsor(_me, placement, id) {
+      if (placement === 'groups-list') return groupsHomeSponsor(view());
+      if (placement === 'tournaments-list') return tournamentsHomeSponsor(view());
+      return oneSponsor(visibleSponsors(view(), placement, id));
     },
     async setLogo(kind, targetId, logo, me) {
       await commit((world) => mutateSetLogo(world, kind, targetId, logo, me));
