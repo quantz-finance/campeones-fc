@@ -14,3 +14,9 @@ describe('errores en español humano', () => {
     expect(humanError(new Error('Ese escudo no existe.'))).toBe('Ese escudo no existe.');
   });
 });
+
+describe('sin conexión', () => {
+  it('traduce el error de iOS sin internet', () => {
+    expect(humanError(new Error('Error: fetch failed: The Internet connection appears to be offline.'))).toMatch(/Sin conexión/);
+  });
+});

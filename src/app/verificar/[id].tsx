@@ -84,7 +84,9 @@ export default function VerifyScreen() {
       .then((v) => {
         if (!active) return;
         setData(v);
-        void runChecks(v).then((c) => active && setChecks(c));
+        void runChecks(v)
+          .then((c) => active && setChecks(c))
+          .catch(() => undefined);
         void verifySignatures(v)
           .then((s) => active && setSigs(s))
           .catch(() => active && setSigs({}));

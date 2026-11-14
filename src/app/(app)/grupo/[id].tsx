@@ -17,10 +17,11 @@ import { LogoEditor } from '../../../ui/logo-picker';
 import { push } from '../../../ui/nav';
 import { SearchEmpty, SearchField } from '../../../ui/search-field';
 import { matchesPerson } from '../../../domain/search';
+import { humanError } from '../../../ui/errors';
 
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { repo, userId, version } = useApp();
+  const { repo, userId, version, showFlash } = useApp();
   const query = useQuery(() => repo.groupSnapshot(String(id), userId!), [repo, userId, version, id]);
   const [search, setSearch] = useState('');
 
@@ -43,10 +44,15 @@ export default function GroupDetail() {
                     accessibilityRole="button"
                     accessibilityLabel="Invitar al grupo"
                     onPress={() => {
-                      void repo.createInvite(userId!).then((invite) => {
-                        void copyText(inviteUrl(invite.code));
-                        openWhatsApp(invite.code);
-                      });
+                      repo
+                        .createInvite(userId!)
+                        .then((invite) => {
+                          void copyText(inviteUrl(invite.code));
+                          openWhatsApp(invite.code);
+                        })
+                        .catch((cause: unknown) => {
+                          showFlash({ id: `invite-error-${Date.now()}`, title: 'No se pudo crear la invitación', body: humanError(cause), tone: 'danger' });
+                        });
                     }}
                   >
                     <SkewBlock color={colors.yellow} shadow={colors.red} padH={10} padV={6} angle="-8deg">

@@ -14,6 +14,8 @@ import { CavosLoader } from '../lib/cavos/loader';
 import { cavosLogout } from '../lib/cavos/session';
 import { cavosConfigured } from '../lib/cavos/config';
 import { cavosStore } from '../lib/cavos/store';
+import { isNetworkError } from '../domain/errors';
+import { reportError } from '../lib/analytics';
 
 export type Flash = { id: string; title: string; body?: string; href?: string; tone?: 'accent' | 'danger' };
 
@@ -36,6 +38,9 @@ type AppValue = {
   signInTestUser: () => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => void;
+  /** Sin conexión con el servidor: la UI muestra un aviso y se reintenta sola al volver la red. */
+  offline: boolean;
+  retry: () => void;
 };
 
 const AppContext = createContext<AppValue | null>(null);
@@ -49,6 +54,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [version, setVersion] = useState(0);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [flash, setFlash] = useState<Flash | null>(null);
+  const [offline, setOffline] = useState(false);
+
+  // Cada carga de fondo pasa por aquí: una falla de red solo enciende el aviso «Sin conexión»
+  // (nunca un error sin atrapar ni un cierre de sesión); cualquier otra falla se reporta.
+  const onBackgroundError = useCallback((cause: unknown, where: string) => {
+    if (isNetworkError(cause)) setOffline(true);
+    else reportError(cause, { where });
+  }, []);
 
   useEffect(() => {
     initAnalytics();
@@ -68,11 +81,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     const supabase = getSupabase();
-    void supabase.auth.getSession().then(({ data }) => {
-      if (!active) return;
-      setUserId(data.session?.user.id ?? null);
-      setReady(true);
-    });
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!active) return;
+        setUserId(data.session?.user.id ?? null);
+        setReady(true);
+      })
+      .catch((cause: unknown) => {
+        if (!active) return;
+        onBackgroundError(cause, 'get_session');
+        setReady(true);
+      });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserId(session?.user.id ?? null);
       setReady(true);
@@ -81,7 +101,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       active = false;
       data.subscription.unsubscribe();
     };
-  }, [mode, repo]);
+  }, [mode, repo, onBackgroundError]);
 
   useEffect(() => {
     if (!repo || !userId) {
@@ -89,13 +109,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     let active = true;
-    void repo.getProfile(userId).then((next) => {
-      if (active) setProfile(next);
-    });
+    repo
+      .getProfile(userId)
+      .then((next) => {
+        if (!active) return;
+        setProfile(next);
+        setOffline(false);
+      })
+      .catch((cause: unknown) => {
+        // Se queda el perfil que ya había: sin red no se borra nada ni se cierra la sesión.
+        if (active) onBackgroundError(cause, 'get_profile');
+      });
     return () => {
       active = false;
     };
-  }, [repo, userId, version]);
+  }, [repo, userId, version, onBackgroundError]);
 
   useEffect(() => {
     if (!repo || !userId) {
@@ -108,7 +136,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .then((next) => {
         if (active) setNotices(next);
       })
-      .catch(() => undefined);
+      .catch((cause: unknown) => {
+        if (active && isNetworkError(cause)) setOffline(true);
+      });
     return () => {
       active = false;
     };
@@ -167,10 +197,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!repo || !userId) return;
-    void repo.expireStale();
-    const timer = setInterval(() => void repo.expireStale(), 30_000);
+    const expire = () => {
+      repo.expireStale().catch((cause: unknown) => onBackgroundError(cause, 'expire_stale'));
+    };
+    expire();
+    const timer = setInterval(expire, 30_000);
     return () => clearInterval(timer);
-  }, [repo, userId]);
+  }, [repo, userId, onBackgroundError]);
+
+  const retry = useCallback(() => {
+    if (!repo) return;
+    repo.invalidate();
+    setVersion((current) => current + 1);
+  }, [repo]);
+
+  // Sin conexión: reintenta cada 5 s, al volver a la app y (web) cuando el navegador recupera la red.
+  // El aviso se apaga en cuanto el perfil vuelve a cargar.
+  useEffect(() => {
+    if (!offline) return;
+    const timer = setInterval(retry, 5_000);
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') retry();
+    });
+    const web = Platform.OS === 'web' && typeof window !== 'undefined';
+    if (web) window.addEventListener('online', retry);
+    return () => {
+      clearInterval(timer);
+      sub.remove();
+      if (web) window.removeEventListener('online', retry);
+    };
+  }, [offline, retry]);
 
   useEffect(() => {
     if (!repo || !userId) return;
@@ -247,12 +303,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         writeDemoSession(null);
         setUserId(null);
         setProfile(null);
+        setOffline(false);
       },
       refresh() {
         setVersion((current) => current + 1);
       },
+      offline,
+      retry,
     };
-  }, [flash, markNoticesRead, mode, notices, profile, ready, repo, userId, version]);
+  }, [flash, markNoticesRead, mode, notices, offline, profile, ready, repo, retry, userId, version]);
 
   if (mode === 'invalid' || !value) {
     return <InvalidEnv />;

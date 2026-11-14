@@ -5,6 +5,8 @@ import { branding } from '../../config/branding';
 export const en: Record<string, string> = {
   [branding.disclaimer]: branding.disclaimerEn,
   "Reintentar": "Retry",
+  "No se pudo crear la invitación": "Couldn't create the invite",
+  "Sin conexión. Revisa tu internet.": "Offline. Check your internet.",
   "Términos de uso": "Terms of use",
   "Aviso de privacidad": "Privacy notice",
   "Borrador": "Draft",

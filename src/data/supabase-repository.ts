@@ -3,7 +3,7 @@ import { projectPublicPlayer } from './public-player';
 import { cleanSocialLinks } from '../domain/social';
 import { hideDemo, joinDemo } from './demo-filter';
 import { trophyCatalog } from '../content/trophies';
-import { DomainError } from '../domain/errors';
+import { DomainError, remoteError } from '../domain/errors';
 import type { Match, MatchReport, ReportDraft, Slot } from '../domain/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabase } from '../lib/supabase';
@@ -53,7 +53,7 @@ function asBool(value: unknown): boolean {
 }
 
 function fail(error: { message: string } | null): void {
-  if (error) throw new DomainError('remote', error.message);
+  if (error) throw remoteError(error.message);
 }
 
 function mapUser(row: Row): UserAccount {
