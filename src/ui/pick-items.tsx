@@ -28,7 +28,7 @@ export function groupItem(item: GroupSummary): PickItem {
   return {
     id: g.id,
     title: g.name,
-    detail: `${item.memberCount} jugadores${item.yourPlace ? ` · vas ${item.yourPlace}º` : ''}`,
+    detail: `${item.memberCount === 1 ? '1 jugador' : `${item.memberCount} jugadores`}${item.yourPlace ? ` · vas ${item.yourPlace}º` : ''}`,
     short: g.name,
     media: (size) => <Shield letters={monogram(g.name)} photoUrl={g.photoUrl} kind="groups" id={g.id} logo={g.logo} size={size} />,
     matches: (q) => matchesText(q, g.name),

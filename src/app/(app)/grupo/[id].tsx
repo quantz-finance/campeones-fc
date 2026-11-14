@@ -41,7 +41,7 @@ export default function GroupDetail() {
               <Top
                
                 title={data.group.name}
-                kicker={`${data.members.length} jugadores · ${matchesPlayed} partidos`}
+                kicker={`${data.members.length === 1 ? '1 jugador' : `${data.members.length} jugadores`} · ${matchesPlayed === 1 ? '1 partido' : `${matchesPlayed} partidos`}`}
                 back
                 right={
                   <Pressable
